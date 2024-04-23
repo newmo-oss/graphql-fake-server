@@ -14,14 +14,17 @@ function isObjectTypeInfo(x: TypeInfo): x is ObjectTypeInfo {
 describe('getTypeInfos', () => {
   it('returns typename and field names', () => {
     const schema = buildSchema(`
+      scalar examples__JSON
+      directive @example(value: examples__JSON) on FIELD_DEFINITION
       type Book {
         id: ID!
-        title: String!
+        title: String! @example(value: "title")
         author: Author!
       }
       type Author {
-        id: ID!
-        name: String!
+        id: ID! @example(value: "id")
+        name: String! @example(value: "name")
+        " comment "
         books: [Book!]!
       }
     `);

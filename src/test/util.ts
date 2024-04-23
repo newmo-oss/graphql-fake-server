@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { convertFactory } from '@graphql-codegen/visitor-plugin-common';
-import { Config } from '../config.js';
+import { Config, DefaultValues } from '../config.js';
 
 export function oneOf<const T>(items: T[]): T {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -16,6 +16,7 @@ export function fakeConfig(args: Partial<Config> = {}): Config {
     typesPrefix: '',
     typesSuffix: '',
     convert: convertFactory({}),
+    defaultValues: DefaultValues,
     ...args,
   };
 }

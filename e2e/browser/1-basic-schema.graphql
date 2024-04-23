@@ -1,10 +1,13 @@
+scalar examples__JSON
+directive @example(value: examples__JSON) on FIELD_DEFINITION
 type Book {
-  id: ID!
-  title: String!
-  author: Author!
+    id: ID!
+    title: String! @example(value: "The Great Gatsby")
+    author: Author!
 }
 type Author {
-  id: ID!
-  name: String!
-  books: [Book!]!
+    id: ID! @example(value: "id1")
+    name: String! @example(value: "F. Scott Fitzgerald")
+    age: Int! @example(value: 33)
+    books: [Book!]!
 }
