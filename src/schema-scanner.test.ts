@@ -1,7 +1,7 @@
 // NOTE: To avoid `Cannot use GraphQLSchema xxx from another module or realm.`, import from 'graphql/index.js' instead of 'graphql'.
 // ref: https://github.com/graphql/graphql-js/issues/1479
 import { convertFactory } from '@graphql-codegen/visitor-plugin-common';
-import { buildSchema } from 'graphql/index.js';
+import { buildSchema } from 'graphql';
 import { describe, expect, it } from 'vitest';
 import { Config } from './config.js';
 import { ObjectTypeInfo, TypeInfo, getTypeInfos } from './schema-scanner.js';
@@ -32,44 +32,48 @@ describe('getTypeInfos', () => {
     expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
       [
         {
-          "comment": undefined,
           "fields": [
             {
-              "comment": undefined,
+              "example": {
+                "expression": ""xxxx-xxxx-xxxx-xxxx"",
+              },
               "name": "id",
-              "typeString": "Book['id'] | undefined",
             },
             {
-              "comment": undefined,
+              "example": {
+                "value": "title",
+              },
               "name": "title",
-              "typeString": "Book['title'] | undefined",
             },
             {
-              "comment": undefined,
+              "example": {
+                "expression": "EXAMPLE_Author",
+              },
               "name": "author",
-              "typeString": "OptionalAuthor | undefined",
             },
           ],
           "name": "Book",
           "type": "object",
         },
         {
-          "comment": undefined,
           "fields": [
             {
-              "comment": undefined,
+              "example": {
+                "value": "id",
+              },
               "name": "id",
-              "typeString": "Author['id'] | undefined",
             },
             {
-              "comment": undefined,
+              "example": {
+                "value": "name",
+              },
               "name": "name",
-              "typeString": "Author['name'] | undefined",
             },
             {
-              "comment": undefined,
+              "example": {
+                "expression": "Array.from({ length: 3 }).map(() => EXAMPLE_Book)",
+              },
               "name": "books",
-              "typeString": "OptionalBook[] | undefined",
             },
           ],
           "name": "Author",

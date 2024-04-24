@@ -14,47 +14,6 @@ ${joinedTypeNames},
     return `${code}\n`;
 }
 
-export function generateOptionalTypeDefinitionCode(typeInfo: TypeInfo): string {
-    if (typeInfo.type === 'object') {
-        const { name, fields } = typeInfo;
-        const comment = typeInfo.comment ?? '';
-        const joinedPropDefinitions = fields
-            .map((field) => {
-                const comment = field.comment ? `  ${field.comment}` : '';
-                return `${comment}  ${field.name}?: ${field.typeString};`;
-            })
-            .join('\n');
-        return `
-${comment}export type Optional${name} = {
-${joinedPropDefinitions}
-};
-`.trimStart();
-    } else {
-        const { name, possibleTypes } = typeInfo;
-        const comment = typeInfo.comment ?? '';
-        const joinedPossibleTypes = possibleTypes.map((type) => `Optional${type}`).join(' | ');
-        return `
-${comment}export type Optional${name} = ${joinedPossibleTypes};
-`.trimStart();
-    }
-}
-
-function generateTypeFactoryCode({ nonOptionalDefaultFields }: Config, typeInfo: ObjectTypeInfo): string {
-    const { name } = typeInfo;
-    return `
-/**
- * Define factory for {@link ${name}} model.
- *
- * @param options
- * @returns factory {@link ${name}FactoryInterface}
- */
-export const define${name}Factory: DefineTypeFactoryInterface${nonOptionalDefaultFields ? 'Required' : ''}<
-  Optional${name},
-  {}
-> = defineTypeFactory;
-`.trimStart();
-}
-
 const handleExample = (exampleDirective: ExampleDirective): string => {
     if ("value" in exampleDirective) {
         return JSON.stringify(exampleDirective.value);
@@ -63,6 +22,7 @@ const handleExample = (exampleDirective: ExampleDirective): string => {
     }
     throw new Error(`Invalid example directive${JSON.stringify(exampleDirective)}`);
 }
+
 
 function generateExampleCode(config: Config, typeInfo: ObjectTypeInfo): string {
     const { name } = typeInfo;

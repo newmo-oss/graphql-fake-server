@@ -16,14 +16,8 @@ import {
     UnionTypeDefinitionNode,
 } from 'graphql';
 import { Config } from './config.js';
-
+import{runCli} from "@graphql-codegen/cli"
 // The fork of https://github.com/dotansimha/graphql-code-generator/blob/e1dc75f3c598bf7f83138ca533619716fc73f823/packages/plugins/typescript/resolvers/src/visitor.ts#L85-L91
-function clearOptional(str: string): string {
-    if (str.startsWith('Maybe')) {
-        return str.replace(/Maybe<(.*?)>$/u, '$1');
-    }
-    return str;
-}
 
 // The fork of https://github.com/dotansimha/graphql-code-generator/blob/ba84a3a2758d94dac27fcfbb1bafdf3ed7c32929/packages/plugins/other/visitor-plugin-common/src/base-visitor.ts#L422
 function convertName(node: ASTNode | string, config: Config): string {
@@ -32,26 +26,6 @@ function convertName(node: ASTNode | string, config: Config): string {
     convertedName += config.convert(node);
     convertedName += config.typesSuffix;
     return convertedName;
-}
-
-function isTypeBasedOnUserDefinedType(node: TypeNode, userDefinedTypeNames: string[]): boolean {
-    if (node.kind === Kind.NON_NULL_TYPE) {
-        return isTypeBasedOnUserDefinedType(node.type, userDefinedTypeNames);
-    } else if (node.kind === Kind.LIST_TYPE) {
-        return isTypeBasedOnUserDefinedType(node.type, userDefinedTypeNames);
-    } else {
-        return userDefinedTypeNames.includes(node.name.value);
-    }
-}
-
-function parseTypeNode(node: TypeNode, config: Config): string {
-    if (node.kind === Kind.NON_NULL_TYPE) {
-        return clearOptional(parseTypeNode(node.type, config));
-    } else if (node.kind === Kind.LIST_TYPE) {
-        return `Maybe<${parseTypeNode(node.type, config)}[]>`;
-    } else {
-        return `Maybe<Optional${convertName(node.name.value, config)}>`;
-    }
 }
 
 const parseTypeNodeStructure = (node: TypeNode): string => {
@@ -183,81 +157,64 @@ function parseFieldOrInputValueDefinition(
     node: FieldDefinitionNode | InputValueDefinitionNode,
     convertedTypeName: string,
     config: Config,
-    userDefinedTypeNames: string[],
-): { typeString: string; comment: string | undefined, example?: ExampleDirective | undefined } {
-    const comment = node.description ? transformComment(node.description) : undefined;
+): { example?: ExampleDirective | undefined } {
     const exampleDirective = node.directives?.find(d => d.name.value === "example");
     // fake
-    const example = ((): ExampleDirective | undefined => {
-        // if @example directive is not found, return random value for the scalar type
-        if (!exampleDirective) {
-            return nodeToExpression({ currentNode: node.type, config });
-        }
-        if (!exampleDirective.arguments) {
-            throw new Error("@example directive must have arguments")
-        }
-        /**
-         * @example(value: "value")
-         * -> { value: "value" }
-         */
-        const value = exampleDirective.arguments.find(a => a.name.value === "value");
-        if (value) {
-            // if node type is not equal to the value type, throw an error
-            const rawValue = valueOf(value.value);
-            const nodeType = parseTypeNodeStructure(node.type);
-            const fieldName = node.name.value;
-            // array, object, string, number, boolean, null
-            const rawValueType = Object.prototype.toString.call(rawValue).slice(8, -1).toLowerCase();
-            if (nodeType !== rawValueType) {
-                throw new Error(`${convertedTypeName}.${fieldName}: @example directive value type must be ${nodeType}. @example(value: ${nodeType})`)
-            }
-            return { value: rawValue }
-        }
-        throw new Error(`@example directive must have value argument. @example(value: "value")`)
-    })();
-    if (isTypeBasedOnUserDefinedType(node.type, userDefinedTypeNames)) {
-        return { typeString: `${parseTypeNode(node.type, config)} | undefined`, comment, example };
-    } else {
-        return { typeString: `${convertedTypeName}['${node.name.value}'] | undefined`, comment, example };
+    // if @example directive is not found, return random value for the scalar type
+    if (!exampleDirective) {
+        return {
+            example: nodeToExpression({ currentNode: node.type, config })
+        };
     }
+    if (!exampleDirective.arguments) {
+        throw new Error("@example directive must have arguments")
+    }
+    /**
+     * @example(value: "value")
+     * -> { value: "value" }
+     */
+    const value = exampleDirective.arguments.find(a => a.name.value === "value");
+    if (value) {
+        // if node type is not equal to the value type, throw an error
+        const rawValue = valueOf(value.value);
+        const nodeType = parseTypeNodeStructure(node.type);
+        const fieldName = node.name.value;
+        // array, object, string, number, boolean, null
+        const rawValueType = Object.prototype.toString.call(rawValue).slice(8, -1).toLowerCase();
+        if (nodeType !== rawValueType) {
+            throw new Error(`${convertedTypeName}.${fieldName}: @example directive value type must be ${nodeType}. @example(value: ${nodeType})`)
+        }
+        return { example: { value: rawValue } }
+    }
+    throw new Error(`@example directive must have value argument. @example(value: "value")`)
 }
 
 function parseObjectTypeOrInputObjectTypeDefinition(
     node: ObjectTypeDefinitionNode | InputObjectTypeDefinitionNode,
     config: Config,
-    userDefinedTypeNames: string[],
-    getAbstractTypeNames: (type: ObjectTypeDefinitionNode) => string[],
 ): ObjectTypeInfo {
     const originalTypeName = node.name.value;
     const convertedTypeName = convertName(originalTypeName, config);
-    const comment = node.description ? transformComment(node.description) : undefined;
-    const abstractTypeNames = node.kind === Kind.OBJECT_TYPE_DEFINITION ? getAbstractTypeNames(node) : [];
     return {
         type: 'object',
         name: convertedTypeName,
         fields: [
-            ...(!config.skipTypename ? [{ name: '__typename', typeString: `'${originalTypeName}'` }] : []),
-            ...(!config.skipIsAbstractType
-                ? abstractTypeNames.map((name) => ({ name: `__is${name}`, typeString: `'${originalTypeName}'` }))
-                : []),
             ...(node.fields ?? []).map((field) => ({
                 name: field.name.value,
-                ...parseFieldOrInputValueDefinition(field, convertedTypeName, config, userDefinedTypeNames),
+                ...parseFieldOrInputValueDefinition(field, convertedTypeName, config),
             })),
         ],
-        comment,
     };
 }
 
 type FieldInfo = {
-    name: string; typeString: string; comment?: string | undefined;
+    name: string;
     example?: ExampleDirective | undefined;
 }
 export type ObjectTypeInfo = {
     type: 'object';
     name: string;
     fields: FieldInfo[];
-    comment?: string | undefined;
 };
 export type AbstractTypeInfo = {
     type: 'abstract';
@@ -294,22 +251,6 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
         if (!node) return false;
         return node.kind === Kind.OBJECT_TYPE_DEFINITION;
     });
-    const unionTypeDefinitions = types
-        .map((type) => type.astNode)
-        .filter((node): node is UnionTypeDefinitionNode => {
-            if (!node) return false;
-            return node.kind === Kind.UNION_TYPE_DEFINITION;
-        });
-
-    function getAbstractTypeNames(type: ObjectTypeDefinitionNode): string[] {
-        const interfaceNames = (type.interfaces ?? []).map((i) => i.name.value);
-        const unionNames = unionTypeDefinitions
-            .filter((union) => (union.types ?? []).some((member) => member.name.value === type.name.value))
-            .map((union) => union.name.value);
-        return [...interfaceNames, ...unionNames];
-    }
-
-    const userDefinedTypeNames = userDefinedTypeDefinitions.map((node) => node.name.value);
 
     return types
         .map((type) => type.astNode)
@@ -332,7 +273,7 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
         )
         .map((node) => {
             if (node?.kind === Kind.OBJECT_TYPE_DEFINITION || node?.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION) {
-                return parseObjectTypeOrInputObjectTypeDefinition(node, config, userDefinedTypeNames, getAbstractTypeNames);
+                return parseObjectTypeOrInputObjectTypeDefinition(node, config);
             } else if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {
                     type: 'abstract',
