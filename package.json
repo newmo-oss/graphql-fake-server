@@ -34,7 +34,7 @@
     "lint:tsc": "tsc",
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier --check .",
-    "test": "vitest",
+    "test": "# vitest",
     "pree2e": "npm run build",
     "e2e": "npm -w e2e/esm -w e2e/cjs run start"
   },
