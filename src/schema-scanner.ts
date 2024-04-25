@@ -273,10 +273,6 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
         )
         .map((node) => {
             if (node?.kind === Kind.OBJECT_TYPE_DEFINITION || node?.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION) {
-                console.log({
-                    before: node.name.value,
-                    after: convertName(node.name.value, config)
-                })
                 return parseObjectTypeOrInputObjectTypeDefinition(node, config);
             } else if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {
