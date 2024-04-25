@@ -126,7 +126,7 @@ const typeToFunction = (type: string, config: Config, idFactory: ReturnType<type
         case "Boolean":
             return `${config.defaultValues.Boolean ? "true" : "false"}`
         case "ID":
-            return `"${config.defaultValues.ID}${idFactory(config.defaultValues.ID)}"`
+            return `"${idFactory(config.defaultValues.ID)}"`
         default:
             // reference to the object
             return `${type}`;
@@ -226,8 +226,9 @@ function parseFieldOrInputValueDefinition(
     }
     // if ID type, add idFactory() to the value
     // e.g. @exampleID(value: "id") -> { value: "id1" }
-    const exmpleValue = isIdType(node.type) && typeof rawValue === "string" ? `${rawValue}${idFactory(rawValue)}` : rawValue;
-    return { example: { value: exmpleValue } }
+    const isExampleIdDirective = exampleDirective.name.value === "exampleID";
+    const exampleValue = isExampleIdDirective && typeof rawValue === "string" ? `${idFactory(rawValue)}` : rawValue;
+    return { example: { value: exampleValue } }
 }
 
 function parseObjectTypeOrInputObjectTypeDefinition(
