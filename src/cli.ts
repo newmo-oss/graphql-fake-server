@@ -25,6 +25,11 @@ const { positionals, values } = parseArgs({
             description: "Port to run the server on",
             default: "5858",
         },
+        verbose: {
+            type: "boolean",
+            description: "Verbose output",
+            default: false
+        }
     }
 });
 if (!positionals.length) {
@@ -73,14 +78,18 @@ try {
         typesFile: "types.ts",
     });
     const typeInfos = getTypeInfos(normalizedConfig, schema);
-    console.log(typeInfos)
     const code = generateCode(normalizedConfig, typeInfos);
-    console.log(code);
+    if (values.verbose) {
+        console.info("Generated code:");
+        console.info(code);
+    }
     // execute code in vm and get all exports
     const exports = {};
     vm.runInNewContext(code, { exports });
-    console.log(exports);
-
+    if (values.verbose) {
+        console.info("Exports:");
+        console.info(exports);
+    }
     await startFakeServer({
         schema,
         mockObject: exports
