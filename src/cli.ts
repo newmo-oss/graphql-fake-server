@@ -22,9 +22,8 @@ const { positionals, values } = parseArgs({
         // --port
         port: {
             type: "string",
-            alias: "p",
             description: "Port to run the server on",
-            default: "5858",
+            default: "4000",
         },
         verbose: {
             type: "boolean",
