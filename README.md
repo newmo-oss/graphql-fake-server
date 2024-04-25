@@ -11,7 +11,66 @@ GraphQL Fake Server.
   
 ## Installation
 
-- [ ] Describe the installation process
+1. Add `@exampleID`, `@exampleString`, `@exampleInt`, `@exampleFloat`, `@exampleBoolean` directive to your schema.
+
+```graphql
+"""
+@exampleID directive specifies an example value for a ID field.
+This example value is used in the fake data.
+ID value will be unique between all ID fake data.
+"""
+directive @exampleID(
+  """
+  The value of the ID field.
+  @exampleID(value: "id")
+  """
+  value: ID!
+) on FIELD_DEFINITION
+"""
+@exampleString directive specifies an example value for a String field.
+This example value is used in the fake data.
+"""
+directive @exampleString(
+  """
+  The value of the String field.
+  @exampleString(value: "example")
+  """
+  value: String!
+) on FIELD_DEFINITION
+"""
+@exampleInt directive specifies an example value for a Inf field.
+This example value is used in the fake data.
+"""
+directive @exampleInt(
+  """
+  The value of the Int field.
+  @exampleInt(value: 1)
+  """
+  value: Int!
+) on FIELD_DEFINITION
+"""
+@exampleFloat directive specifies an example value for a Float field.
+This example value is used in the fake data.
+"""
+directive @exampleFloat(
+  """
+  The value of the Float field.
+  @exampleFloat(value: 1.0)
+  """
+  value: Float!
+) on FIELD_DEFINITION
+"""
+@exampleBoolean directive specifies an example value for a Boolean field.
+This example value is used in the fake data.
+"""
+directive @exampleBoolean(
+  """
+  The value of the Boolean field.
+  @exampleBoolean(value: true)
+  """
+  value: Boolean!
+) on FIELD_DEFINITION
+```
 
 ## Usage
 

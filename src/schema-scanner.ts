@@ -27,6 +27,15 @@ function convertName(node: ASTNode | string, config: Config): string {
     return convertedName;
 }
 
+const createIDFactory = () => {
+    const idMap = new Map<string, number>();
+    return (name: string) => {
+        const count = idMap.get(name) ?? 0;
+        idMap.set(name, count + 1);
+        return `${name}${count}`;
+    }
+}
+
 const parseTypeNodeStructure = (node: TypeNode): string => {
     if (node.kind === Kind.NON_NULL_TYPE) {
         return parseTypeNodeStructure(node.type);
@@ -106,7 +115,7 @@ function valueOf(value: ConstValueNode): ValuePrimitive | ValueArray | ValueObje
     throw new Error(`Unknown kind of value ${value satisfies never}`)
 }
 
-const typeToFunction = (type: string, config: Config): string => {
+const typeToFunction = (type: string, config: Config, idFactory: ReturnType<typeof createIDFactory>): string => {
     switch (type) {
         case "String":
             return `"${config.defaultValues.String}"`
@@ -117,81 +126,116 @@ const typeToFunction = (type: string, config: Config): string => {
         case "Boolean":
             return `${config.defaultValues.Boolean ? "true" : "false"}`
         case "ID":
-            return `"${config.defaultValues.ID}"`
+            return `"${config.defaultValues.ID}${idFactory(config.defaultValues.ID)}"`
         default:
             // reference to the object
             return `${type}`;
     }
 }
-const typeToFunctionWithArray = (type: string, config: Config): string => {
-    return `Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction(type, config)})`
+const typeToFunctionWithArray = (type: string, config: Config, idFactory: ReturnType<typeof createIDFactory>): string => {
+    return `Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction(type, config, idFactory)})`
 }
 // NamedType/ListType handling
-const nodeToExpression = ({ currentNode, isArray = false, config }: {
+const nodeToExpression = ({ currentNode, isArray = false, config, idFactory }: {
     currentNode: NonNullTypeNode | NamedTypeNode | ListTypeNode,
     config: Config
     isArray?: boolean,
+    idFactory: ReturnType<typeof createIDFactory>
 }): ExampleDirectionExpresion => {
     if (currentNode.kind === "NonNullType") {
         return nodeToExpression({
             currentNode:
-            currentNode.type, isArray, config
+            currentNode.type,
+            isArray,
+            config,
+            idFactory
         });
     } else if (currentNode.kind === "NamedType") {
         if (isArray) {
             return {
-                expression: typeToFunctionWithArray(currentNode.name.value, config)
+                expression: typeToFunctionWithArray(currentNode.name.value, config, idFactory)
             }
         } else {
             return {
-                expression: typeToFunction(currentNode.name.value, config)
+                expression: typeToFunction(currentNode.name.value, config, idFactory)
             }
         }
     } else if (currentNode.kind === "ListType") {
-        return nodeToExpression({ currentNode: currentNode.type, isArray: true, config })
+        return nodeToExpression({ currentNode: currentNode.type, isArray: true, config, idFactory })
     }
     throw new Error("Unknown node kind")
 }
 
+const SUPPORTED_EXAMPLE_DIRECTIVES = ["exampleID", "exampleString", "exampleInt", "exampleFloat", "exampleBoolean"];
+const isIdType = (node: NonNullTypeNode | NamedTypeNode | ListTypeNode): boolean => {
+    if (node.kind === "NonNullType") {
+        return isIdType(node.type)
+    } else if (node.kind === "NamedType") {
+        return node.name.value === "ID"
+    } else if (node.kind === "ListType") {
+        return false
+    }
+    return false
+}
+
 function parseFieldOrInputValueDefinition(
-    node: FieldDefinitionNode | InputValueDefinitionNode,
-    convertedTypeName: string,
-    config: Config,
+    { node, convertedTypeName, config, idFactory }: {
+        node: FieldDefinitionNode | InputValueDefinitionNode,
+        convertedTypeName: string,
+        config: Config;
+        idFactory: ReturnType<typeof createIDFactory>
+    },
 ): { example?: ExampleDirective | undefined } {
-    const exampleDirective = node.directives?.find(d => d.name.value === "example");
+    const exampleDirective = node.directives?.find(d => {
+        return SUPPORTED_EXAMPLE_DIRECTIVES.includes(d.name.value)
+    });
     // fake
     // if @example directive is not found, return random value for the scalar type
     if (!exampleDirective) {
         return {
-            example: nodeToExpression({ currentNode: node.type, config })
+            example: nodeToExpression({ currentNode: node.type, config, idFactory })
         };
     }
     if (!exampleDirective.arguments) {
         throw new Error("@example directive must have arguments")
     }
     /**
-     * @example(value: "value")
+     * @exampleID(value: "id")
+     * -> { value: "id1" }
+     * @exampleString(value: "value")
      * -> { value: "value" }
+     * @exampleInt(value: 1)
+     * -> { value: 1 }
+     * @exampleFloat(value: 1.1)
+     * -> { value: 1.1 }
+     * @exampleBoolean(value: true)
+     * -> { value: true }
      */
     const value = exampleDirective.arguments.find(a => a.name.value === "value");
-    if (value) {
-        // if node type is not equal to the value type, throw an error
-        const rawValue = valueOf(value.value);
-        const nodeType = parseTypeNodeStructure(node.type);
-        const fieldName = node.name.value;
-        // array, object, string, number, boolean, null
-        const rawValueType = Object.prototype.toString.call(rawValue).slice(8, -1).toLowerCase();
-        if (nodeType !== rawValueType) {
-            throw new Error(`${convertedTypeName}.${fieldName}: @example directive value type must be ${nodeType}. @example(value: ${nodeType})`)
-        }
-        return { example: { value: rawValue } }
+    if (!value) {
+        throw new Error(`@${exampleDirective.name.value} directive must have value argument.`)
     }
-    throw new Error(`@example directive must have value argument. @example(value: "value")`)
+    const rawValue = valueOf(value.value);
+    // if node type is not equal to the value type, throw an error
+    const nodeType = parseTypeNodeStructure(node.type);
+    const fieldName = node.name.value;
+    // array, object, string, number, boolean, null
+    const rawValueType = Object.prototype.toString.call(rawValue).slice(8, -1).toLowerCase();
+    if (nodeType !== rawValueType) {
+        throw new Error(`${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive value type must be ${nodeType}. Got ${rawValueType}`)
+    }
+    // if ID type, add idFactory() to the value
+    // e.g. @exampleID(value: "id") -> { value: "id1" }
+    const exmpleValue = isIdType(node.type) && typeof rawValue === "string" ? `${rawValue}${idFactory(rawValue)}` : rawValue;
+    return { example: { value: exmpleValue } }
 }
 
 function parseObjectTypeOrInputObjectTypeDefinition(
-    node: ObjectTypeDefinitionNode | InputObjectTypeDefinitionNode,
-    config: Config,
+    { node, config, idFactory }: {
+        node: ObjectTypeDefinitionNode | InputObjectTypeDefinitionNode,
+        config: Config;
+        idFactory: ReturnType<typeof createIDFactory>
+    },
 ): ObjectTypeInfo {
     const originalTypeName = node.name.value;
     const convertedTypeName = convertName(originalTypeName, config);
@@ -201,7 +245,12 @@ function parseObjectTypeOrInputObjectTypeDefinition(
         fields: [
             ...(node.fields ?? []).map((field) => ({
                 name: field.name.value,
-                ...parseFieldOrInputValueDefinition(field, convertedTypeName, config),
+                ...parseFieldOrInputValueDefinition({
+                    node: field,
+                    convertedTypeName,
+                    config,
+                    idFactory
+                }),
             })),
         ],
     };
@@ -228,6 +277,7 @@ export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo;
 export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] {
     const types = Object.values(schema.getTypeMap());
 
+    const idFactory = createIDFactory();
     const userDefinedTypeDefinitions = types
         .map((type) => type.astNode)
         .filter(
@@ -273,7 +323,7 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
         )
         .map((node) => {
             if (node?.kind === Kind.OBJECT_TYPE_DEFINITION || node?.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION) {
-                return parseObjectTypeOrInputObjectTypeDefinition(node, config);
+                return parseObjectTypeOrInputObjectTypeDefinition({ node, config, idFactory });
             } else if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {
                     type: 'abstract',
