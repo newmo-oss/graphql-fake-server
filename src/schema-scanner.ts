@@ -16,7 +16,6 @@ import {
     UnionTypeDefinitionNode,
 } from 'graphql';
 import { Config } from './config.js';
-import{runCli} from "@graphql-codegen/cli"
 // The fork of https://github.com/dotansimha/graphql-code-generator/blob/e1dc75f3c598bf7f83138ca533619716fc73f823/packages/plugins/typescript/resolvers/src/visitor.ts#L85-L91
 
 // The fork of https://github.com/dotansimha/graphql-code-generator/blob/ba84a3a2758d94dac27fcfbb1bafdf3ed7c32929/packages/plugins/other/visitor-plugin-common/src/base-visitor.ts#L422
@@ -120,7 +119,8 @@ const typeToFunction = (type: string, config: Config): string => {
         case "ID":
             return `"${config.defaultValues.ID}"`
         default:
-            return `EXAMPLE_${type}`;
+            // reference to the object
+            return `${type}`;
     }
 }
 const typeToFunctionWithArray = (type: string, config: Config): string => {
@@ -197,7 +197,7 @@ function parseObjectTypeOrInputObjectTypeDefinition(
     const convertedTypeName = convertName(originalTypeName, config);
     return {
         type: 'object',
-        name: convertedTypeName,
+        name: originalTypeName,
         fields: [
             ...(node.fields ?? []).map((field) => ({
                 name: field.name.value,
@@ -273,6 +273,10 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
         )
         .map((node) => {
             if (node?.kind === Kind.OBJECT_TYPE_DEFINITION || node?.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION) {
+                console.log({
+                    before: node.name.value,
+                    after: convertName(node.name.value, config)
+                })
                 return parseObjectTypeOrInputObjectTypeDefinition(node, config);
             } else if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {

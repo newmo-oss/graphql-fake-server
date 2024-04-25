@@ -6,10 +6,10 @@ import { normalizeConfig, validateConfig } from './config.js';
 import { getTypeInfos } from './schema-scanner.js';
 
 export const plugin: PluginFunction = (schema, _documents, config, _info) => {
-  validateConfig(config);
+    validateConfig(config);
 
-  const normalizedConfig = normalizeConfig(config);
-  const typeInfos = getTypeInfos(normalizedConfig, schema);
-  const code = generateCode(normalizedConfig, typeInfos);
-  return code;
+    const normalizedConfig = normalizeConfig(config);
+    const typeInfos = getTypeInfos(normalizedConfig, schema);
+    const code = generateCode(normalizedConfig, typeInfos);
+    return code;
 };

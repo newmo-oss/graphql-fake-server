@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
-  entry: ['src/index.ts', 'src/helper/index.ts'],
+  entry: ['src/cli.ts'],
   format: ['cjs'],
   outDir: 'dist/cjs',
   target: 'esnext',

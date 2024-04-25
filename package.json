@@ -38,7 +38,6 @@
   "scripts": {
     "build": "run-s -c build:*",
     "build:esm": "tsc -p tsconfig.build.json",
-    "build:cjs": "tsup",
     "lint": "run-s -c lint:*",
     "lint:tsc": "tsc",
     "lint:eslint": "eslint .",
@@ -96,6 +95,8 @@
     "graphql": "^16.0.0"
   },
   "dependencies": {
+    "@graphql-tools/mock": "^9.0.2",
+    "@apollo/server": "^4.10.4",
     "@graphql-codegen/plugin-helpers": "^5.0.1",
     "@graphql-codegen/visitor-plugin-common": "^4.0.1"
   }
