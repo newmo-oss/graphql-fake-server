@@ -91,6 +91,7 @@
   "dependencies": {
     "@graphql-tools/mock": "^9.0.2",
     "@apollo/server": "^4.10.4",
+    "@graphql-tools/schema": "^10.0.3",
     "@graphql-codegen/plugin-helpers": "^5.0.1",
     "@graphql-codegen/visitor-plugin-common": "^4.0.1"
   }
