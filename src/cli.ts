@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import fs from "node:fs/promises";
 import { parseArgs } from "node:util";
 import vm from "node:vm";
