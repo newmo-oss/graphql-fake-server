@@ -1,7 +1,14 @@
 # @newmo/graphql-fake-server
 
-- [ ] Write a project description
+GraphQL Fake Server.
 
+## Motivation
+
+- Static Path
+  - Support Declarative Fake via `@example` directive.
+- [ ] Dynamic Path
+  - Support Framework-Agnostic Fake for testing via HTTP
+  
 ## Installation
 
 - [ ] Describe the installation process
