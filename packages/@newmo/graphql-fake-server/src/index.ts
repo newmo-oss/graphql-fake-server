@@ -5,11 +5,15 @@ import { generateCode } from './code-generator.js';
 import { normalizeConfig, validateConfig } from './config.js';
 import { getTypeInfos } from './schema-scanner.js';
 
-export const plugin: PluginFunction = (schema, _documents, config, _info) => {
-    validateConfig(config);
+export const plugin: PluginFunction = (schema, _documents, config, _nfo) => {
+    const outputType = _nfo?.outputFile?.endsWith('.ts') ? 'typescript' : 'javascript';
 
+    validateConfig(config,outputType);
     const normalizedConfig = normalizeConfig(config);
     const typeInfos = getTypeInfos(normalizedConfig, schema);
-    const code = generateCode(normalizedConfig, typeInfos);
+    const code = generateCode({
+        ...normalizedConfig,
+        outputType: outputType,
+    }, typeInfos);
     return code;
 };

@@ -74,11 +74,12 @@ const startFakeServer = async ({
 }
 try {
     const schema = buildSchema(await fs.readFile(filePath, "utf-8"));
-    const normalizedConfig = normalizeConfig({
-        typesFile: "types.ts",
-    });
+    const normalizedConfig = normalizeConfig({});
     const typeInfos = getTypeInfos(normalizedConfig, schema);
-    const code = generateCode(normalizedConfig, typeInfos);
+    const code = generateCode({
+        ...normalizedConfig,
+        outputType: "commonjs"
+    }, typeInfos);
     if (values.verbose) {
         console.info("Generated code:");
         console.info(code);

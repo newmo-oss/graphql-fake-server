@@ -1,90 +1,38 @@
 // NOTE: To avoid `Cannot use GraphQLSchema xxx from another module or realm.`, import from 'graphql/index.js' instead of 'graphql'.
 // ref: https://github.com/graphql/graphql-js/issues/1479
 import { convertFactory } from '@graphql-codegen/visitor-plugin-common';
-import { buildSchema } from 'graphql';
+import { buildSchema as buildSchemaGraphQL } from 'graphql';
 import { describe, expect, it } from 'vitest';
 import { Config } from './config.js';
 import { ObjectTypeInfo, TypeInfo, getTypeInfos } from './schema-scanner.js';
 import { fakeConfig } from './test/util.js';
+import { extendSchema } from "./extend-schema.js";
+import { GraphQLSchema } from "graphql/index.js";
 
 function isObjectTypeInfo(x: TypeInfo): x is ObjectTypeInfo {
-  return x.type === 'object';
+    return x.type === 'object';
 }
 
+const buildSchema = (schema: string): GraphQLSchema => {
+    return buildSchemaGraphQL(extendSchema(schema));
+};
 describe('getTypeInfos', () => {
-  it('returns typename and field names', () => {
-    const schema = buildSchema(`
-      """
-      @exampleID directive specifies an example value for a ID field.
-      This example value is used in the fake data.
-      ID value will be unique between all ID fake data.
-      """
-      directive @exampleID(
-        """
-        The value of the ID field.
-        @exampleID(value: "id")
-        """
-        value: ID!
-      ) on FIELD_DEFINITION
-      """
-      @exampleString directive specifies an example value for a String field.
-      This example value is used in the fake data.
-      """
-      directive @exampleString(
-        """
-        The value of the String field.
-        @exampleString(value: "example")
-        """
-        value: String!
-      ) on FIELD_DEFINITION
-      """
-      @exampleInt directive specifies an example value for a Inf field.
-      This example value is used in the fake data.
-      """
-      directive @exampleInt(
-        """
-        The value of the Int field.
-        @exampleInt(value: 1)
-        """
-        value: Int!
-      ) on FIELD_DEFINITION
-      """
-      @exampleFloat directive specifies an example value for a Float field.
-      This example value is used in the fake data.
-      """
-      directive @exampleFloat(
-        """
-        The value of the Float field.
-        @exampleFloat(value: 1.0)
-        """
-        value: Float!
-      ) on FIELD_DEFINITION
-      """
-      @exampleBoolean directive specifies an example value for a Boolean field.
-      This example value is used in the fake data.
-      """
-      directive @exampleBoolean(
-        """
-        The value of the Boolean field.
-        @exampleBoolean(value: true)
-        """
-        value: Boolean!
-      ) on FIELD_DEFINITION
-
+    it('returns typename and field names', () => {
+        const schema = buildSchema(`
       type Book {
         id: ID!
         title: String! @exampleString(value: "title")
         author: Author!
       }
       type Author {
-        id: ID! @example(value: "id")
+        id: ID! @exampleID(value: "id")
         name: String! @exampleString(value: "name")
         " comment "
         books: [Book!]!
       }
     `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
       [
         {
           "fields": [
@@ -136,9 +84,9 @@ describe('getTypeInfos', () => {
         },
       ]
     `);
-  });
-  it('includes description comment', () => {
-    const schema = buildSchema(`
+    });
+    it('includes description comment', () => {
+        const schema = buildSchema(`
       "The book"
       type Book {
         id: ID!
@@ -146,8 +94,8 @@ describe('getTypeInfos', () => {
         title: String!
       }
     `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
       [
         {
           "comment": "/** The book */
@@ -170,15 +118,15 @@ describe('getTypeInfos', () => {
         },
       ]
     `);
-  });
-  it('argument', () => {
-    const schema = buildSchema(`
+    });
+    it('argument', () => {
+        const schema = buildSchema(`
       type Argument {
         field(arg: String!): String!
       }
     `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
       {
         "comment": undefined,
         "fields": [
@@ -192,10 +140,10 @@ describe('getTypeInfos', () => {
         "type": "object",
       }
     `);
-  });
-  describe('GraphQL features test', () => {
-    it('nullable', () => {
-      const schema = buildSchema(`
+    });
+    describe('GraphQL features test', () => {
+        it('nullable', () => {
+            const schema = buildSchema(`
         type Type {
           field1: String
           field2: [String]
@@ -206,8 +154,8 @@ describe('getTypeInfos', () => {
           field: String!
         }
       `);
-      const config: Config = fakeConfig();
-      expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
+            const config: Config = fakeConfig();
+            expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
         {
           "comment": undefined,
           "fields": [
@@ -236,9 +184,9 @@ describe('getTypeInfos', () => {
           "type": "object",
         }
       `);
-    });
-    it('interface', () => {
-      const schema = buildSchema(`
+        });
+        it('interface', () => {
+            const schema = buildSchema(`
         interface Interface1 {
           fieldA: String!
         }
@@ -250,7 +198,7 @@ describe('getTypeInfos', () => {
           fieldB: String!
         }
       `);
-      expect(getTypeInfos(fakeConfig({ skipIsAbstractType: true }), schema)).toMatchInlineSnapshot(`
+            expect(getTypeInfos(fakeConfig({ skipIsAbstractType: true }), schema)).toMatchInlineSnapshot(`
         [
           {
             "comment": undefined,
@@ -287,9 +235,9 @@ describe('getTypeInfos', () => {
           },
         ]
       `);
-    });
-    it('union', () => {
-      const schema = buildSchema(`
+        });
+        it('union', () => {
+            const schema = buildSchema(`
         union Union1 = Member1 | Member2
         union Union2 = Member1 | Member2
         type Member1 {
@@ -299,7 +247,7 @@ describe('getTypeInfos', () => {
           field2: String!
         }
       `);
-      expect(getTypeInfos(fakeConfig({ skipIsAbstractType: true }), schema)).toMatchInlineSnapshot(`
+            expect(getTypeInfos(fakeConfig({ skipIsAbstractType: true }), schema)).toMatchInlineSnapshot(`
         [
           {
             "comment": undefined,
@@ -345,9 +293,9 @@ describe('getTypeInfos', () => {
           },
         ]
       `);
-    });
-    it('input', () => {
-      const schema = buildSchema(`
+        });
+        it('input', () => {
+            const schema = buildSchema(`
         input Input {
           field1: String!
           field2: SubType!
@@ -356,8 +304,8 @@ describe('getTypeInfos', () => {
           field: String!
         }
       `);
-      const config: Config = fakeConfig();
-      expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
+            const config: Config = fakeConfig();
+            expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
         {
           "comment": undefined,
           "fields": [
@@ -376,18 +324,18 @@ describe('getTypeInfos', () => {
           "type": "object",
         }
       `);
+        });
     });
-  });
-  describe('options', () => {
-    describe('skipTypename', () => {
-      it('includes __typename if skipTypename is false', () => {
-        const schema = buildSchema(`
+    describe('options', () => {
+        describe('skipTypename', () => {
+            it('includes __typename if skipTypename is false', () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
         `);
-        const config: Config = fakeConfig({ skipTypename: false });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ skipTypename: false });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "name": "__typename",
@@ -400,15 +348,15 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-      it('does not include __typename if skipTypename is true', () => {
-        const schema = buildSchema(`
+            });
+            it('does not include __typename if skipTypename is true', () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
         `);
-        const config: Config = fakeConfig({ skipTypename: true });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ skipTypename: true });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "comment": undefined,
@@ -417,18 +365,18 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-    });
-    describe('skipIsAbstractType', () => {
-      it('includes __typename if skipIsAbstractType is false', () => {
-        const schema = buildSchema(`
+            });
+        });
+        describe('skipIsAbstractType', () => {
+            it('includes __typename if skipIsAbstractType is false', () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({ skipIsAbstractType: false });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ skipIsAbstractType: false });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "name": "__isUnion",
@@ -441,9 +389,9 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-      it('does not include __typename if skipIsAbstractType is true', () => {
-        const schema = buildSchema(`
+            });
+            it('does not include __typename if skipIsAbstractType is true', () => {
+                const schema = buildSchema(`
           type Type implements Node {
             field1: String!
             field2: String!
@@ -453,8 +401,8 @@ describe('getTypeInfos', () => {
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({ skipIsAbstractType: true });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ skipIsAbstractType: true });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "comment": undefined,
@@ -468,11 +416,11 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-    });
-    describe('namingConvention', () => {
-      it('renames type by namingConvention', () => {
-        const schema = buildSchema(`
+            });
+        });
+        describe('namingConvention', () => {
+            it('renames type by namingConvention', () => {
+                const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
             field2: SubType!
@@ -485,10 +433,10 @@ describe('getTypeInfos', () => {
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({
-          convert: convertFactory({ namingConvention: 'change-case-all#lowerCase' }),
-        });
-        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({
+                    convert: convertFactory({ namingConvention: 'change-case-all#lowerCase' }),
+                });
+                expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
           [
             {
               "comment": undefined,
@@ -537,20 +485,20 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-      it('does not effect to __typename and __is<AbstractType>', () => {
-        const schema = buildSchema(`
+            });
+            it('does not effect to __typename and __is<AbstractType>', () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({
-          skipTypename: false,
-          skipIsAbstractType: false,
-          convert: convertFactory({ namingConvention: 'change-case-all#lowerCase' }),
-        });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({
+                    skipTypename: false,
+                    skipIsAbstractType: false,
+                    convert: convertFactory({ namingConvention: 'change-case-all#lowerCase' }),
+                });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "name": "__typename",
@@ -567,11 +515,11 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-    });
-    describe('typesPrefix', () => {
-      it('renames type by typesPrefix', () => {
-        const schema = buildSchema(`
+            });
+        });
+        describe('typesPrefix', () => {
+            it('renames type by typesPrefix', () => {
+                const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
             field2: SubType!
@@ -584,8 +532,8 @@ describe('getTypeInfos', () => {
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({ typesPrefix: 'I' });
-        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ typesPrefix: 'I' });
+                expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
           [
             {
               "comment": undefined,
@@ -634,20 +582,20 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-      it('does not effect to __typename and __is<AbstractType>', () => {
-        const schema = buildSchema(`
+            });
+            it('does not effect to __typename and __is<AbstractType>', () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({
-          skipTypename: false,
-          skipIsAbstractType: false,
-          typesPrefix: 'I',
-        });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({
+                    skipTypename: false,
+                    skipIsAbstractType: false,
+                    typesPrefix: 'I',
+                });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "name": "__typename",
@@ -664,11 +612,11 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-    });
-    describe('typesSuffix', () => {
-      it('renames type by typesSuffix', () => {
-        const schema = buildSchema(`
+            });
+        });
+        describe('typesSuffix', () => {
+            it('renames type by typesSuffix', () => {
+                const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
             field2: SubType!
@@ -681,8 +629,8 @@ describe('getTypeInfos', () => {
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({ typesSuffix: 'I' });
-        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ typesSuffix: 'I' });
+                expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
           [
             {
               "comment": undefined,
@@ -731,20 +679,20 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
-      it('does not effect to __typename and __is<AbstractType>', () => {
-        const schema = buildSchema(`
+            });
+            it('does not effect to __typename and __is<AbstractType>', () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({
-          skipTypename: false,
-          skipIsAbstractType: false,
-          typesSuffix: 'I',
-        });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({
+                    skipTypename: false,
+                    skipIsAbstractType: false,
+                    typesSuffix: 'I',
+                });
+                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
           [
             {
               "name": "__typename",
@@ -761,7 +709,7 @@ describe('getTypeInfos', () => {
             },
           ]
         `);
-      });
+            });
+        });
     });
-  });
 });

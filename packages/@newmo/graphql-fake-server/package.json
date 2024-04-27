@@ -34,7 +34,7 @@
     "lint:tsc": "tsc",
     "lint:biome": "npm exec @biomejs/biome check packages/ e2e/",
     "fix:biome": "npm exec @biomejs/biome check packages/ e2e/",
-    "test": "# vitest",
+    "test": "vitest",
     "pree2e": "npm run build",
     "e2e": "npm -w e2e/esm -w e2e/cjs run start"
   },
@@ -54,8 +54,7 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.2",
     "vitest": "^1.3.1",
-    "vitest-github-actions-reporter": "^0.11.1",
-    "webdriverio": "^8.33.1"
+    "vitest-github-actions-reporter": "^0.11.1"
   },
   "overrides": {
     "tsconfig-paths": "^4.0.0"
@@ -74,11 +73,11 @@
     "graphql-code-generator"
   ],
   "files": [
-    "packages/@newmo/graphql-fake-server/src",
+    "src/",
     "!src/test",
     "!src/**/*.test.ts",
     "!src/**/__snapshots__",
-    "dist"
+    "dist/"
   ],
   "bin": {
     "@newmo/graphql-fake-server": "./dist/esm/cli.js"
