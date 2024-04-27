@@ -1,4 +1,4 @@
-import { transformComment } from '@graphql-codegen/visitor-plugin-common';
+import { convertFactory, transformComment } from '@graphql-codegen/visitor-plugin-common';
 import {
     ASTNode,
     ConstValueNode,
@@ -19,9 +19,12 @@ import { Config } from './config.js';
 import { generateCreateReferenceCode } from "./code-generator.js";
 
 function convertName(node: ASTNode | string, config: Config): string {
+    const convert = config.namingConvention
+        ? convertFactory({ namingConvention: config.namingConvention })
+        : convertFactory({})
     let convertedName = '';
     convertedName += config.typesPrefix;
-    convertedName += config.convert(node);
+    convertedName += convert(node);
     convertedName += config.typesSuffix;
     return convertedName;
 }

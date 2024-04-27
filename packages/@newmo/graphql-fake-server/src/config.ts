@@ -35,7 +35,7 @@ export type Config = {
     skipTypename: Exclude<RawTypesConfig['skipTypename'], undefined>;
     typesPrefix: Exclude<RawTypesConfig['typesPrefix'], undefined>;
     typesSuffix: Exclude<RawTypesConfig['typesSuffix'], undefined>;
-    convert: ConvertFn;
+    namingConvention: Exclude<RawTypesConfig['namingConvention'], undefined>;
     maxFieldRecursionDepth: number;
     defaultValues: {
         String: string
@@ -60,7 +60,7 @@ export function validateConfig(rawConfig: unknown, outputType: "typescript" | "j
             throw new Error(`config.maxFieldRecursionDepth must be a number`);
         }
     }
-    if (outputType) {
+    if (outputType === "typescript") {
         if (!("typesFile" in rawConfig)) {
             throw new Error(`config.typesFile is required`);
         }
@@ -97,9 +97,7 @@ export function normalizeConfig(rawConfig: RawConfig): Config {
         skipTypename: rawConfig.skipTypename ?? false,
         typesPrefix: rawConfig.typesPrefix ?? "",
         typesSuffix: rawConfig.typesSuffix ?? "",
-        convert: rawConfig.namingConvention
-            ? convertFactory({ namingConvention: rawConfig.namingConvention })
-            : convertFactory({}),
+        namingConvention: rawConfig.namingConvention ?? "",
         maxFieldRecursionDepth: rawConfig.maxFieldRecursionDepth ?? 3,
         defaultValues: {
             String: rawConfig.defaultValues?.String ?? DefaultValues.String,

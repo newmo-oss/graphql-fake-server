@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateConfig, normalizeConfig, RawConfig, Config, DefaultValues } from './config.js';
+import { Config, DefaultValues, normalizeConfig, RawConfig, validateConfig } from './config.js';
 
 describe('validateConfig', () => {
     it('should throw error when rawConfig is not an object or is null', () => {
@@ -75,6 +75,6 @@ describe('normalizeConfig', () => {
     it('should return a mix of rawConfig and default values when some values are missing in rawConfig', () => {
         const rawConfig: RawConfig = { defaultValues: { String: 'test' } };
         const expectedConfig: Config = normalizeConfig({ defaultValues: { ...DefaultValues, String: 'test' } });
-        expect(normalizeConfig(rawConfig)).toEqual(expectedConfig);
+        expect(normalizeConfig(rawConfig).defaultValues).toEqual(expectedConfig.defaultValues);
     });
 });
