@@ -1,9 +1,13 @@
 {
     "name": "@newmo/graphql-fake-core",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "private": false,
     "description": "GraphQL fake core library",
-    "keywords": ["testing", "mock", "graphql"],
+    "keywords": [
+        "testing",
+        "mock",
+        "graphql"
+    ],
     "repository": "https://github.com/newmo-oss/graphql-fake-server.git",
     "license": "MIT",
     "author": "newmo, Inc.",
@@ -17,7 +21,13 @@
             }
         }
     },
-    "files": ["src/", "!src/test", "!src/**/*.test.ts", "!src/**/__snapshots__", "dist/"],
+    "files": [
+        "src/",
+        "!src/test",
+        "!src/**/*.test.ts",
+        "!src/**/__snapshots__",
+        "dist/"
+    ],
     "scripts": {
         "prepare": "npm run build",
         "build": "run-s -c build:*",

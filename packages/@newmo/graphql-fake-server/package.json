@@ -1,9 +1,14 @@
 {
     "name": "@newmo/graphql-fake-server",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "private": false,
     "description": "GraphQL fake server for testing",
-    "keywords": ["testing", "mock", "graphql", "graphql-code-generator"],
+    "keywords": [
+        "testing",
+        "mock",
+        "graphql",
+        "graphql-code-generator"
+    ],
     "repository": "https://github.com/newmo-oss/graphql-fake-server.git",
     "license": "MIT",
     "author": "newmo, Inc.",
@@ -26,7 +31,13 @@
     "bin": {
         "@newmo/graphql-fake-server": "./dist/esm/bin.js"
     },
-    "files": ["src/", "!src/test", "!src/**/*.test.ts", "!src/**/__snapshots__", "dist/"],
+    "files": [
+        "src/",
+        "!src/test",
+        "!src/**/*.test.ts",
+        "!src/**/__snapshots__",
+        "dist/"
+    ],
     "scripts": {
         "prepare": "npm run build",
         "build": "run-s -c build:*",
@@ -38,8 +49,8 @@
     },
     "dependencies": {
         "@apollo/server": "^4.10.4",
-        "@graphql-tools/schema": "^10.0.3",
         "@graphql-tools/mock": "^9.0.2",
+        "@graphql-tools/schema": "^10.0.3",
         "@newmo/graphql-fake-core": "workspace:*",
         "graphql-depth-limit": "^1.1.0"
     },
