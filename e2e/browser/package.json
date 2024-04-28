@@ -2,7 +2,7 @@
   "name": "e2e-browser",
   "type": "module",
   "scripts": {
-    "start": "run-s gen lint test",
+    "start": "npx @newmo/graphql-fake-server --port 4000 --schema ./1-basic-schema.graphql --logLevel=debug",
     "gen": "graphql-codegen-esm",
     "lint": "run-s -c lint:*",
     "lint:tsc": "tsc",
@@ -13,5 +13,9 @@
   },
   "dependencies": {
     "@newmo/graphql-fake-server": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^1.3.1",
+    "vitest-github-actions-reporter": "^0.11.1"
   }
 }

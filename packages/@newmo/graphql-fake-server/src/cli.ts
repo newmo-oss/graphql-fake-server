@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+import * as fs from "node:fs";
 import { parseArgs } from "node:util";
 import { generateMock, startFakeServer } from "./index.js";
-import { createLogger, LogLevel } from "./logger.js";
 import { buildSchema } from "graphql/utilities/index.js";
+import { createLogger, LogLevel } from "./logger.js";
 
 const HELP = `
 Usage: npx @newmo/graphql-fake-server --schema <path> [options]
@@ -53,7 +54,8 @@ if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
 }
 const logger = createLogger(logLevel);
 try {
-    const schema = buildSchema(schemaPath);
+
+    const schema = buildSchema(await fs.readFileSync(schemaPath, "utf-8"));
     const mockObject = await generateMock({
         schema,
         logLevel: logLevel

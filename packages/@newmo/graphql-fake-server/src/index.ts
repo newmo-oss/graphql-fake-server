@@ -6,6 +6,8 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 import { generateCode, getTypeInfos, normalizeConfig } from "@newmo/graphql-fake-core";
 import vm from "node:vm";
 import { createLogger, LogLevel } from "./logger.js";
+//@ts-expect-error
+import depthLimit from "graphql-depth-limit";
 
 export type MockObject = Record<string, any>;
 export type StartFakeServerOptions = {
@@ -32,6 +34,7 @@ export const startFakeServer = async ({
             }),
             mocks,
         }),
+        validationRules: [depthLimit(3)]
     });
     const { url } = await startStandaloneServer(server, { listen: { port: port } });
     logger.info(`🚀 Server listening at: ${url}`);
@@ -49,26 +52,29 @@ export type GenerateMockOptions = {
  * It supports @example directive
  * @param options
  */
-export const generateMock = async (options: GenerateMockOptions): Promise<MockObject> => {
-    const logger = createLogger(options.logLevel);
-    try {
-        const normalizedConfig = normalizeConfig({});
-        const typeInfos = getTypeInfos(normalizedConfig, options.schema);
-        const code = generateCode({
-            ...normalizedConfig,
-            outputType: "commonjs"
-        }, typeInfos);
-        logger.debug("Generated code:");
-        logger.debug(code);
-        // execute code in vm and get all exports
-        const exports = {};
-        vm.runInNewContext(code, { exports });
-        logger.debug("Exports:");
-        logger.debug(exports);
-        return exports;
-    } catch (error) {
-        logger.error(error);
-        process.exit(1);
-    }
+export const
+    generateMock = async (options: GenerateMockOptions): Promise<MockObject> => {
+        const logger = createLogger(options.logLevel);
+        try {
+            const normalizedConfig = normalizeConfig({
+                maxFieldRecursionDepth: 2
+            });
+            const typeInfos = getTypeInfos(normalizedConfig, options.schema);
+            const code = generateCode({
+                ...normalizedConfig,
+                outputType: "commonjs"
+            }, typeInfos);
+            logger.debug("Generated code:");
+            logger.debug(code);
+            // execute code in vm and get all exports
+            const exports = {};
+            vm.runInNewContext(code, { exports });
+            logger.debug("Exports:");
+            logger.debug(exports);
+            return JSON.parse(JSON.stringify(exports));
+        } catch (error) {
+            logger.error(error);
+            process.exit(1);
+        }
 
-}
+    }

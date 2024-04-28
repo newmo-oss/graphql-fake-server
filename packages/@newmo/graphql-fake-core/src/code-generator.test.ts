@@ -6,6 +6,7 @@ import { generateCode } from "./code-generator.js";
 import type { ConfigWithOutput } from "./code-generator.js";
 import { getTypeInfos } from "./schema-scanner.js";
 import { normalizeConfig } from "./config.js";
+import vm from "node:vm";
 
 const buildSchema = (schema: string): GraphQLSchema => {
     return buildSchemaGraphQL(extendSchema(schema));
@@ -202,6 +203,151 @@ describe('generateCode', () => {
       export const User = createUser();"
     `);
         });
+    });
+    describe("execute generateCode", () => {
+        it("generates code for a simple Query type", () => {
+            const code = generateCodeFromSchema(`
+        type Query {
+            hello: String
+        }`, "commonjs");
+            const exports = {};
+            vm.runInNewContext(code, { exports });
+            expect(exports).toMatchInlineSnapshot(`
+              {
+                "Query": {
+                  "hello": "string",
+                },
+                "createQuery": [Function],
+              }
+            `)
+        });
+        it("generates code for a recursive type", () => {
+            const code = generateCodeFromSchema(`
+# Author and Book are recursive
+type Author {
+    name: String!
+    books: [Book]
+}
+type Book {
+    title: String!
+    author: Author
+}    
+`, "javascript");
+            // eval using import();
+
+            expect(exports).toMatchInlineSnapshot(`
+              {
+                "Author": {
+                  "books": [
+                    {
+                      "author": {
+                        "books": [
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                        ],
+                        "name": "string",
+                      },
+                      "title": "string",
+                    },
+                    {
+                      "author": {
+                        "books": [
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                        ],
+                        "name": "string",
+                      },
+                      "title": "string",
+                    },
+                    {
+                      "author": {
+                        "books": [
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                          {
+                            "author": undefined,
+                            "title": "string",
+                          },
+                        ],
+                        "name": "string",
+                      },
+                      "title": "string",
+                    },
+                  ],
+                  "name": "string",
+                },
+                "Book": {
+                  "author": {
+                    "books": [
+                      {
+                        "author": {
+                          "books": [
+                            undefined,
+                            undefined,
+                            undefined,
+                          ],
+                          "name": "string",
+                        },
+                        "title": "string",
+                      },
+                      {
+                        "author": {
+                          "books": [
+                            undefined,
+                            undefined,
+                            undefined,
+                          ],
+                          "name": "string",
+                        },
+                        "title": "string",
+                      },
+                      {
+                        "author": {
+                          "books": [
+                            undefined,
+                            undefined,
+                            undefined,
+                          ],
+                          "name": "string",
+                        },
+                        "title": "string",
+                      },
+                    ],
+                    "name": "string",
+                  },
+                  "title": "string",
+                },
+                "createAuthor": [Function],
+                "createBook": [Function],
+              }
+            `);
+        })
     });
     describe("example directive", () => {
         describe('generateCode', () => {
