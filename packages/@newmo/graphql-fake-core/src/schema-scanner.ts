@@ -146,13 +146,15 @@ const typeToFunctionWithArray = ({ convertedTypeName, fieldName, type, config, i
     config: Config,
     idFactory: ReturnType<typeof createIDFactory>
 }): string => {
-    return `Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction({
+    // Avoid [null, null, null]
+    // Mock server can't handle null values in the array
+    return `(depth < ${config.maxFieldRecursionDepth}) ? Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction({
         convertedTypeName,
         fieldName: fieldName,
         type: type,
         config: config,
         idFactory: idFactory
-    })})`
+    })}) : []`
 }
 // NamedType/ListType handling
 const nodeToExpression = ({ convertedTypeName, fieldName, currentNode, isArray = false, config, idFactory }: {

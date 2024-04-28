@@ -48,6 +48,7 @@ export type GenerateMockOptions = {
     logLevel?: LogLevel;
 }
 const cloneAsJSON = (obj: any) => {
+    // remove `null` value from array
     return JSON.parse(JSON.stringify(obj));
 }
 /**
@@ -71,10 +72,11 @@ export const createMock = async (options: GenerateMockOptions): Promise<MockObje
         // execute code in vm and get all exports
         const exports = {};
         vm.runInNewContext(code, { exports });
-        logger.debug("Exports:");
-        logger.debug(exports);
         // Apollo Server does not support Function type in mock object
-        return cloneAsJSON(exports);
+        const plainObject = cloneAsJSON(exports);
+        logger.debug("Exports:");
+        logger.debug(JSON.stringify(plainObject, null, 2));
+        return plainObject
     } catch (error) {
         logger.error(error);
         process.exit(1);

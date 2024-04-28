@@ -119,7 +119,7 @@ describe('getTypeInfos', () => {
                   "comment": "/**  comment  */
           ",
                   "example": {
-                    "expression": "Array.from({ length: 3 }).map(() => (depth < 1 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined))",
+                    "expression": "(depth < 1) ? Array.from({ length: 3 }).map(() => (depth < 1 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)) : []",
                   },
                   "name": "books",
                 },
@@ -216,7 +216,7 @@ describe('getTypeInfos', () => {
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "Array.from({ length: 3 }).map(() => "xxxx")",
+                      "expression": "(depth < 1) ? Array.from({ length: 3 }).map(() => "xxxx") : []",
                     },
                     "name": "field2",
                   },
@@ -230,7 +230,7 @@ describe('getTypeInfos', () => {
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "Array.from({ length: 3 }).map(() => (depth < 1 ? createSubType({ defaultFields: defaultFields?.field4 ?? {}, depth: depth + 1 }) : undefined))",
+                      "expression": "(depth < 1) ? Array.from({ length: 3 }).map(() => (depth < 1 ? createSubType({ defaultFields: defaultFields?.field4 ?? {}, depth: depth + 1 }) : undefined)) : []",
                     },
                     "name": "field4",
                   },

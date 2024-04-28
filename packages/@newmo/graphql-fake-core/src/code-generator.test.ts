@@ -514,7 +514,7 @@ type Book {
               }
               export function createQuery({ defaultFields, depth = 0 } = {}) {
               return {
-                  books: Array.from({ length: 3 }).map(() => (depth < 3 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)),
+                  books: (depth < 3) ? Array.from({ length: 3 }).map(() => (depth < 3 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)) : [],
                 };
               }
 
