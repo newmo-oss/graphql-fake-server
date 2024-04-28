@@ -1,4 +1,4 @@
-import { RawTypesConfig } from "@graphql-codegen/visitor-plugin-common";
+import type { RawTypesConfig } from "@graphql-codegen/visitor-plugin-common";
 
 export type RawConfig = {
     /**
@@ -7,19 +7,19 @@ export type RawConfig = {
      * e.g. ) "typeFile: "./graphql"
      */
     typesFile?: string;
-    skipTypename?: RawTypesConfig['skipTypename'];
-    namingConvention?: RawTypesConfig['namingConvention'];
-    typesPrefix?: RawTypesConfig['typesPrefix'];
-    typesSuffix?: RawTypesConfig['typesSuffix'];
+    skipTypename?: RawTypesConfig["skipTypename"];
+    namingConvention?: RawTypesConfig["namingConvention"];
+    typesPrefix?: RawTypesConfig["typesPrefix"];
+    typesSuffix?: RawTypesConfig["typesSuffix"];
     maxFieldRecursionDepth?: number;
     defaultValues?: {
-        String?: string
-        Int?: number
-        Float?: number
-        Boolean?: boolean
-        ID?: string
-        listLength?: number
-    }
+        String?: string;
+        Int?: number;
+        Float?: number;
+        Boolean?: boolean;
+        ID?: string;
+        listLength?: number;
+    };
 };
 
 export const DefaultValues = {
@@ -28,65 +28,71 @@ export const DefaultValues = {
     Float: 12.3,
     Boolean: true,
     ID: "xxxx-xxxx-xxxx-xxxx",
-    listLength: 3
-}
+    listLength: 3,
+};
 export type Config = {
     typesFile: string;
-    skipTypename: Exclude<RawTypesConfig['skipTypename'], undefined>;
-    typesPrefix: Exclude<RawTypesConfig['typesPrefix'], undefined>;
-    typesSuffix: Exclude<RawTypesConfig['typesSuffix'], undefined>;
-    namingConvention: Exclude<RawTypesConfig['namingConvention'], undefined>;
+    skipTypename: Exclude<RawTypesConfig["skipTypename"], undefined>;
+    typesPrefix: Exclude<RawTypesConfig["typesPrefix"], undefined>;
+    typesSuffix: Exclude<RawTypesConfig["typesSuffix"], undefined>;
+    namingConvention: Exclude<RawTypesConfig["namingConvention"], undefined>;
     maxFieldRecursionDepth: number;
     defaultValues: {
-        String: string
-        Int: number
-        Float: number
-        Boolean: boolean
-        ID: string,
-        listLength: number
-    }
+        String: string;
+        Int: number;
+        Float: number;
+        Boolean: boolean;
+        ID: string;
+        listLength: number;
+    };
 };
 
-export function validateConfig(rawConfig: unknown, outputType: "typescript" | "javascript" = "javascript"): asserts rawConfig is RawConfig {
+export function validateConfig(
+    rawConfig: unknown,
+    outputType: "typescript" | "javascript" = "javascript",
+): asserts rawConfig is RawConfig {
     // defaultValues type validations
     if (rawConfig === null || rawConfig === undefined) {
-        throw new Error(`config.defaultValues must be an object`);
+        throw new Error("config.defaultValues must be an object");
     }
     if (typeof rawConfig !== "object") {
-        throw new Error(`config.defaultValues must be an object`);
+        throw new Error("config.defaultValues must be an object");
     }
     if ("maxFieldRecursionDepth" in rawConfig) {
         if (typeof rawConfig.maxFieldRecursionDepth !== "number") {
-            throw new Error(`config.maxFieldRecursionDepth must be a number`);
+            throw new Error("config.maxFieldRecursionDepth must be a number");
         }
     }
     if (outputType === "typescript") {
         if (!("typesFile" in rawConfig)) {
-            throw new Error(`config.typesFile is required`);
+            throw new Error("config.typesFile is required");
         }
     }
     if ("defaultValues" in rawConfig) {
         if (typeof rawConfig.defaultValues !== "object") {
-            throw new Error(`config.defaultValues must be an object`);
+            throw new Error("config.defaultValues must be an object");
         }
         const defaultValues = rawConfig.defaultValues as Config["defaultValues"];
         if (defaultValues.String !== undefined && typeof defaultValues.String !== "string") {
-            throw new Error(`config.defaultValues.String must be a string`);
+            throw new Error("config.defaultValues.String must be a string");
         }
         if (defaultValues.Int !== undefined && typeof defaultValues.Int !== "number") {
-            throw new Error(`config.defaultValues.Int must be a number`);
+            throw new Error("config.defaultValues.Int must be a number");
         }
         if (defaultValues.Float !== undefined && typeof defaultValues.Float !== "number") {
-            throw new Error(`config.defaultValues.Float must be a number`);
+            throw new Error("config.defaultValues.Float must be a number");
         }
         if (defaultValues.Boolean !== undefined && typeof defaultValues.Boolean !== "boolean") {
-            throw new Error(`config.defaultValues.Boolean must be a boolean`);
+            throw new Error("config.defaultValues.Boolean must be a boolean");
         }
         if (defaultValues.ID !== undefined && typeof defaultValues.ID !== "string") {
-            throw new Error(`config.defaultValues.ID must be a string`);
+            throw new Error("config.defaultValues.ID must be a string");
         }
-        if (defaultValues.listLength !== undefined && typeof defaultValues.listLength !== "number") {
-            throw new Error(`config.defaultValues.listLength must be a number`);
+        if (
+            defaultValues.listLength !== undefined &&
+            typeof defaultValues.listLength !== "number"
+        ) {
+            throw new Error("config.defaultValues.listLength must be a number");
         }
     }
 }
@@ -105,7 +111,7 @@ export function normalizeConfig(rawConfig: RawConfig): Config {
             Float: rawConfig.defaultValues?.Float ?? DefaultValues.Float,
             Boolean: rawConfig.defaultValues?.Boolean ?? DefaultValues.Boolean,
             ID: rawConfig.defaultValues?.ID ?? DefaultValues.ID,
-            listLength: rawConfig.defaultValues?.listLength ?? DefaultValues.listLength
-        }
+            listLength: rawConfig.defaultValues?.listLength ?? DefaultValues.listLength,
+        },
     };
 }

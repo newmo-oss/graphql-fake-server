@@ -1,12 +1,12 @@
 // NOTE: To avoid `Cannot use GraphQLSchema xxx from another module or realm.`, import from 'graphql/index.js' instead of 'graphql'.
 // ref: https://github.com/graphql/graphql-js/issues/1479
-import { convertFactory } from '@graphql-codegen/visitor-plugin-common';
-import { buildSchema as buildSchemaGraphQL } from 'graphql';
-import { describe, expect, it } from 'vitest';
-import { Config } from './config.js';
-import { getTypeInfos, ObjectTypeInfo, TypeInfo } from './schema-scanner.js';
+import { convertFactory } from "@graphql-codegen/visitor-plugin-common";
+import { buildSchema as buildSchemaGraphQL } from "graphql";
+import type { GraphQLSchema } from "graphql/index.js";
+import { describe, expect, it } from "vitest";
+import type { Config } from "./config.js";
 import { extendSchema } from "./extend-schema.js";
-import { GraphQLSchema } from "graphql/index.js";
+import { type ObjectTypeInfo, type TypeInfo, getTypeInfos } from "./schema-scanner.js";
 
 /**
  * export type Config = {
@@ -29,33 +29,33 @@ import { GraphQLSchema } from "graphql/index.js";
  */
 const fakeConfig = (config?: Partial<Config>): Config => {
     return {
-        typesFile: 'types.ts',
+        typesFile: "types.ts",
         skipTypename: true,
-        typesPrefix: '',
-        typesSuffix: '',
-        namingConvention: 'keep',
+        typesPrefix: "",
+        typesSuffix: "",
+        namingConvention: "keep",
         maxFieldRecursionDepth: 1,
         defaultValues: {
-            String: 'xxxx',
+            String: "xxxx",
             Int: 0,
             Float: 0,
             Boolean: false,
-            ID: 'xxxx-xxxx-xxxx-xxxx',
+            ID: "xxxx-xxxx-xxxx-xxxx",
             listLength: 3,
         },
         ...config,
     };
-}
+};
 
 function isObjectTypeInfo(x: TypeInfo): x is ObjectTypeInfo {
-    return x.type === 'object';
+    return x.type === "object";
 }
 
 const buildSchema = (schema: string): GraphQLSchema => {
     return buildSchemaGraphQL(extendSchema(schema));
 };
-describe('getTypeInfos', () => {
-    it('returns typename and field names', () => {
+describe("getTypeInfos", () => {
+    it("returns typename and field names", () => {
         const schema = buildSchema(`
       type Book {
         id: ID!
@@ -130,7 +130,7 @@ describe('getTypeInfos', () => {
           ]
         `);
     });
-    it('includes description comment', () => {
+    it("includes description comment", () => {
         const schema = buildSchema(`
       "The book"
       type Book {
@@ -166,7 +166,7 @@ describe('getTypeInfos', () => {
           ]
         `);
     });
-    it('argument', () => {
+    it("argument", () => {
         const schema = buildSchema(`
       type Argument {
         field(arg: String!): String!
@@ -189,8 +189,8 @@ describe('getTypeInfos', () => {
           }
         `);
     });
-    describe('GraphQL features test', () => {
-        it('nullable', () => {
+    describe("GraphQL features test", () => {
+        it("nullable", () => {
             const schema = buildSchema(`
         type Type {
           field1: String
@@ -240,7 +240,7 @@ describe('getTypeInfos', () => {
               }
             `);
         });
-        it('interface', () => {
+        it("interface", () => {
             const schema = buildSchema(`
         interface Interface1 {
           fieldA: String!
@@ -294,7 +294,7 @@ describe('getTypeInfos', () => {
               ]
             `);
         });
-        it('union', () => {
+        it("union", () => {
             const schema = buildSchema(`
         union Union1 = Member1 | Member2
         union Union2 = Member1 | Member2
@@ -354,7 +354,7 @@ describe('getTypeInfos', () => {
               ]
             `);
         });
-        it('input', () => {
+        it("input", () => {
             const schema = buildSchema(`
         input Input {
           field1: String!
@@ -389,16 +389,18 @@ describe('getTypeInfos', () => {
             `);
         });
     });
-    describe('options', () => {
-        describe('skipTypename', () => {
-            it('includes __typename if skipTypename is false', () => {
+    describe("options", () => {
+        describe("skipTypename", () => {
+            it("includes __typename if skipTypename is false", () => {
                 const schema = buildSchema(`
           type Type {
             field: String!
           }
         `);
                 const config: Config = fakeConfig({ skipTypename: false });
-                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                expect(
+                    getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields,
+                ).toMatchInlineSnapshot(`
                   [
                     {
                       "comment": undefined,
@@ -410,14 +412,16 @@ describe('getTypeInfos', () => {
                   ]
                 `);
             });
-            it('does not include __typename if skipTypename is true', () => {
+            it("does not include __typename if skipTypename is true", () => {
                 const schema = buildSchema(`
           type Type {
             field: String!
           }
         `);
                 const config: Config = fakeConfig({ skipTypename: true });
-                expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                expect(
+                    getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields,
+                ).toMatchInlineSnapshot(`
                   [
                     {
                       "comment": undefined,
@@ -430,8 +434,8 @@ describe('getTypeInfos', () => {
                 `);
             });
         });
-        describe('typesPrefix', () => {
-            it('renames type by typesPrefix', () => {
+        describe("typesPrefix", () => {
+            it("renames type by typesPrefix", () => {
                 const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
@@ -445,7 +449,7 @@ describe('getTypeInfos', () => {
           }
           union Union = Type
         `);
-                const config: Config = fakeConfig({ typesPrefix: 'I' });
+                const config: Config = fakeConfig({ typesPrefix: "I" });
                 expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
                   [
                     {
@@ -501,8 +505,8 @@ describe('getTypeInfos', () => {
                 `);
             });
         });
-        describe('typesSuffix', () => {
-            it('renames type by typesSuffix', () => {
+        describe("typesSuffix", () => {
+            it("renames type by typesSuffix", () => {
                 const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
@@ -516,7 +520,7 @@ describe('getTypeInfos', () => {
           }
           union Union = Type
         `);
-                const config: Config = fakeConfig({ typesSuffix: 'I' });
+                const config: Config = fakeConfig({ typesSuffix: "I" });
                 expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
                   [
                     {

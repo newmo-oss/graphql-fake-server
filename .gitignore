@@ -133,5 +133,5 @@ dist
 .pnp.*
 
 # User
-/dist
+dist/
 __generated__

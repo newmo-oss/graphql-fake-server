@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import * as fs from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { createMock, startFakeServer } from "./index.js";
 import { buildSchema } from "graphql/utilities/index.js";
-import { createLogger, LogLevel } from "./logger.js";
+import { createMock, startFakeServer } from "./index.js";
+import { type LogLevel, createLogger } from "./logger.js";
 
 const HELP = `
 Usage: npx @newmo/graphql-fake-server --schema <path> [options]
@@ -33,22 +33,27 @@ export const cli = parseArgs({
         logLevel: {
             type: "string",
             description: "log level: debug, info, warn, error",
-            default: "info"
-        }
-    }
+            default: "info",
+        },
+    },
 });
-export const run = async ({ values }: typeof cli = cli): Promise<{
-    stdout: string;
-    stderr: string | Error;
-    exitCode: number;
-} | (() => void)> => {
+export const run = async ({
+    values,
+}: typeof cli = cli): Promise<
+    | {
+          stdout: string;
+          stderr: string | Error;
+          exitCode: number;
+      }
+    | (() => void)
+> => {
     const logLevel = values.logLevel as LogLevel | undefined;
     if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
         return {
             stdout: "",
             stderr: "--logLevel must be one of debug, info, warn, error",
-            exitCode: 1
-        }
+            exitCode: 1,
+        };
     }
     const logger = createLogger(logLevel);
     const schemaPath = values.schema;
@@ -57,28 +62,28 @@ export const run = async ({ values }: typeof cli = cli): Promise<{
         return {
             stdout: "",
             stderr: "--schema is required",
-            exitCode: 1
-        }
+            exitCode: 1,
+        };
     }
-    const port = values.port ? Number.parseInt(values.port, 10) : NaN;
+    const port = values.port ? Number.parseInt(values.port, 10) : Number.NaN;
     if (Number.isNaN(port)) {
         logger.info(HELP);
         return {
             stdout: "",
             stderr: "--port must be a number",
-            exitCode: 1
-        }
+            exitCode: 1,
+        };
     }
     try {
         const schema = buildSchema(await fs.readFile(schemaPath, "utf-8"));
         const mockObject = await createMock({
             schema,
-            logLevel: logLevel
+            logLevel: logLevel,
         });
         const closeServer = await startFakeServer({
             mockObject,
             port,
-            schema
+            schema,
         });
         // TODO: more readable output?
         return closeServer;
@@ -87,9 +92,9 @@ export const run = async ({ values }: typeof cli = cli): Promise<{
         return {
             stdout: "",
             stderr: new Error("Failed to start server", {
-                cause: error
+                cause: error,
             }),
-            exitCode: 1
-        }
+            exitCode: 1,
+        };
     }
-}
+};

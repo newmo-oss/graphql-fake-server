@@ -1,8 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { run } from "@newmo/graphql-fake-server/cli";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-describe('integration test', async () => {
-    let closeServer: () => void
+describe("integration test", async () => {
+    let closeServer: () => void;
     beforeAll(async () => {
         const ret = await run({
             values: {
@@ -10,10 +10,9 @@ describe('integration test', async () => {
                 port: "4000",
                 logLevel: "info",
             },
-            positionals: []
+            positionals: [],
         });
-        if (typeof ret === "function")
-            closeServer = ret;
+        if (typeof ret === "function") closeServer = ret;
     });
     afterAll(() => {
         closeServer?.();
@@ -126,6 +125,5 @@ describe('integration test', async () => {
             },
           }
         `);
-
-    })
+    });
 });

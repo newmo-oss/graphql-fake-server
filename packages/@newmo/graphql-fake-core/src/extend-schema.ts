@@ -55,7 +55,7 @@ directive @exampleBoolean(
   """
   value: Boolean!
 ) on FIELD_DEFINITION
-`
+`;
 export const extendSchema = (schema: string) => {
-    return EXAMPLE_DIRECTIVE + schema
-}
+    return EXAMPLE_DIRECTIVE + schema;
+};

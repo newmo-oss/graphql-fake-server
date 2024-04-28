@@ -1,17 +1,12 @@
 {
-  "extends": [
-    "@tsconfig/strictest/tsconfig.json",
-    "@tsconfig/node18/tsconfig.json"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "noEmit": true,
-    /* Lint Options */
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
-  }
+    "extends": ["@tsconfig/strictest/tsconfig.json", "@tsconfig/node18/tsconfig.json"],
+    "exclude": ["node_modules"],
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "noEmit": true,
+        /* Lint Options */
+        "noUnusedLocals": false,
+        "noUnusedParameters": false
+    }
 }
