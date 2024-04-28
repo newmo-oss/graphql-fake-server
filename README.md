@@ -9,9 +9,17 @@ GraphQL Fake Server.
 - [ ] Dynamic Path
   - Support Framework-Agnostic Fake for testing via HTTP
   
-## Installation
+## Usage
 
-1. Add `@exampleID`, `@exampleString`, `@exampleInt`, `@exampleFloat`, `@exampleBoolean` directive to your schema.
+1. Install the package.
+
+```bash
+npm install @newmo/graphql-fake-server --save-dev
+```
+
+2. Add `@exampleID`, `@exampleString`, `@exampleInt`, `@exampleFloat`, `@exampleBoolean` directive to your schema and use it.
+
+`graphql/schema.graphql`:
 
 ```graphql
 """
@@ -70,16 +78,75 @@ directive @exampleBoolean(
   """
   value: Boolean!
 ) on FIELD_DEFINITION
+
+# Your schema
+type Book {
+    id: ID! @exampleID(value: "book-id")
+    title: String! @exampleString(value: "The Great Gatsby")
+    author: Author!
+}
+type Author {
+    id: ID! @exampleID(value: "author-id")
+    name: String! @exampleString(value: "F. Scott Fitzgerald")
+    age: Int! @exampleInt(value: 33)
+}
+type Query {
+    books: [Book!]!
+}
 ```
 
+4. Launch Fake Server specifying the schema.
 
-## Usage
+```bash
+$ npx graphql-fake-server --schema graphql/schema.graphql
+```
 
-- [ ] Write usage instructions
+5. The fake server will be launched at `http://localhost:4000`.
 
-## Tests
+For example, send the following query:
 
-- [ ] Write How to Tests
+```graphql
+query {
+  books {
+    id
+    title
+    author {
+      id
+      name
+      age
+    }
+  }
+}
+```
+
+Return the following response:
+
+```json
+{
+  "data": {
+    "books": [
+      {
+        "id": "book-id00",
+        "title": "The Great Gatsby",
+        "author": {
+          "id": "author-id10",
+          "name": "F. Scott Fitzgerald",
+          "age": 33
+        }
+      },
+      {
+        "id": "book-id01",
+        "title": "The Great Gatsby",
+        "author": {
+          "id": "author-id11",
+          "name": "F. Scott Fitzgerald",
+          "age": 33
+        }
+      }
+    ]
+  }
+}
+```
 
 ## Contributing
 
