@@ -18,10 +18,8 @@
     "build": "pnpm -r run build",
     "lint": "npm exec @biomejs/biome check packages/ e2e/",
     "fix:biome": "npm exec @biomejs/biome check packages/ e2e/",
-    "test": "pnpm -r run test",
-    "updateSnapshot": "pnpm -r run updateSnapshot",
-    "pree2e": "npm run build",
-    "e2e": "pnpm run --filter ./e2e/node test"
+    "test": "pnpm -r run test --if-present",
+    "updateSnapshot": "pnpm -r run updateSnapshot"
   },
   "dependencies": {
   },
