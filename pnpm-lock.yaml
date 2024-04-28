@@ -15,18 +15,6 @@ importers:
         specifier: ^8.47.0
         version: 8.57.0
 
-  e2e/cjs:
-    dependencies:
-      '@newmo/graphql-fake-server':
-        specifier: workspace:*
-        version: link:../../packages/@newmo/graphql-fake-server
-
-  e2e/esm:
-    dependencies:
-      '@newmo/graphql-fake-server':
-        specifier: workspace:*
-        version: link:../../packages/@newmo/graphql-fake-server
-
   e2e/node:
     dependencies:
       '@newmo/graphql-fake-server':
