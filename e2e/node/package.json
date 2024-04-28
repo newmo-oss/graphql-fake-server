@@ -1,5 +1,5 @@
 {
-    "private": false,
+    "private": true,
     "name": "e2e-browser",
     "version": "0.2.0",
     "type": "module",
