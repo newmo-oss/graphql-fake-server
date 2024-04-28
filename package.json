@@ -21,7 +21,7 @@
     "test": "pnpm -r run test",
     "updateSnapshot": "pnpm -r run updateSnapshot",
     "pree2e": "npm run build",
-    "e2e": "npm -w e2e/esm -w e2e/cjs run start"
+    "e2e": "pnpm run --filter ./e2e/node test"
   },
   "dependencies": {
   },
