@@ -1,44 +1,44 @@
 #!/usr/bin/env node
-import fs from "node:fs/promises";
 import { parseArgs } from "node:util";
-import vm from "node:vm";
-import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
-import { addMocksToSchema } from '@graphql-tools/mock';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { buildSchema } from "graphql";
-import { GraphQLSchema } from "graphql/index.js";
-import { generateCode } from "./code-generator.js";
-import { normalizeConfig } from "./config.js";
-import { getTypeInfos } from "./schema-scanner.js";
+import { generateMock, startFakeServer } from "./index.js";
+import { createLogger, LogLevel } from "./logger.js";
+import { buildSchema } from "graphql/utilities/index.js";
 
 const HELP = `
-Usage: cli <file.graphql>
+Usage: npx @newmo/graphql-fake-server --schema <path> [options]
+
+Options:
+
+    --schema <path>   Path to the schema file. e.g. schema.graphql
+    --port <port>     Port to run the server on
+    --logLevel <logLevel> log level: debug, info, warn, error
+
 `;
 // cli foo.graphql
-const { positionals, values } = parseArgs({
-    args: process.argv.slice(2), allowPositionals: true,
+const { values } = parseArgs({
+    args: process.argv.slice(2),
     options: {
+        // --schema
+        schema: {
+            type: "string",
+            description: "Path to the schema file. e.g. schema.graphql",
+        },
         // --port
         port: {
             type: "string",
             description: "Port to run the server on",
             default: "4000",
         },
-        verbose: {
-            type: "boolean",
-            description: "Verbose output",
-            default: false
+        logLevel: {
+            type: "string",
+            description: "log level: debug, info, warn, error",
+            default: "info"
         }
     }
 });
-if (!positionals.length) {
-    console.info(HELP);
-    process.exit(1);
-}
-const [filePath] = positionals;
-if (!filePath) {
-    console.error(HELP);
+const schemaPath = values.schema;
+if (!schemaPath) {
+    console.error("--schema is required");
     process.exit(1);
 }
 const port = values.port ? Number.parseInt(values.port, 10) : NaN;
@@ -46,57 +46,25 @@ if (Number.isNaN(port)) {
     console.error("--port must be a number");
     process.exit(1);
 }
-const startFakeServer = async ({
-                                   schema,
-                                   mockObject
-                               }: {
-    schema: GraphQLSchema;
-    mockObject: Record<string, {}>
-}) => {
-
-    const mocks = Object.fromEntries(Object.entries(mockObject).map(([key, value]) => {
-            return [key, () => value];
-        })
-    )
-
-    const server = new ApolloServer({
-        schema: addMocksToSchema({
-            schema: makeExecutableSchema({
-                typeDefs: schema
-            }),
-            mocks,
-        }),
-    });
-
-    const { url } = await startStandaloneServer(server, { listen: { port: port } });
-
-    console.log(`🚀 Server listening at: ${url}`);
+const logLevel = values.logLevel as LogLevel | undefined;
+if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
+    console.error("--logLevel must be one of debug, info, warn, error");
+    process.exit(1);
 }
+const logger = createLogger(logLevel);
 try {
-    const schema = buildSchema(await fs.readFile(filePath, "utf-8"));
-    const normalizedConfig = normalizeConfig({});
-    const typeInfos = getTypeInfos(normalizedConfig, schema);
-    const code = generateCode({
-        ...normalizedConfig,
-        outputType: "commonjs"
-    }, typeInfos);
-    if (values.verbose) {
-        console.info("Generated code:");
-        console.info(code);
-    }
-    // execute code in vm and get all exports
-    const exports = {};
-    vm.runInNewContext(code, { exports });
-    if (values.verbose) {
-        console.info("Exports:");
-        console.info(exports);
-    }
-    await startFakeServer({
+    const schema = buildSchema(schemaPath);
+    const mockObject = await generateMock({
         schema,
-        mockObject: exports
+        logLevel: logLevel
     });
-    // write to file
+    await startFakeServer({
+        mockObject,
+        port,
+        schema
+    });
 } catch (error) {
-    console.error(error);
+    logger.info("Failed to start server");
+    logger.error(error);
     process.exit(1);
 }

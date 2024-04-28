@@ -1,19 +1,74 @@
-// MEMO: The tests for this module are covered by `e2e/*.e2e.ts`.
+import { GraphQLSchema } from "graphql/index.js";
+import { ApolloServer } from "@apollo/server";
+import { addMocksToSchema } from "@graphql-tools/mock";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { startStandaloneServer } from "@apollo/server/standalone";
+import { generateCode, getTypeInfos, normalizeConfig } from "@newmo/graphql-fake-core";
+import vm from "node:vm";
+import { createLogger, LogLevel } from "./logger.js";
 
-import { type PluginFunction } from '@graphql-codegen/plugin-helpers';
-import { generateCode } from './code-generator.js';
-import { normalizeConfig, validateConfig } from './config.js';
-import { getTypeInfos } from './schema-scanner.js';
+export type MockObject = Record<string, any>;
+export type StartFakeServerOptions = {
+    schema: GraphQLSchema;
+    mockObject: MockObject;
+    port?: number;
+    logLevel?: LogLevel;
+}
+export const startFakeServer = async ({
+                                          schema,
+                                          mockObject,
+                                          port,
+                                          logLevel
+                                      }: StartFakeServerOptions) => {
+    const logger = createLogger(logLevel);
+    const mocks = Object.fromEntries(Object.entries(mockObject).map(([key, value]) => {
+            return [key, () => value];
+        })
+    )
+    const server = new ApolloServer({
+        schema: addMocksToSchema({
+            schema: makeExecutableSchema({
+                typeDefs: schema
+            }),
+            mocks,
+        }),
+    });
+    const { url } = await startStandaloneServer(server, { listen: { port: port } });
+    logger.info(`🚀 Server listening at: ${url}`);
+    return () => {
+        // close
+        server.stop();
+    }
+}
+export type GenerateMockOptions = {
+    schema: GraphQLSchema
+    logLevel?: LogLevel;
+}
+/**
+ * Generate mock object from schema
+ * It supports @example directive
+ * @param options
+ */
+export const generateMock = async (options: GenerateMockOptions): Promise<MockObject> => {
+    const logger = createLogger(options.logLevel);
+    try {
+        const normalizedConfig = normalizeConfig({});
+        const typeInfos = getTypeInfos(normalizedConfig, options.schema);
+        const code = generateCode({
+            ...normalizedConfig,
+            outputType: "commonjs"
+        }, typeInfos);
+        logger.debug("Generated code:");
+        logger.debug(code);
+        // execute code in vm and get all exports
+        const exports = {};
+        vm.runInNewContext(code, { exports });
+        logger.debug("Exports:");
+        logger.debug(exports);
+        return exports;
+    } catch (error) {
+        logger.error(error);
+        process.exit(1);
+    }
 
-export const plugin: PluginFunction = (schema, _documents, config, _nfo) => {
-    const outputType = _nfo?.outputFile?.endsWith('.ts') ? 'typescript' : 'javascript';
-
-    validateConfig(config,outputType);
-    const normalizedConfig = normalizeConfig(config);
-    const typeInfos = getTypeInfos(normalizedConfig, schema);
-    const code = generateCode({
-        ...normalizedConfig,
-        outputType: outputType,
-    }, typeInfos);
-    return code;
-};
+}
