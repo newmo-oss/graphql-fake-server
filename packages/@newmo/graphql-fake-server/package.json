@@ -29,7 +29,7 @@
     }
   },
   "bin": {
-    "@newmo/graphql-fake-server": "./dist/esm/cli.js"
+    "@newmo/graphql-fake-server": "./dist/esm/bin.js"
   },
   "files": [
     "src/",

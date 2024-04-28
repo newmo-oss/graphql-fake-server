@@ -34,7 +34,7 @@ export const startFakeServer = async ({
             }),
             mocks,
         }),
-        validationRules: [depthLimit(3)]
+        validationRules: [depthLimit(1)]
     });
     const { url } = await startStandaloneServer(server, { listen: { port: port } });
     logger.info(`🚀 Server listening at: ${url}`);
@@ -48,33 +48,32 @@ export type GenerateMockOptions = {
     logLevel?: LogLevel;
 }
 /**
- * Generate mock object from schema
+ * Create mock object from schema
  * It supports @example directive
  * @param options
  */
-export const
-    generateMock = async (options: GenerateMockOptions): Promise<MockObject> => {
-        const logger = createLogger(options.logLevel);
-        try {
-            const normalizedConfig = normalizeConfig({
-                maxFieldRecursionDepth: 2
-            });
-            const typeInfos = getTypeInfos(normalizedConfig, options.schema);
-            const code = generateCode({
-                ...normalizedConfig,
-                outputType: "commonjs"
-            }, typeInfos);
-            logger.debug("Generated code:");
-            logger.debug(code);
-            // execute code in vm and get all exports
-            const exports = {};
-            vm.runInNewContext(code, { exports });
-            logger.debug("Exports:");
-            logger.debug(exports);
-            return JSON.parse(JSON.stringify(exports));
-        } catch (error) {
-            logger.error(error);
-            process.exit(1);
-        }
-
+export const createMock = async (options: GenerateMockOptions): Promise<MockObject> => {
+    const logger = createLogger(options.logLevel);
+    try {
+        const normalizedConfig = normalizeConfig({
+            maxFieldRecursionDepth: 2
+        });
+        const typeInfos = getTypeInfos(normalizedConfig, options.schema);
+        const code = generateCode({
+            ...normalizedConfig,
+            outputType: "commonjs"
+        }, typeInfos);
+        logger.debug("Generated code:");
+        logger.debug(code);
+        // execute code in vm and get all exports
+        const exports = {};
+        vm.runInNewContext(code, { exports });
+        logger.debug("Exports:");
+        logger.debug(exports);
+        return exports;
+    } catch (error) {
+        logger.error(error);
+        process.exit(1);
     }
+
+}

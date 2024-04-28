@@ -2,8 +2,7 @@
   "name": "e2e-browser",
   "type": "module",
   "scripts": {
-    "start": "npx @newmo/graphql-fake-server --port 4000 --schema ./1-basic-schema.graphql --logLevel=debug",
-    "gen": "graphql-codegen-esm",
+    "start": "npm exec @newmo/graphql-fake-server -- --port 4000 --schema ./1-basic-schema.graphql --logLevel=debug",
     "lint": "run-s -c lint:*",
     "lint:tsc": "tsc",
     "test": "vitest --run"
@@ -16,6 +15,8 @@
   },
   "devDependencies": {
     "vitest": "^1.3.1",
-    "vitest-github-actions-reporter": "^0.11.1"
+    "vitest-github-actions-reporter": "^0.11.1",
+    "@tsconfig/node18": "^18.2.0",
+    "@tsconfig/strictest": "^2.0.1"
   }
 }

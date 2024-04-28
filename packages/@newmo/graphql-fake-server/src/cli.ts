@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { generateMock, startFakeServer } from "./index.js";
+import { createMock, startFakeServer } from "./index.js";
 import { buildSchema } from "graphql/utilities/index.js";
 import { createLogger, LogLevel } from "./logger.js";
 
@@ -16,7 +16,7 @@ Options:
 
 `;
 // cli foo.graphql
-const { values } = parseArgs({
+export const cli = parseArgs({
     args: process.argv.slice(2),
     options: {
         // --schema
@@ -37,36 +37,59 @@ const { values } = parseArgs({
         }
     }
 });
-const schemaPath = values.schema;
-if (!schemaPath) {
-    console.error("--schema is required");
-    process.exit(1);
-}
-const port = values.port ? Number.parseInt(values.port, 10) : NaN;
-if (Number.isNaN(port)) {
-    console.error("--port must be a number");
-    process.exit(1);
-}
-const logLevel = values.logLevel as LogLevel | undefined;
-if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
-    console.error("--logLevel must be one of debug, info, warn, error");
-    process.exit(1);
-}
-const logger = createLogger(logLevel);
-try {
-
-    const schema = buildSchema(await fs.readFileSync(schemaPath, "utf-8"));
-    const mockObject = await generateMock({
-        schema,
-        logLevel: logLevel
-    });
-    await startFakeServer({
-        mockObject,
-        port,
-        schema
-    });
-} catch (error) {
-    logger.info("Failed to start server");
-    logger.error(error);
-    process.exit(1);
+export const run = async ({ values }: typeof cli = cli): Promise<{
+    stdout: string;
+    stderr: string | Error;
+    exitCode: number;
+} | (() => void)> => {
+    const logLevel = values.logLevel as LogLevel | undefined;
+    if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
+        return {
+            stdout: "",
+            stderr: "--logLevel must be one of debug, info, warn, error",
+            exitCode: 1
+        }
+    }
+    const logger = createLogger(logLevel);
+    const schemaPath = values.schema;
+    if (!schemaPath) {
+        logger.info(HELP);
+        return {
+            stdout: "",
+            stderr: "--schema is required",
+            exitCode: 1
+        }
+    }
+    const port = values.port ? Number.parseInt(values.port, 10) : NaN;
+    if (Number.isNaN(port)) {
+        logger.info(HELP);
+        return {
+            stdout: "",
+            stderr: "--port must be a number",
+            exitCode: 1
+        }
+    }
+    try {
+        const schema = buildSchema(await fs.readFile(schemaPath, "utf-8"));
+        const mockObject = await createMock({
+            schema,
+            logLevel: logLevel
+        });
+        const closeServer = await startFakeServer({
+            mockObject,
+            port,
+            schema
+        });
+        // TODO: more readable output?
+        return closeServer;
+    } catch (error) {
+        logger.error(error);
+        return {
+            stdout: "",
+            stderr: new Error("Failed to start server", {
+                cause: error
+            }),
+            exitCode: 1
+        }
+    }
 }

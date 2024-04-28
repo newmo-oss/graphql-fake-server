@@ -1,32 +1,37 @@
-import { expect, it } from 'vitest';
-import { defineAuthorFactory, defineBookFactory, dynamic } from './__generated__/1-basic/fabbrica.js';
-
+import { afterAll, beforeAll, it } from 'vitest';
+import { run } from "@newmo/graphql-fake-server/cli";
 it('integration test', async () => {
-  const BookFactory = defineBookFactory({
-    defaultFields: {
-      id: dynamic(({ seq }) => `Book-${seq}`),
-      title: dynamic(({ seq }) => `ゆゆ式 ${seq}巻`),
-      author: undefined,
-    },
-  });
-  const AuthorFactory = defineAuthorFactory({
-    defaultFields: {
-      id: dynamic(({ seq }) => `Author-${seq}`),
-      name: dynamic(({ seq }) => `${seq}上小又`),
-      books: undefined,
-    },
-  });
-  const book = await BookFactory.build({
-    author: await AuthorFactory.build(),
-  });
-
-  expect(book).toStrictEqual({
-    id: 'Book-0',
-    title: 'ゆゆ式 0巻',
-    author: {
-      id: 'Author-0',
-      name: '0上小又',
-      books: undefined,
-    },
-  });
+    let closeServer: () => void
+    beforeAll(async () => {
+        const ret = await run({
+            values: {
+                schema: "1-basic-schema.graphql",
+                port: "4000",
+                logLevel: "info",
+            },
+            positionals: []
+        });
+        if(typeof ret ==="function")
+            closeServer = ret;
+    });
+    afterAll(() => {
+        closeServer?.();
+    });
+    it("request to server", async () => {
+        const response = await fetch("http://localhost:4000/graphql", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query: `
+                    query {
+                        hello
+                    }
+                `,
+            }),
+        });
+        const { data } = await response.json();
+        expect(data).toEqual({ hello: "Hello World!" });
+    }
 });
