@@ -56,12 +56,12 @@ directive @exampleBoolean(
 ) on FIELD_DEFINITION
 
 type Book {
-    id: ID!
+    id: ID! @exampleID(value: "book-id")
     title: String! @exampleString(value: "The Great Gatsby")
     author: Author!
 }
 type Author {
-    id: ID! @exampleID(value: "id")
+    id: ID! @exampleID(value: "author-id")
     name: String! @exampleString(value: "F. Scott Fitzgerald")
     age: Int! @exampleInt(value: 33)
     books: [Book!]!

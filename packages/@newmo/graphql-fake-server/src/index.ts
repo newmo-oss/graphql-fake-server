@@ -34,7 +34,7 @@ export const startFakeServer = async ({
             }),
             mocks,
         }),
-        validationRules: [depthLimit(1)]
+        validationRules: [depthLimit(3)]
     });
     const { url } = await startStandaloneServer(server, { listen: { port: port } });
     logger.info(`🚀 Server listening at: ${url}`);
@@ -47,6 +47,9 @@ export type GenerateMockOptions = {
     schema: GraphQLSchema
     logLevel?: LogLevel;
 }
+const cloneAsJSON = (obj: any) => {
+    return JSON.parse(JSON.stringify(obj));
+}
 /**
  * Create mock object from schema
  * It supports @example directive
@@ -56,7 +59,7 @@ export const createMock = async (options: GenerateMockOptions): Promise<MockObje
     const logger = createLogger(options.logLevel);
     try {
         const normalizedConfig = normalizeConfig({
-            maxFieldRecursionDepth: 2
+            maxFieldRecursionDepth: 4
         });
         const typeInfos = getTypeInfos(normalizedConfig, options.schema);
         const code = generateCode({
@@ -70,7 +73,8 @@ export const createMock = async (options: GenerateMockOptions): Promise<MockObje
         vm.runInNewContext(code, { exports });
         logger.debug("Exports:");
         logger.debug(exports);
-        return exports;
+        // Apollo Server does not support Function type in mock object
+        return cloneAsJSON(exports);
     } catch (error) {
         logger.error(error);
         process.exit(1);

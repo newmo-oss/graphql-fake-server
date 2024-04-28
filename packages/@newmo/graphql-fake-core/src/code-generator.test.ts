@@ -29,7 +29,13 @@ describe('generateCode', () => {
             hello: String
         }
     `)).toMatchInlineSnapshot(`
-      "export function createQuery({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createQuery({ defaultFields, depth = 0 } = {}) {
       return {
           hello: "string",
         };
@@ -50,7 +56,13 @@ describe('generateCode', () => {
             content: String!
         }
     `)).toMatchInlineSnapshot(`
-      "export function createMutation({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createMutation({ defaultFields, depth = 0 } = {}) {
       return {
           addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
         };
@@ -59,7 +71,7 @@ describe('generateCode', () => {
       export const Mutation = createMutation();
       export function createMessage({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "xxxx-xxxx-xxxx-xxxx0",
+          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
           content: "string",
         };
       }
@@ -79,7 +91,13 @@ describe('generateCode', () => {
             content: String!
         }
     `)).toMatchInlineSnapshot(`
-      "export function createSubscription({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createSubscription({ defaultFields, depth = 0 } = {}) {
       return {
           messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
         };
@@ -88,7 +106,7 @@ describe('generateCode', () => {
       export const Subscription = createSubscription();
       export function createMessage({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "xxxx-xxxx-xxxx-xxxx0",
+          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
           content: "string",
         };
       }
@@ -109,9 +127,15 @@ describe('generateCode', () => {
             status: Status!
         }
     `)).toMatchInlineSnapshot(`
-      "export function createUser({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createUser({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "xxxx-xxxx-xxxx-xxxx0",
+          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
           status: (depth < 3 ? createStatus({ defaultFields: defaultFields?.status ?? {}, depth: depth + 1 }) : undefined),
         };
       }
@@ -139,9 +163,15 @@ describe('generateCode', () => {
             breed: String
         }
     `)).toMatchInlineSnapshot(`
-      "export function createCat({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createCat({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "xxxx-xxxx-xxxx-xxxx0",
+          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id", depth }),
           name: "string",
           livesLeft: 12,
         };
@@ -150,7 +180,7 @@ describe('generateCode', () => {
       export const Cat = createCat();
       export function createDog({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "xxxx-xxxx-xxxx-xxxx1",
+          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Dog.id", depth }),
           name: "string",
           breed: "string",
         };
@@ -177,7 +207,13 @@ describe('generateCode', () => {
             email: String!
         }
     `)).toMatchInlineSnapshot(`
-      "export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
       return {
           name: "string",
           email: "string",
@@ -194,7 +230,7 @@ describe('generateCode', () => {
       export const Mutation = createMutation();
       export function createUser({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "xxxx-xxxx-xxxx-xxxx0",
+          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
           name: "string",
           email: "string",
         };
@@ -235,118 +271,7 @@ type Book {
 `, "javascript");
             // eval using import();
 
-            expect(exports).toMatchInlineSnapshot(`
-              {
-                "Author": {
-                  "books": [
-                    {
-                      "author": {
-                        "books": [
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                        ],
-                        "name": "string",
-                      },
-                      "title": "string",
-                    },
-                    {
-                      "author": {
-                        "books": [
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                        ],
-                        "name": "string",
-                      },
-                      "title": "string",
-                    },
-                    {
-                      "author": {
-                        "books": [
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                          {
-                            "author": undefined,
-                            "title": "string",
-                          },
-                        ],
-                        "name": "string",
-                      },
-                      "title": "string",
-                    },
-                  ],
-                  "name": "string",
-                },
-                "Book": {
-                  "author": {
-                    "books": [
-                      {
-                        "author": {
-                          "books": [
-                            undefined,
-                            undefined,
-                            undefined,
-                          ],
-                          "name": "string",
-                        },
-                        "title": "string",
-                      },
-                      {
-                        "author": {
-                          "books": [
-                            undefined,
-                            undefined,
-                            undefined,
-                          ],
-                          "name": "string",
-                        },
-                        "title": "string",
-                      },
-                      {
-                        "author": {
-                          "books": [
-                            undefined,
-                            undefined,
-                            undefined,
-                          ],
-                          "name": "string",
-                        },
-                        "title": "string",
-                      },
-                    ],
-                    "name": "string",
-                  },
-                  "title": "string",
-                },
-                "createAuthor": [Function],
-                "createBook": [Function],
-              }
-            `);
+            expect(exports).toMatchInlineSnapshot(`{}`);
         })
     });
     describe("example directive", () => {
@@ -358,7 +283,13 @@ type Book {
             hello: String @exampleString(value: "Hello, World!")
         }
     `)).toMatchInlineSnapshot(`
-      "export function createQuery({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createQuery({ defaultFields, depth = 0 } = {}) {
       return {
           hello: "Hello, World!",
         };
@@ -379,7 +310,13 @@ type Book {
             content: String! @exampleString(value: "Hello, World!")
         }
     `)).toMatchInlineSnapshot(`
-      "export function createMutation({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createMutation({ defaultFields, depth = 0 } = {}) {
       return {
           addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
         };
@@ -388,7 +325,7 @@ type Book {
       export const Mutation = createMutation();
       export function createMessage({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12340",
+          id: __id({ name: "1234", key:"Message.id.1234", depth }),
           content: "Hello, World!",
         };
       }
@@ -408,7 +345,13 @@ type Book {
             content: String! @exampleString(value: "Hello, World!")
         }
     `)).toMatchInlineSnapshot(`
-      "export function createSubscription({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createSubscription({ defaultFields, depth = 0 } = {}) {
       return {
           messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
         };
@@ -417,7 +360,7 @@ type Book {
       export const Subscription = createSubscription();
       export function createMessage({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12340",
+          id: __id({ name: "1234", key:"Message.id.1234", depth }),
           content: "Hello, World!",
         };
       }
@@ -438,9 +381,15 @@ type Book {
             status: Status!
         }
     `)).toMatchInlineSnapshot(`
-      "export function createUser({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createUser({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12340",
+          id: __id({ name: "1234", key:"User.id.1234", depth }),
           status: (depth < 3 ? createStatus({ defaultFields: defaultFields?.status ?? {}, depth: depth + 1 }) : undefined),
         };
       }
@@ -468,9 +417,15 @@ type Book {
             breed: String @exampleString(value: "Bulldog")
         }
     `)).toMatchInlineSnapshot(`
-      "export function createCat({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createCat({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12340",
+          id: __id({ name: "1234", key:"Cat.id.1234", depth }),
           name: "Tom",
           livesLeft: 9,
         };
@@ -479,7 +434,7 @@ type Book {
       export const Cat = createCat();
       export function createDog({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12341",
+          id: __id({ name: "1234", key:"Dog.id.1234", depth }),
           name: "Spike",
           breed: "Bulldog",
         };
@@ -506,7 +461,13 @@ type Book {
             email: String! @exampleString(value: "john.doe@example.com")
         }
     `)).toMatchInlineSnapshot(`
-      "export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
       return {
           name: "string",
           email: "string",
@@ -523,7 +484,7 @@ type Book {
       export const Mutation = createMutation();
       export function createUser({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12340",
+          id: __id({ name: "1234", key:"User.id.1234", depth }),
           name: "John Doe",
           email: "john.doe@example.com",
         };
@@ -535,6 +496,38 @@ type Book {
             });
         });
 
+        it("generates code for exampleId and array", () => {
+            expect(generateCodeFromSchema(`
+                type Query {
+                    books: [Book!]
+                }
+                type Book {
+                  id: ID! @exampleID(value: "book-id")
+                }
+                `
+            )).toMatchInlineSnapshot(`
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              export function createQuery({ defaultFields, depth = 0 } = {}) {
+              return {
+                  books: Array.from({ length: 3 }).map(() => (depth < 3 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)),
+                };
+              }
+
+              export const Query = createQuery();
+              export function createBook({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "book-id", key:"Book.id.book-id", depth }),
+                };
+              }
+
+              export const Book = createBook();"
+            `);
+        })
         it("generates code for a recursive type between two types", () => {
             expect(generateCodeFromSchema(`
         type Category {
@@ -549,9 +542,15 @@ type Book {
             parent: Category
         }
     `)).toMatchInlineSnapshot(`
-      "export function createCategory({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      export function createCategory({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "12340",
+          id: __id({ name: "1234", key:"Category.id.1234", depth }),
           name: "Electronics",
           subCategory: (depth < 3 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1 }) : undefined),
         };
@@ -560,7 +559,7 @@ type Book {
       export const Category = createCategory();
       export function createSubCategory({ defaultFields, depth = 0 } = {}) {
       return {
-          id: "56780",
+          id: __id({ name: "5678", key:"SubCategory.id.5678", depth }),
           name: "Computers",
           parent: (depth < 3 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1 }) : undefined),
         };
@@ -576,7 +575,13 @@ type Book {
             hello: String
         }
     `, "commonjs")).toMatchInlineSnapshot(`
-      "function createQuery({ defaultFields, depth = 0 } = {}) {
+      "const __idCountMap = new Map()
+      function __id({ name, key, depth }) {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
+      function createQuery({ defaultFields, depth = 0 } = {}) {
       return {
           hello: "string",
         };
@@ -595,6 +600,13 @@ type Book {
       "import type { 
         Query
       } from './type.ts';
+
+      const __idCountMap = new Map<string, number>()
+      function __id({ name, key, depth }{ name: string; key: string; depth: number; }): string {
+          const count = __idCountMap.get(key) ?? 0;
+          __idCountMap.set(key, count + 1);
+          return name + String(depth) + String(count);
+      }
       export function createQuery({ defaultFields, depth = 0 }: { defaultFields?: Partial<Query>, depth?: number } = {}): QueryType {
       return {
           hello: "string",

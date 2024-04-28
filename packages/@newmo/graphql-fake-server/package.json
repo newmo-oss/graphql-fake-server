@@ -44,7 +44,8 @@
     "build:esm": "tsc -p tsconfig.build.json",
     "lint": "run-s -c lint:*",
     "lint:tsc": "tsc",
-    "test": "vitest"
+    "test": "vitest run",
+    "updateSnapshot": "vitest run -u"
   },
   "dependencies": {
     "@apollo/server": "^4.10.4",

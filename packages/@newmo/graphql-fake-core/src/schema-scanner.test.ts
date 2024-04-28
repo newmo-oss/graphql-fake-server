@@ -77,7 +77,7 @@ describe('getTypeInfos', () => {
                 {
                   "comment": undefined,
                   "example": {
-                    "expression": ""xxxx-xxxx-xxxx-xxxx0"",
+                    "expression": "__id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Book.id", depth })",
                   },
                   "name": "id",
                 },
@@ -104,7 +104,7 @@ describe('getTypeInfos', () => {
                 {
                   "comment": undefined,
                   "example": {
-                    "value": "id0",
+                    "expression": "__id({ name: "id", key:"Author.id.id", depth })",
                   },
                   "name": "id",
                 },
@@ -147,7 +147,7 @@ describe('getTypeInfos', () => {
                 {
                   "comment": undefined,
                   "example": {
-                    "expression": ""xxxx-xxxx-xxxx-xxxx0"",
+                    "expression": "__id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Book.id", depth })",
                   },
                   "name": "id",
                 },

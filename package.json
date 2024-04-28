@@ -19,6 +19,7 @@
     "lint": "npm exec @biomejs/biome check packages/ e2e/",
     "fix:biome": "npm exec @biomejs/biome check packages/ e2e/",
     "test": "pnpm -r run test",
+    "updateSnapshot": "pnpm -r run updateSnapshot",
     "pree2e": "npm run build",
     "e2e": "npm -w e2e/esm -w e2e/cjs run start"
   },

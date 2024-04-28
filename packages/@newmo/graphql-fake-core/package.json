@@ -34,7 +34,8 @@
     "build:esm": "tsc -p tsconfig.build.json",
     "lint": "run-s -c lint:*",
     "lint:tsc": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "updateSnapshot": "vitest run -u"
   },
   "dependencies": {
     "@graphql-codegen/visitor-plugin-common": "^4.0.1"

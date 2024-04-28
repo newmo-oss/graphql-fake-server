@@ -14,7 +14,42 @@ describe('createMock', () => {
             "Query": {
               "hello": "string",
             },
-            "createQuery": [Function],
+          }
+        `)
+    });
+    it('should support @exampleID directive for a array of object ', async () => {
+        const schema = buildSchema(extendSchema(`
+           type Query { books: [Book!] }
+           type Book {
+                id: ID! @exampleID(value: "id")
+                title: String @exampleString(value: "title")
+           }
+        `));
+        const mock: MockObject = await createMock({
+            schema
+        })
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Book": {
+              "id": "id03",
+              "title": "title",
+            },
+            "Query": {
+              "books": [
+                {
+                  "id": "id10",
+                  "title": "title",
+                },
+                {
+                  "id": "id11",
+                  "title": "title",
+                },
+                {
+                  "id": "id12",
+                  "title": "title",
+                },
+              ],
+            },
           }
         `)
     });
@@ -28,7 +63,6 @@ describe('createMock', () => {
             "Query": {
               "hello": "Hello World",
             },
-            "createQuery": [Function],
           }
         `)
     });

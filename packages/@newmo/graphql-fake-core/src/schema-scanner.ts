@@ -30,11 +30,8 @@ function convertName(node: ASTNode | string, config: Config): string {
 }
 
 const createIDFactory = () => {
-    const idMap = new Map<string, number>();
-    return (name: string) => {
-        const count = idMap.get(name) ?? 0;
-        idMap.set(name, count + 1);
-        return `${name}${count}`;
+    return (name: string, key: string) => {
+        return `__id({ name: "${name}", key:"${key}", depth })`;
     }
 }
 
@@ -118,7 +115,8 @@ function valueOf(value: ConstValueNode): ValuePrimitive | ValueArray | ValueObje
     throw new Error(`Unknown kind of value ${value satisfies never}`)
 }
 
-const typeToFunction = ({ fieldName, type, config, idFactory }: {
+const typeToFunction = ({ convertedTypeName, fieldName, type, config, idFactory }: {
+    convertedTypeName: string,
     fieldName: string,
     type: string,
     config: Config,
@@ -134,19 +132,22 @@ const typeToFunction = ({ fieldName, type, config, idFactory }: {
         case "Boolean":
             return `${config.defaultValues.Boolean ? "true" : "false"}`
         case "ID":
-            return `"${idFactory(config.defaultValues.ID)}"`
+            const pathOfField = `${convertedTypeName}.${fieldName}`;
+            return `${idFactory(config.defaultValues.ID, pathOfField)}`
         default:
             // reference to the object
             return `${generateCreateReferenceCode({ fieldName, typeName: type, config: config })}`;
     }
 }
-const typeToFunctionWithArray = ({ fieldName, type, config, idFactory }: {
+const typeToFunctionWithArray = ({ convertedTypeName, fieldName, type, config, idFactory }: {
+    convertedTypeName: string,
     fieldName: string,
     type: string,
     config: Config,
     idFactory: ReturnType<typeof createIDFactory>
 }): string => {
     return `Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction({
+        convertedTypeName,
         fieldName: fieldName,
         type: type,
         config: config,
@@ -154,7 +155,8 @@ const typeToFunctionWithArray = ({ fieldName, type, config, idFactory }: {
     })})`
 }
 // NamedType/ListType handling
-const nodeToExpression = ({ fieldName, currentNode, isArray = false, config, idFactory }: {
+const nodeToExpression = ({ convertedTypeName, fieldName, currentNode, isArray = false, config, idFactory }: {
+    convertedTypeName: string,
     fieldName: string,
     currentNode: NonNullTypeNode | NamedTypeNode | ListTypeNode,
     config: Config
@@ -163,6 +165,7 @@ const nodeToExpression = ({ fieldName, currentNode, isArray = false, config, idF
 }): ExampleDirectionExpression => {
     if (currentNode.kind === "NonNullType") {
         return nodeToExpression({
+            convertedTypeName,
             fieldName,
             currentNode: currentNode.type,
             isArray,
@@ -173,6 +176,7 @@ const nodeToExpression = ({ fieldName, currentNode, isArray = false, config, idF
         if (isArray) {
             return {
                 expression: typeToFunctionWithArray({
+                    convertedTypeName,
                     fieldName: fieldName,
                     type: currentNode.name.value,
                     config: config,
@@ -182,6 +186,7 @@ const nodeToExpression = ({ fieldName, currentNode, isArray = false, config, idF
         } else {
             return {
                 expression: typeToFunction({
+                    convertedTypeName,
                     fieldName,
                     type: currentNode.name.value,
                     config: config,
@@ -190,7 +195,14 @@ const nodeToExpression = ({ fieldName, currentNode, isArray = false, config, idF
             }
         }
     } else if (currentNode.kind === "ListType") {
-        return nodeToExpression({ fieldName, currentNode: currentNode.type, isArray: true, config, idFactory })
+        return nodeToExpression({
+            convertedTypeName,
+            fieldName,
+            currentNode: currentNode.type,
+            isArray: true,
+            config,
+            idFactory
+        })
     }
     throw new Error("Unknown node kind")
 }
@@ -224,7 +236,7 @@ function parseFieldOrInputValueDefinition(
     if (!exampleDirective) {
         return {
             comment,
-            example: nodeToExpression({ fieldName, currentNode: node.type, config, idFactory })
+            example: nodeToExpression({ convertedTypeName, fieldName, currentNode: node.type, config, idFactory })
         };
     }
     if (!exampleDirective.arguments) {
@@ -255,10 +267,13 @@ function parseFieldOrInputValueDefinition(
         throw new Error(`${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive value type must be ${nodeType}. Got ${rawValueType}`)
     }
     // if ID type, add idFactory() to the value
-    // e.g. @exampleID(value: "id") -> { value: "id1" }
+    // e.g. @exampleID(value: "id") -> { expression: __id("id") }
     const isExampleIdDirective = exampleDirective.name.value === "exampleID";
-    const exampleValue = isExampleIdDirective && typeof rawValue === "string" ? `${idFactory(rawValue)}` : rawValue;
-    return { comment, example: { value: exampleValue } }
+    if (isExampleIdDirective && typeof rawValue === "string") {
+        const pathOfField = `${convertedTypeName}.${fieldName}.${rawValue}`;
+        return { comment, example: { expression: idFactory(rawValue, pathOfField) } }
+    }
+    return { comment, example: { value: rawValue } }
 }
 
 function parseObjectTypeOrInputObjectTypeDefinition(

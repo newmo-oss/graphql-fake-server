@@ -1,6 +1,7 @@
-import { afterAll, beforeAll, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { run } from "@newmo/graphql-fake-server/cli";
-it('integration test', async () => {
+
+describe('integration test', async () => {
     let closeServer: () => void
     beforeAll(async () => {
         const ret = await run({
@@ -11,13 +12,13 @@ it('integration test', async () => {
             },
             positionals: []
         });
-        if(typeof ret ==="function")
+        if (typeof ret === "function")
             closeServer = ret;
     });
     afterAll(() => {
         closeServer?.();
     });
-    it("request to server", async () => {
+    it("request to server and get response", async () => {
         const response = await fetch("http://localhost:4000/graphql", {
             method: "POST",
             headers: {
@@ -26,12 +27,105 @@ it('integration test', async () => {
             body: JSON.stringify({
                 query: `
                     query {
-                        hello
+                      authors {
+                        id
+                        name
+                        age
+                        books {
+                          title
+                          author {
+                            id
+                          }
+                        }
+                      }
                     }
                 `,
             }),
         });
-        const { data } = await response.json();
-        expect(data).toEqual({ hello: "Hello World!" });
-    }
+        const data = await response.json();
+        expect(data).toMatchInlineSnapshot(`
+          {
+            "data": {
+              "authors": [
+                {
+                  "age": 33,
+                  "books": [
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                  "id": "author-id0",
+                  "name": "F. Scott Fitzgerald",
+                },
+                {
+                  "age": 33,
+                  "books": [
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                  "id": "author-id0",
+                  "name": "F. Scott Fitzgerald",
+                },
+                {
+                  "age": 33,
+                  "books": [
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id0",
+                      },
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                  "id": "author-id0",
+                  "name": "F. Scott Fitzgerald",
+                },
+              ],
+            },
+          }
+        `);
+
+    })
 });

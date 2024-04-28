@@ -76,12 +76,26 @@ ${joinedTypeNames}
 } from '${config.typesFile}';`;
 }
 
+function idGeneratorCode(config: ConfigWithOutput): string {
+    // __id("name);
+    const isTypescript = config.outputType === 'typescript';
+    return `
+const __idCountMap = new Map${(isTypescript ? "<string, number>" : "")}()
+function __id({ name, key, depth }${(isTypescript ? "{ name: string; key: string; depth: number; }" : "")})${(isTypescript ? ": string" : "")} {
+    const count = __idCountMap.get(key) ?? 0;
+    __idCountMap.set(key, count + 1);
+    return name + String(depth) + String(count);
+}`
+}
+
 export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): string {
     let code = '';
     if (config.outputType === 'typescript') {
         code += generateImportTypeCode(config, typeInfos);
         code += '\n';
     }
+    code += idGeneratorCode(config);
+    code += '\n';
     for (const typeInfo of typeInfos) {
         if (typeInfo.type === 'object') {
             code += generateExampleCode(config, typeInfo);
