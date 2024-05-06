@@ -58,6 +58,10 @@ const parseTypeNodeStructure = (node: TypeNode): string => {
     if (node.name.value === "ID") {
         return "string";
     }
+    // enum - treat as string
+    if (node.kind === Kind.NAMED_TYPE) {
+        return "string";
+    }
     return "object";
 };
 type ValuePrimitive = string | number | boolean | null;

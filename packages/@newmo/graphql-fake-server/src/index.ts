@@ -1,28 +1,37 @@
-import vm from "node:vm";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { generateCode, getTypeInfos, normalizeConfig } from "@newmo/graphql-fake-core";
-import type { GraphQLSchema } from "graphql";
 //@ts-expect-error
 import depthLimit from "graphql-depth-limit";
-import { type LogLevel, createLogger } from "./logger.js";
+import { createLogger, type LogLevel } from "./logger.js";
+import fs from "node:fs/promises";
+import { buildSchema } from "graphql/utilities/index.js";
+import { createMock } from "./createMock.js";
 
-export type MockObject = Record<string, unknown>;
-export type StartFakeServerOptions = {
-    schema: GraphQLSchema;
-    mockObject: MockObject;
+export type CreateFakeServerOptions = {
+    schemaFilePath: string;
     port?: number;
+    /**
+     * maxDepth for depthLimit
+     * Default is 3
+     */
+    maxDepth?: number;
+    /**
+     * maxFieldRecursionDepth for Mocking
+     * Default is maxDepth + 1
+     */
+    maxFieldRecursionDepth?: number;
     logLevel?: LogLevel;
 };
-export const startFakeServer = async ({
-    schema,
-    mockObject,
-    port,
-    logLevel,
-}: StartFakeServerOptions) => {
-    const logger = createLogger(logLevel);
+export const createFakeServer = async (options: CreateFakeServerOptions) => {
+    const schema = buildSchema(await fs.readFile(options.schemaFilePath, "utf-8"));
+    const mockObject = await createMock({
+        schema,
+        logLevel: options.logLevel,
+        maxFieldRecursionDepth: options.maxFieldRecursionDepth,
+    });
+    const logger = createLogger(options.logLevel);
     const mocks = Object.fromEntries(
         Object.entries(mockObject).map(([key, value]) => {
             return [key, () => value];
@@ -37,51 +46,15 @@ export const startFakeServer = async ({
         }),
         validationRules: [depthLimit(3)],
     });
-    const { url } = await startStandaloneServer(server, { listen: { port: port } });
-    logger.info(`🚀 GraphQL Fake Server listening at: ${url}`);
-    return () => {
-        // close
-        server.stop();
+    return {
+        start: async () => {
+            const { url } = await startStandaloneServer(server, { listen: { port: options.port } });
+            return {
+                url,
+            };
+        },
+        stop: () => {
+            server.stop();
+        },
     };
-};
-export type GenerateMockOptions = {
-    schema: GraphQLSchema;
-    logLevel?: LogLevel;
-};
-const cloneAsJSON = (obj: unknown) => {
-    return JSON.parse(JSON.stringify(obj));
-};
-/**
- * Create mock object from schema
- * It supports @example directive
- * @param options
- */
-export const createMock = async (options: GenerateMockOptions): Promise<MockObject> => {
-    const logger = createLogger(options.logLevel);
-    try {
-        const normalizedConfig = normalizeConfig({
-            maxFieldRecursionDepth: 4,
-        });
-        const typeInfos = getTypeInfos(normalizedConfig, options.schema);
-        const code = generateCode(
-            {
-                ...normalizedConfig,
-                outputType: "commonjs",
-            },
-            typeInfos,
-        );
-        logger.debug("Generated code:");
-        logger.debug(code);
-        // execute code in vm and get all exports
-        const exports = {};
-        vm.runInNewContext(code, { exports });
-        // Apollo Server does not support Function type in mock object
-        const plainObject = cloneAsJSON(exports);
-        logger.debug("Exports:");
-        logger.debug(JSON.stringify(plainObject, null, 2));
-        return plainObject;
-    } catch (error) {
-        logger.error(error);
-        process.exit(1);
-    }
 };

@@ -55,10 +55,15 @@ directive @exampleBoolean(
     value: Boolean!
 ) on FIELD_DEFINITION
 
+enum BookGenre {
+    FICTION
+    NON_FICTION
+}
 type Book {
     id: ID! @exampleID(value: "book-id")
     title: String! @exampleString(value: "The Great Gatsby")
     author: Author!
+    genre: BookGenre! @exampleString(value: "FICTION")
 }
 type Author {
     id: ID! @exampleID(value: "author-id")

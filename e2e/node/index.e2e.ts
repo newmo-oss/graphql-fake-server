@@ -1,16 +1,11 @@
-import { run } from "@newmo/graphql-fake-server/cli";
+import { createFakeServer } from "@newmo/graphql-fake-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 describe("integration test", async () => {
     let closeServer: () => void;
     beforeAll(async () => {
-        const ret = await run({
-            values: {
-                schema: "1-basic-schema.graphql",
-                port: "4000",
-                logLevel: "info",
-            },
-            positionals: [],
+        const ret = await createFakeServer({
+            schemaFilePath: "./1-basic-schema.graphql",
         });
         if (typeof ret === "function") closeServer = ret;
     });
@@ -35,6 +30,7 @@ describe("integration test", async () => {
                           author {
                             id
                           }
+                          genre
                         }
                       }
                     }
@@ -51,74 +47,83 @@ describe("integration test", async () => {
                   "books": [
                     {
                       "author": {
+                        "id": "author-id313",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id314",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id315",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                  "id": "author-id112",
+                  "name": "F. Scott Fitzgerald",
+                },
+                {
+                  "age": 33,
+                  "books": [
+                    {
+                      "author": {
+                        "id": "author-id317",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id318",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
+                        "id": "author-id319",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                  "id": "author-id116",
+                  "name": "F. Scott Fitzgerald",
+                },
+                {
+                  "age": 33,
+                  "books": [
+                    {
+                      "author": {
+                        "id": "author-id321",
+                      },
+                      "genre": "FICTION",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "author": {
                         "id": "author-id322",
                       },
+                      "genre": "FICTION",
                       "title": "The Great Gatsby",
                     },
                     {
                       "author": {
                         "id": "author-id323",
                       },
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "author": {
-                        "id": "author-id324",
-                      },
+                      "genre": "FICTION",
                       "title": "The Great Gatsby",
                     },
                   ],
-                  "id": "author-id121",
-                  "name": "F. Scott Fitzgerald",
-                },
-                {
-                  "age": 33,
-                  "books": [
-                    {
-                      "author": {
-                        "id": "author-id326",
-                      },
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "author": {
-                        "id": "author-id327",
-                      },
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "author": {
-                        "id": "author-id328",
-                      },
-                      "title": "The Great Gatsby",
-                    },
-                  ],
-                  "id": "author-id125",
-                  "name": "F. Scott Fitzgerald",
-                },
-                {
-                  "age": 33,
-                  "books": [
-                    {
-                      "author": {
-                        "id": "author-id330",
-                      },
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "author": {
-                        "id": "author-id331",
-                      },
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "author": {
-                        "id": "author-id332",
-                      },
-                      "title": "The Great Gatsby",
-                    },
-                  ],
-                  "id": "author-id129",
+                  "id": "author-id120",
                   "name": "F. Scott Fitzgerald",
                 },
               ],

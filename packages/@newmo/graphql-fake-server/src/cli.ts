@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-import * as fs from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { buildSchema } from "graphql/utilities/index.js";
-import { createMock, startFakeServer } from "./index.js";
-import { type LogLevel, createLogger } from "./logger.js";
+import { createFakeServer } from "./index.js";
+import { createLogger, type LogLevel } from "./logger.js";
 
 const HELP = `
 Usage: npx @newmo/graphql-fake-server --schema <path> [options]
@@ -39,14 +37,12 @@ export const cli = parseArgs({
 });
 export const run = async ({
     values,
-}: typeof cli = cli): Promise<
-    | {
-          stdout: string;
-          stderr: string | Error;
-          exitCode: number;
-      }
-    | (() => void)
-> => {
+}: typeof cli = cli): Promise<{
+    stdout: string;
+    stderr: string | Error;
+    exitCode: number;
+    doNotExit?: boolean;
+}> => {
     const logLevel = values.logLevel as LogLevel | undefined;
     if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
         return {
@@ -75,18 +71,18 @@ export const run = async ({
         };
     }
     try {
-        const schema = buildSchema(await fs.readFile(schemaPath, "utf-8"));
-        const mockObject = await createMock({
-            schema,
-            logLevel: logLevel,
-        });
-        const closeServer = await startFakeServer({
-            mockObject,
+        const server = await createFakeServer({
+            schemaFilePath: schemaPath,
             port,
-            schema,
         });
-        // TODO: more readable output?
-        return closeServer;
+        const { url } = await server.start();
+        logger.info(`🚀 GraphQL Fake Server listening at: ${url}`);
+        return {
+            stdout: "",
+            stderr: "",
+            exitCode: 0,
+            doNotExit: true,
+        };
     } catch (error) {
         logger.error(error);
         return {
