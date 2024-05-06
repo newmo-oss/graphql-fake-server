@@ -32,13 +32,11 @@
     "prepare": "npm run build",
     "build": "tsc",
     "lint": "tsc --noEmit",
-    "test": "vitest run",
-    "codegen": "npm run build && graphql-codegen --config graphql-codegen.ts",
-    "updateSnapshot": "vitest run -u"
+    "test": "npm run build && npm run codege",
+    "codegen": "graphql-codegen --config graphql-codegen.ts"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^5.0.3",
-    "@graphql-codegen/visitor-plugin-common": "^4.0.1"
+    "@graphql-codegen/plugin-helpers": "^5.0.3"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",
@@ -47,12 +45,8 @@
     "@tsconfig/strictest": "^2.0.1",
     "@types/eslint": "^8.44.2",
     "@types/node": "^20.5.1",
-    "eslint": "^8.47.0",
     "graphql": "^16.8.1",
-    "tsx": "^4.7.1",
-    "typescript": "^5.4.2",
-    "vitest": "^1.3.1",
-    "vitest-github-actions-reporter": "^0.11.1"
+    "typescript": "^5.4.2"
   },
   "peerDependencies": {
     "graphql": "^16.8.1"

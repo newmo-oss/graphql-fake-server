@@ -55,11 +55,11 @@ const plugin: CodegenPlugin<PluginConfig> = {
     return await fetch('${fakeServerUrl}', {
         method: 'POST',
         headers: {
-            type: "operation",
             'Content-Type': 'application/json',
             'sequence-id': sequenceId
         },
         body: JSON.stringify({
+            type: "operation",
             operationName: "${name}",
             data: mutationResponse
         }),
