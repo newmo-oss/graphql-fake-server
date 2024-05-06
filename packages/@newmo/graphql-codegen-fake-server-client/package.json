@@ -1,8 +1,8 @@
 {
-  "name": "@newmo/graphql-codegen-fake-server-operation",
+  "name": "@newmo/graphql-codegen-fake-server-client",
   "version": "0.3.0",
   "private": false,
-  "description": "GraphQL Codegen plugin for generating a fake server operation",
+  "description": "GraphQL Codegen plugin for generating a fake server client",
   "keywords": [
     "testing",
     "mock",
@@ -13,12 +13,12 @@
   "author": "newmo, Inc.",
   "sideEffects": false,
   "type": "commonjs",
-  "main": "./dist/graphql-codegen-fake-server-operation.js",
+  "main": "./dist/graphql-codegen-fake-server-client.js",
   "exports": {
     ".": {
-      "import": "./dist/graphql-codegen-fake-server-operation.js",
-      "require": "./dist/graphql-codegen-fake-server-operation.js",
-      "default": "./dist/graphql-codegen-fake-server-operation.js"
+      "import": "./dist/graphql-codegen-fake-server-client.js",
+      "require": "./dist/graphql-codegen-fake-server-client.js",
+      "default": "./dist/graphql-codegen-fake-server-client.js"
     }
   },
   "files": [

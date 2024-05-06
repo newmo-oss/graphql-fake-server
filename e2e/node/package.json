@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@newmo/graphql-fake-server": "workspace:*",
-        "@newmo/graphql-codegen-fake-server-operation": "workspace:*"
+        "@newmo/graphql-codegen-fake-server-client": "workspace:*"
     },
     "devDependencies": {
         "@tsconfig/node18": "^18.2.0",
