@@ -13,7 +13,7 @@ describe("integration test", async () => {
     beforeAll(async () => {
         const server = await createFakeServer({
             schemaFilePath: "./api/api.graphqls",
-            logLevel: "debug",
+            logLevel: "info",
         });
         await server.start();
         closeServer = server.stop;
