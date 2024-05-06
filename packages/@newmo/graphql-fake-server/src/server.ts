@@ -156,7 +156,7 @@ const createRoutingServer = async ({
         // let path = new URL(c.req.raw.url).pathname
         let path = c.req.path;
         path = path.replace(new RegExp(`^${c.req.routePath.replace("*", "")}`), "/");
-        let url = `http://localhost:${ports.apolloServer}${path}`;
+        let url = `http://127.0.0.1:${ports.apolloServer}${path}`;
         // add params to URL
         if (c.req.query()) url = `${url}?${new URLSearchParams(c.req.query())}`;
         // request
@@ -257,7 +257,7 @@ const createRoutingServer = async ({
         logger.debug("request to apollo-server", {
             sequenceId,
         });
-        const rep = await fetch(`http://localhost:${ports.apolloServer}/graphql`, {
+        const rep = await fetch(`http://127.0.0.1:${ports.apolloServer}/graphql`, {
             method: c.req.method,
             headers: c.req.raw.headers,
             body: c.req.raw.body,
@@ -335,8 +335,8 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
             });
             return {
                 urls: {
-                    fakeServer: `http://localhost:${options.ports.fakeServer}`,
-                    apolloServer: `http://localhost:${options.ports.apolloServer}`,
+                    fakeServer: `http://127.0.0.1:${options.ports.fakeServer}`,
+                    apolloServer: `http://127.0.0.1:${options.ports.apolloServer}`,
                 },
             };
         },

@@ -9,20 +9,21 @@ import {
 } from "./generated/register-operation.js";
 
 describe("integration test", async () => {
-    let closeServer: () => void;
+    let server: Awaited<ReturnType<typeof createFakeServer>>;
+    let fakeServerUrl = "";
     beforeAll(async () => {
-        const server = await createFakeServer({
+        server = await createFakeServer({
             schemaFilePath: "./api/api.graphqls",
             logLevel: "info",
         });
-        await server.start();
-        closeServer = server.stop;
+        const { urls } = await server.start();
+        fakeServerUrl = urls.fakeServer
     });
     afterAll(() => {
-        closeServer?.();
+        server?.stop();
     });
     it("request to server and get response", async () => {
-        const response = await fetch("http://localhost:4000/graphql", {
+        const response = await fetch(`${fakeServerUrl}/graphql`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -154,7 +155,7 @@ describe("integration test", async () => {
         });
         expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
         // request to server
-        const client = new GraphQLClient("http://localhost:4000/graphql", {
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
             headers: {
                 "sequence-id": sequenceId,
             },
@@ -183,7 +184,7 @@ describe("integration test", async () => {
         });
         expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
         // request to server
-        const client = new GraphQLClient("http://localhost:4000/graphql", {
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
             headers: {
                 "sequence-id": sequenceId,
             },
@@ -191,10 +192,10 @@ describe("integration test", async () => {
         // get fake response
         const mutation = gql`
             mutation  CreateBook {
-              createBook(input: { title: "new title" }) {
-                id
-                title
-              }
+                createBook(input: { title: "new title" }) {
+                    id
+                    title
+                }
             }
         `;
         const response = await client.request(mutation);
@@ -216,7 +217,7 @@ describe("integration test", async () => {
         });
         expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
         // request to server
-        const client = new GraphQLClient("http://localhost:4000/graphql", {
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
             headers: {
                 "sequence-id": sequenceId,
             },

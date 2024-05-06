@@ -13,9 +13,9 @@ const getPorts = () => {
     };
 };
 const startTestFakeServer = async ({
-    schemaString,
-    ports,
-}: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
+                                       schemaString,
+                                       ports,
+                                   }: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
     const mockObject = await createMock({
@@ -182,10 +182,10 @@ describe("graphql-fake-server", () => {
         `;
         const ports = getPorts();
         const server = await startTestFakeServer({ schemaString: schema, ports });
-        await server.start();
+        const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
         // register seed
-        await fetch(`http://localhost:${ports.fakeServer}/register-operation`, {
+        await fetch(`${urls.fakeServer}/register-operation`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -213,7 +213,7 @@ describe("graphql-fake-server", () => {
             }),
         });
         //request with sequence-id
-        const response = await fetch(`http://localhost:${ports.fakeServer}/graphql`, {
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -275,9 +275,9 @@ describe("graphql-fake-server", () => {
         `;
         const ports = getPorts();
         const server = await startTestFakeServer({ schemaString: schema, ports });
-        await server.start();
+        const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
-        await fetch(`http://localhost:${ports.fakeServer}/register-operation`, {
+        await fetch(`${urls.fakeServer}/register-operation`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -295,7 +295,7 @@ describe("graphql-fake-server", () => {
             }),
         });
         // mutation request
-        const response = await fetch(`http://localhost:${ports.fakeServer}/graphql`, {
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -340,10 +340,10 @@ describe("graphql-fake-server", () => {
         `;
         const ports = getPorts();
         const server = await startTestFakeServer({ schemaString: schema, ports });
-        await server.start();
+        const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
         // register network-error operation
-        const regiRes = await fetch(`http://localhost:${ports.fakeServer}/register-operation`, {
+        const regiRes = await fetch(`${urls.fakeServer}/register-operation`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -362,7 +362,7 @@ describe("graphql-fake-server", () => {
         });
         expect(regiRes.status).toBe(200);
         // request with sequence-id
-        const response = await fetch(`http://localhost:${ports.fakeServer}/graphql`, {
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
