@@ -72,7 +72,7 @@ export const run = async ({
         logger.info(HELP);
         return {
             stdout: "",
-            stderr: "--port must be a number",
+            stderr: "port must be a number",
             exitCode: 1,
         };
     }
@@ -84,8 +84,8 @@ export const run = async ({
                 apolloServer: apolloPort,
             },
         });
-        const { url } = await server.start();
-        logger.info(`🚀 GraphQL Fake Server listening at: ${url}`);
+        const { urls } = await server.start();
+        logger.info(`🚀 GraphQL Fake Server listening at: ${urls.fakeServer}`);
         return {
             stdout: "",
             stderr: "",

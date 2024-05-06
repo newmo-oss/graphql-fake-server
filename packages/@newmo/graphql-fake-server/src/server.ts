@@ -79,12 +79,12 @@ export type RegisterSequenceOperation = {
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 export type RegisterOperationResponse =
     | {
-          ok: true;
-      }
+    ok: true;
+}
     | {
-          ok: false;
-          errors: string[];
-      };
+    ok: false;
+    errors: string[];
+};
 const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOptions => {
     if (typeof data !== "object" || data === null) return false;
     if ("type" in data && typeof data.type === "string") {
@@ -109,13 +109,16 @@ const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOp
     }
     return false;
 };
+
 class LRUMap<K, V> {
     private map = new Map<K, V>();
     private keys: K[] = [];
     private maxSize: number;
+
     constructor({ maxSize }: { maxSize: number }) {
         this.maxSize = maxSize;
     }
+
     set(key: K, value: V) {
         this.map.set(key, value);
         this.keys.push(key);
@@ -126,15 +129,17 @@ class LRUMap<K, V> {
             }
         }
     }
+
     get(key: K): V | undefined {
         return this.map.get(key);
     }
 }
+
 const createRoutingServer = async ({
-    logLevel,
-    ports,
-    maxRegisteredSequences,
-}: {
+                                       logLevel,
+                                       ports,
+                                       maxRegisteredSequences,
+                                   }: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
     ports: {
@@ -283,7 +288,7 @@ const createRoutingServer = async ({
             rep,
         );
     });
-
+    app.all("*", passToApollo);
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
@@ -329,7 +334,10 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
                 port: options.ports.fakeServer,
             });
             return {
-                url,
+                urls: {
+                    fakeServer: `http://localhost:${options.ports.fakeServer}`,
+                    apolloServer: `http://localhost:${options.ports.apolloServer}`,
+                },
             };
         },
         stop: () => {
