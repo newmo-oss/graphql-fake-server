@@ -16,7 +16,10 @@
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
-    "ignore": [],
+    "ignore": [
+      "**/generated/**",
+      "**/snapshots/**"
+    ],
     "attributePosition": "auto",
     "indentStyle": "space",
     "indentWidth": 4,
@@ -31,6 +34,9 @@
     "rules": {
       "recommended": true
     },
-    "ignore": ["**/generated/**", "**/snapshots/**"]
+    "ignore": [
+      "**/generated/**",
+      "**/snapshots/**"
+    ]
   }
 }
