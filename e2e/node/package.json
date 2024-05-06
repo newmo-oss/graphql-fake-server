@@ -4,7 +4,7 @@
     "version": "0.3.1",
     "type": "module",
     "scripts": {
-        "start": "npm exec @newmo/graphql-fake-server -- --port 4000 --schema ./1-basic-schema.graphql --logLevel=debug",
+        "start": "npm exec @newmo/graphql-fake-server -- --schema ./1-basic-schema.graphql --logLevel=debug",
         "lint": "run-s -c lint:*",
         "lint:tsc": "tsc",
         "test": "vitest --run"

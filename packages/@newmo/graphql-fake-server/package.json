@@ -51,8 +51,10 @@
         "@apollo/server": "^4.10.4",
         "@graphql-tools/mock": "^9.0.2",
         "@graphql-tools/schema": "^10.0.3",
+        "@hono/node-server": "^1.11.1",
         "@newmo/graphql-fake-core": "workspace:*",
-        "graphql-depth-limit": "^1.1.0"
+        "graphql-depth-limit": "^1.1.0",
+        "hono": "^4.3.2"
     },
     "devDependencies": {
         "@graphql-codegen/cli": "^5.0.0",

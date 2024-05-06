@@ -103,12 +103,18 @@ importers:
       '@graphql-tools/schema':
         specifier: ^10.0.3
         version: 10.0.3(graphql@16.8.1)
+      '@hono/node-server':
+        specifier: ^1.11.1
+        version: 1.11.1
       '@newmo/graphql-fake-core':
         specifier: workspace:*
         version: link:../graphql-fake-core
       graphql-depth-limit:
         specifier: ^1.1.0
         version: 1.1.0(graphql@16.8.1)
+      hono:
+        specifier: ^4.3.2
+        version: 4.3.2
     devDependencies:
       '@graphql-codegen/cli':
         specifier: ^5.0.0
@@ -1125,6 +1131,10 @@ packages:
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+
+  '@hono/node-server@1.11.1':
+    resolution: {integrity: sha512-GW1Iomhmm1o4Z+X57xGby8A35Cu9UZLL7pSMdqDBkD99U5cywff8F+8hLk5aBTzNubnsFAvWQ/fZjNwPsEn9lA==}
+    engines: {node: '>=18.14.1'}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -2932,6 +2942,10 @@ packages:
 
   header-case@2.0.4:
     resolution: {integrity: sha512-H/vuk5TEEVZwrR0lp2zed9OCo1uAILMlx0JEMgC26rzyJJ3N1v6XkwHHXJQdR2doSjcGPM6OKPYoJgf0plJ11Q==}
+
+  hono@4.3.2:
+    resolution: {integrity: sha512-wiZcF5N06tc232U11DnqW6hP8DNoypjsrxslKXfvOqOAkTdh7K1HLZJH/92Mf+urxUTGi96f1w4xx/1Qozoqiw==}
+    engines: {node: '>=16.0.0'}
 
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -6272,6 +6286,8 @@ snapshots:
     dependencies:
       graphql: 16.8.1
 
+  '@hono/node-server@1.11.1': {}
+
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -8604,6 +8620,8 @@ snapshots:
     dependencies:
       capital-case: 1.0.4
       tslib: 2.6.2
+
+  hono@4.3.2: {}
 
   hosted-git-info@2.8.9: {}
 
