@@ -4,10 +4,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 describe("integration test", async () => {
     let closeServer: () => void;
     beforeAll(async () => {
-        const ret = await createFakeServer({
+        const server = await createFakeServer({
             schemaFilePath: "./1-basic-schema.graphql",
         });
-        if (typeof ret === "function") closeServer = ret;
+        closeServer = server.stop;
     });
     afterAll(() => {
         closeServer?.();
