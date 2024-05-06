@@ -319,9 +319,11 @@ describe("graphql-fake-server", () => {
         const result = await response.json();
         expect(result).toMatchInlineSnapshot(`
           {
-            "createBook": {
-              "id": "new-id",
-              "title": "new BOOK",
+            "data": {
+              "createBook": {
+                "id": "new-id",
+                "title": "new BOOK",
+              },
             },
           }
         `);
