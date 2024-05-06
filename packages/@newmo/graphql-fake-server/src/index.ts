@@ -38,7 +38,7 @@ export const startFakeServer = async ({
         validationRules: [depthLimit(3)],
     });
     const { url } = await startStandaloneServer(server, { listen: { port: port } });
-    logger.info(`🚀 Server listening at: ${url}`);
+    logger.info(`🚀 GraphQL Fake Server listening at: ${url}`);
     return () => {
         // close
         server.stop();
