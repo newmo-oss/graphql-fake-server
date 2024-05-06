@@ -206,7 +206,7 @@ const createRoutingServer = async ({
             status: 200,
         });
     });
-    app.use("/graphql", async (c) => {
+    const fakeGraphQLQuery = async (c: Context) => {
         /**
          * Steps:
          * 1. Receive a request for a GraphQL query
@@ -287,7 +287,9 @@ const createRoutingServer = async ({
             },
             rep,
         );
-    });
+    };
+    app.use("/graphql", fakeGraphQLQuery);
+    app.use("/query", fakeGraphQLQuery);
     app.all("*", passToApollo);
     return app;
 };
