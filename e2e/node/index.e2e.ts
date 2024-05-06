@@ -7,7 +7,7 @@ describe("integration test", async () => {
         const server = await createFakeServer({
             schemaFilePath: "./1-basic-schema.graphql",
         });
-        closeServer = server.stop;
+        server = server.stop;
     });
     afterAll(() => {
         closeServer?.();
