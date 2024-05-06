@@ -4,7 +4,7 @@ import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 //@ts-expect-error
 import depthLimit from "graphql-depth-limit";
-import { createLogger, LogLevel } from "./logger.js";
+import { createLogger, type LogLevel } from "./logger.js";
 import fs from "node:fs/promises";
 import { buildSchema } from "graphql/utilities/index.js";
 import { createMock, type MockObject } from "./createMock.js";
@@ -55,7 +55,7 @@ const creteApolloServer = async (options: FakeServerInternal) => {
             return [key, () => value];
         }),
     );
-    const server = new ApolloServer({
+    return new ApolloServer({
         schema: addMocksToSchema({
             schema: makeExecutableSchema({
                 typeDefs: options.schema,
@@ -64,32 +64,47 @@ const creteApolloServer = async (options: FakeServerInternal) => {
         }),
         validationRules: [depthLimit(options.maxDepth)],
     });
-    return server;
 };
-type SequenceRegistration =
+export type RegisterSequenceNetworkError = {
+    type: "network-error";
+    operationName: string;
+    responseStatusCode: number;
+    errors: Record<string, unknown>[];
+};
+export type RegisterSequenceOperation = {
+    type: "operation";
+    operationName: string;
+    data: Record<string, unknown>;
+};
+export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
+export type RegisterOperationResponse =
     | {
-          type: "network-error";
-          statusCode: number;
-          errors: Record<string, unknown>[];
+          ok: true;
       }
     | {
-          type: "operation";
-          data: Record<string, unknown>;
+          ok: false;
+          errors: string[];
       };
-// TODO: more strict validation?
-const validateSequenceRegistration = (data: unknown): data is SequenceRegistration => {
+const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOptions => {
     if (typeof data !== "object" || data === null) return false;
     if ("type" in data && typeof data.type === "string") {
         if (data.type === "network-error") {
             return (
                 "errors" in data &&
                 Array.isArray(data.errors) &&
-                "statusCode" in data &&
-                typeof data.statusCode === "number"
+                "responseStatusCode" in data &&
+                typeof data.responseStatusCode === "number" &&
+                "operationName" in data &&
+                typeof data.operationName === "string"
             );
         }
         if (data.type === "operation") {
-            return "data" in data && typeof data.data === "object";
+            return (
+                "data" in data &&
+                typeof data.data === "object" &&
+                "operationName" in data &&
+                typeof data.operationName === "string"
+            );
         }
     }
     return false;
@@ -150,31 +165,40 @@ const createRoutingServer = async ({
         if (rep.status === 101) return rep;
         return new Response(rep.body, rep);
     };
-    const sequenceLruMap = new LRUMap<string, SequenceRegistration>({
+    const sequenceLruMap = new LRUMap<string, RegisterSequenceOptions>({
         maxSize: maxRegisteredSequences,
     });
     const app = new Hono();
     app.post("/register-operation", async (c) => {
+        logger.debug("/register-operation");
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
-            c.status(400);
-            c.body("sequence-id is required");
-            return;
+            return Response.json(
+                JSON.stringify({ ok: false, errors: ["sequence-id is required"] }),
+                {
+                    status: 400,
+                },
+            );
         }
         const body = await c.req.json();
+        logger.debug("register-operation", {
+            sequenceId,
+            body,
+        });
         if (!validateSequenceRegistration(body)) {
-            c.status(400);
-            c.body("invalid body");
-            return;
+            return Response.json(
+                JSON.stringify({ ok: false, errors: ["invalid register-operation body"] }),
+                {
+                    status: 400,
+                },
+            );
         }
         logger.debug(`register-operation: ${sequenceId}`, {
             type: body.type,
         });
         sequenceLruMap.set(sequenceId, body);
-        c.status(200);
-        c.body({
-            ok: true,
-            sequenceId,
+        return Response.json(JSON.stringify({ ok: true }), {
+            status: 200,
         });
     });
     app.use("/graphql", async (c) => {
@@ -192,22 +216,51 @@ const createRoutingServer = async ({
         // 2. Does it contain a sequence id?
         if (!sequenceId) return passToApollo(c);
         const sequence = sequenceLruMap.get(sequenceId);
-        logger.debug(`request sequence-id: ${sequenceId}`, {
+        logger.debug(`request sequence-id: ${sequenceId}, sequence exists: ${Boolean(sequence)}`, {
             sequence,
+            sequenceId,
         });
         if (!sequence) return passToApollo(c);
+
+        const requestBody = await c.req.raw.clone().json();
+        const requestOperationName =
+            typeof requestBody === "object" &&
+            requestBody !== null &&
+            "operationName" in requestBody &&
+            requestBody.operationName;
+        logger.debug(`operationName: ${requestOperationName} sequenceId: ${sequenceId}`, {
+            sequenceId,
+        });
+        if (requestOperationName !== sequence.operationName) {
+            return Response.json(
+                JSON.stringify({
+                    errors: [
+                        `operationName does not match. operationName: ${requestOperationName} sequenceId: ${sequenceId}`,
+                    ],
+                }),
+                {
+                    status: 400,
+                },
+            );
+        }
         if (sequence.type === "network-error") {
             return new Response(JSON.stringify(sequence.errors), {
-                status: sequence.statusCode,
+                status: sequence.responseStatusCode,
             });
         }
         // 3. Send a request to Apollo Server
-        logger.debug(`request to apollo-server: ${sequenceId}`);
+        logger.debug("request to apollo-server", {
+            sequenceId,
+        });
         const rep = await fetch(`http://localhost:${ports.apolloServer}/graphql`, {
             method: c.req.method,
             headers: c.req.raw.headers,
             body: c.req.raw.body,
             duplex: "half",
+        });
+        logger.debug("response from apollo-server", {
+            sequenceId,
+            rep,
         });
         if (rep.status === 101) return rep;
         // 4. Does the request contain a sequence id?
@@ -223,7 +276,12 @@ const createRoutingServer = async ({
             ...responseBody.data,
             ...data,
         };
-        return Response.json(merged, rep);
+        return Response.json(
+            {
+                data: merged,
+            },
+            rep,
+        );
     });
 
     return app;
@@ -256,7 +314,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
 export const createFakeServerInternal = async (options: FakeServerInternal) => {
     const apolloServer = await creteApolloServer(options);
     const routingServer = await createRoutingServer({
-        apollo: apolloServer,
+        logLevel: options.logLevel,
         ports: options.ports,
         maxRegisteredSequences: options.maxRegisteredSequences,
     });

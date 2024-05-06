@@ -1,12 +1,17 @@
 import { createFakeServer } from "@newmo/graphql-fake-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { registerGetBooksQueryResponse } from "./generated/register-operation.js";
+import { GraphQLClient } from "graphql-request";
+import { GetBooksDocument } from "./generated/graphql.js";
 
 describe("integration test", async () => {
     let closeServer: () => void;
     beforeAll(async () => {
         const server = await createFakeServer({
-            schemaFilePath: "./1-basic-schema.graphql",
+            schemaFilePath: "./api/api.graphqls",
+            logLevel: "debug"
         });
+        await server.start();
         closeServer = server.stop;
     });
     afterAll(() => {
@@ -19,8 +24,9 @@ describe("integration test", async () => {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
+                operationName: "GetAuthors",
                 query: `
-                    query {
+                    query GetAuthors {
                       authors {
                         id
                         name
@@ -128,6 +134,37 @@ describe("integration test", async () => {
                 },
               ],
             },
+          }
+        `);
+    });
+    it("register fake response for query", async () => {
+        const sequenceId = crypto.randomUUID();
+        // register fake response for GetBooks query
+        const resRegister= await registerGetBooksQueryResponse(sequenceId, {
+            books: [
+                {
+                    id: "new id",
+                    title: "new title",
+                },
+            ],
+        });
+        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+        // request to server
+        const client = new GraphQLClient("http://localhost:4000/graphql", {
+            headers: {
+                "sequence-id": sequenceId,
+            }
+        });
+        // get fake response
+        const response = await client.request(GetBooksDocument);
+        expect(response).toMatchInlineSnapshot(`
+          {
+            "books": [
+              {
+                "id": "new id",
+                "title": "new title",
+              },
+            ],
           }
         `);
     });

@@ -1,1 +1,2 @@
-export { CreateFakeServerOptions, createFakeServer } from "./server.js";
+export { createFakeServer } from "./server.js";
+export type { CreateFakeServerOptions } from "./server.js";
