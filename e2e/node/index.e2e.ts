@@ -1,12 +1,12 @@
 import { createFakeServer } from "@newmo/graphql-fake-server";
+import { GraphQLClient, gql } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { GetBooksDocument } from "./generated/graphql.js";
 import {
     registerCreateBookMutationResponse,
     registerGetBooksQueryErrorResponse,
     registerGetBooksQueryResponse,
 } from "./generated/register-operation.js";
-import { gql, GraphQLClient } from "graphql-request";
-import { GetBooksDocument } from "./generated/graphql.js";
 
 describe("integration test", async () => {
     let closeServer: () => void;
@@ -225,7 +225,9 @@ describe("integration test", async () => {
         try {
             await client.request(GetBooksDocument);
         } catch (e) {
-            expect(e).toMatchInlineSnapshot(`[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`);
+            expect(e).toMatchInlineSnapshot(
+                `[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
+            );
         }
     });
 });

@@ -2,7 +2,7 @@ import { extendSchema } from "@newmo/graphql-fake-core";
 import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
 import { createMock } from "./createMock.js";
-import { createFakeServerInternal, type RegisterSequenceNetworkError } from "./server.js";
+import { type RegisterSequenceNetworkError, createFakeServerInternal } from "./server.js";
 
 let portCounter = 0;
 const getPorts = () => {
@@ -343,7 +343,7 @@ describe("graphql-fake-server", () => {
         await server.start();
         const sequenceId = crypto.randomUUID();
         // register network-error operation
-        const regiRes= await fetch(`http://localhost:${ports.fakeServer}/register-operation`, {
+        const regiRes = await fetch(`http://localhost:${ports.fakeServer}/register-operation`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

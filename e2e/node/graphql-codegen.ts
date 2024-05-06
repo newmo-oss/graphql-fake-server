@@ -15,7 +15,7 @@ const config: CodegenConfig = {
         "./generated/register-operation.ts": {
             plugins: ["@newmo/graphql-codegen-fake-server-operation"],
             config: {
-                typesFile: "./graphql.js"
+                typesFile: "./graphql.js",
             },
         },
     },

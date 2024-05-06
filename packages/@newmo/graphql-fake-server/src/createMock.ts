@@ -1,7 +1,7 @@
-import { createLogger, type LogLevel } from "./logger.js";
-import { generateCode, getTypeInfos, normalizeConfig } from "@newmo/graphql-fake-core";
 import vm from "node:vm";
+import { generateCode, getTypeInfos, normalizeConfig } from "@newmo/graphql-fake-core";
 import type { GraphQLSchema } from "graphql/index.js";
+import { type LogLevel, createLogger } from "./logger.js";
 export type MockObject = Record<string, unknown>;
 export type GenerateMockOptions = {
     schema: GraphQLSchema;

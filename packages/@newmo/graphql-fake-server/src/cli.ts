@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 import { createFakeServer } from "./index.js";
-import { createLogger, type LogLevel } from "./logger.js";
+import { type LogLevel, createLogger } from "./logger.js";
 
 const HELP = `
 Usage: npx @newmo/graphql-fake-server --schema <path> [options]

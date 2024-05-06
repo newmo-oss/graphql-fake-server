@@ -30,6 +30,7 @@
     "enabled": true,
     "rules": {
       "recommended": true
-    }
+    },
+    "ignore": ["**/generated/**", "**/snapshots/**"]
   }
 }

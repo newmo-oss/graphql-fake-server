@@ -1,7 +1,7 @@
 import { extendSchema } from "@newmo/graphql-fake-core";
 import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
-import { createMock, type MockObject } from "./createMock.js";
+import { type MockObject, createMock } from "./createMock.js";
 
 describe("createMock", () => {
     it("should generate a mock object", async () => {
