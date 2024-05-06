@@ -13,9 +13,9 @@ const getPorts = () => {
     };
 };
 const startTestFakeServer = async ({
-                                       schemaString,
-                                       ports,
-                                   }: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
+    schemaString,
+    ports,
+}: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
     const mockObject = await createMock({

@@ -1,6 +1,6 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
 
-const plugin = require.resolve("./dist/graphql-codegen-fake-server-operation.js");
+const plugin = require.resolve("./dist/graphql-codegen-fake-server-client.js");
 const config: CodegenConfig = {
     overwrite: true,
     schema: "./test/api/graphql/api.graphqls",
@@ -14,7 +14,7 @@ const config: CodegenConfig = {
             documentTransforms: [],
         },
         "./test/snapshots/typescript/register-operation.ts": {
-            plugins: ["@newmo/graphql-codegen-fake-server-operation"],
+            plugins: [plugin],
             config: {
                 typesFile: "./graphql", // required
             },

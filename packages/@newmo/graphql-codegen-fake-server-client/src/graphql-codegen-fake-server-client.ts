@@ -9,13 +9,13 @@ export type PluginConfig = {
     typesFile: string;
     /**
      * The URL of the fake server
-     * Default: 'http://localhost:4000/graphql'
+     * Default: 'http://127.0.0.1:4000/register-operation'
      */
     fakeServerUrl: string;
 };
 const plugin: CodegenPlugin<PluginConfig> = {
     plugin(schema, documents, config, _info) {
-        const fakeServerUrl = config.fakeServerUrl || "http://localhost:4000/register-operation";
+        const fakeServerUrl = config.fakeServerUrl || "http://127.0.0.1:4000/register-operation";
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
         const generateRegisterOperation = (name: string) => {
             return `export async function register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {

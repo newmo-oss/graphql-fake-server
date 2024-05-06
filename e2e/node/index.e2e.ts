@@ -17,7 +17,7 @@ describe("integration test", async () => {
             logLevel: "info",
         });
         const { urls } = await server.start();
-        fakeServerUrl = urls.fakeServer
+        fakeServerUrl = urls.fakeServer;
     });
     afterAll(() => {
         server?.stop();

@@ -79,12 +79,12 @@ export type RegisterSequenceOperation = {
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 export type RegisterOperationResponse =
     | {
-    ok: true;
-}
+          ok: true;
+      }
     | {
-    ok: false;
-    errors: string[];
-};
+          ok: false;
+          errors: string[];
+      };
 const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOptions => {
     if (typeof data !== "object" || data === null) return false;
     if ("type" in data && typeof data.type === "string") {
@@ -136,10 +136,10 @@ class LRUMap<K, V> {
 }
 
 const createRoutingServer = async ({
-                                       logLevel,
-                                       ports,
-                                       maxRegisteredSequences,
-                                   }: {
+    logLevel,
+    ports,
+    maxRegisteredSequences,
+}: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
     ports: {
