@@ -57,9 +57,9 @@ describe("graphql-fake-server", () => {
         `;
         const ports = getPorts();
         const server = await startTestFakeServer({ schemaString: schema, ports });
-        await server.start();
+        const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
-        const response = await fetch(`http://localhost:${ports.fakeServer}/graphql`, {
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
