@@ -185,7 +185,7 @@ describe("graphql-fake-server", () => {
         const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
         // register seed
-        await fetch(`${urls.fakeServer}/register-operation`, {
+        await fetch(`${urls.fakeServer}/fake-register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -277,7 +277,7 @@ describe("graphql-fake-server", () => {
         const server = await startTestFakeServer({ schemaString: schema, ports });
         const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
-        await fetch(`${urls.fakeServer}/register-operation`, {
+        await fetch(`${urls.fakeServer}/fake-register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -343,7 +343,7 @@ describe("graphql-fake-server", () => {
         const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
         // register network-error operation
-        const regiRes = await fetch(`${urls.fakeServer}/register-operation`, {
+        const regiRes = await fetch(`${urls.fakeServer}/fake-register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

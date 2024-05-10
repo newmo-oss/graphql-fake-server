@@ -174,8 +174,8 @@ const createRoutingServer = async ({
         maxSize: maxRegisteredSequences,
     });
     const app = new Hono();
-    app.post("/register-operation", async (c) => {
-        logger.debug("/register-operation");
+    app.post("/fake-register", async (c) => {
+        logger.debug("/fake-register");
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
             return Response.json(
@@ -186,19 +186,20 @@ const createRoutingServer = async ({
             );
         }
         const body = await c.req.json();
-        logger.debug("register-operation", {
+        logger.debug("/fake-register: got fake body", {
             sequenceId,
             body,
         });
         if (!validateSequenceRegistration(body)) {
             return Response.json(
-                JSON.stringify({ ok: false, errors: ["invalid register-operation body"] }),
+                JSON.stringify({ ok: false, errors: ["invalid fake-register body"] }),
                 {
                     status: 400,
                 },
             );
         }
-        logger.debug(`register-operation: ${sequenceId}`, {
+        logger.debug(`/fake-register got body type`, {
+            sequenceId,
             type: body.type,
         });
         sequenceLruMap.set(sequenceId, body);
@@ -221,7 +222,7 @@ const createRoutingServer = async ({
         // 2. Does it contain a sequence id?
         if (!sequenceId) return passToApollo(c);
         const sequence = sequenceLruMap.get(sequenceId);
-        logger.debug(`request sequence-id: ${sequenceId}, sequence exists: ${Boolean(sequence)}`, {
+        logger.debug(`/query: sequence-id: ${sequenceId}, sequence exists: ${Boolean(sequence)}`, {
             sequence,
             sequenceId,
         });
@@ -263,7 +264,7 @@ const createRoutingServer = async ({
             body: c.req.raw.body,
             duplex: "half",
         });
-        logger.debug("response from apollo-server", {
+        logger.debug("/query: response from apollo-server", {
             sequenceId,
             rep,
         });
@@ -272,7 +273,7 @@ const createRoutingServer = async ({
         const responseBody = await rep.json();
         // 5. Merge the registration data with the response from 2
         const data = sequence.data;
-        logger.debug(`merge sequence-id: ${sequenceId}`, {
+        logger.debug(`/query: merge sequence-id: ${sequenceId}`, {
             data,
             responseBody,
         });

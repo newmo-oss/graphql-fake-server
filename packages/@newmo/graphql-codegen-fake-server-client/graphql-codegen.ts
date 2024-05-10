@@ -13,7 +13,7 @@ const config: CodegenConfig = {
             },
             documentTransforms: [],
         },
-        "./test/snapshots/typescript/register-operation.ts": {
+        "./test/snapshots/typescript/fake-register.ts": {
             plugins: [plugin],
             config: {
                 typesFile: "./graphql", // required

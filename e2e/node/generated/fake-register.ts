@@ -3,7 +3,7 @@
 import type { GetBooksQuery } from './graphql.js';
 import type { CreateBookMutation } from './graphql.js';
 export async function registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ export async function registerGetBooksQueryResponse(sequenceId:string, queryResp
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerGetBooksQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function registerGetBooksQueryErrorResponse(sequenceId:string, { er
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export async function registerCreateBookMutationResponse(sequenceId:string, muta
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerCreateBookMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

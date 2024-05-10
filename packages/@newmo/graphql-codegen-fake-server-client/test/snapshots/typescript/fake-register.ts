@@ -4,7 +4,7 @@ import type { ListDestinationCandidatesQuery } from './graphql';
 import type { ListRideHistoriesQuery } from './graphql';
 import type { CreateRideHistoryMutation } from './graphql';
 export async function registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -18,7 +18,7 @@ export async function registerListDestinationCandidatesQueryResponse(sequenceId:
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerListDestinationCandidatesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export async function registerListDestinationCandidatesQueryErrorResponse(sequen
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export async function registerListRideHistoriesQueryResponse(sequenceId:string, 
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerListRideHistoriesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export async function registerListRideHistoriesQueryErrorResponse(sequenceId:str
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerCreateRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export async function registerCreateRideHistoryMutationResponse(sequenceId:strin
     }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
 }
 export async function registerCreateRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/register-operation', {
+    return await fetch('http://127.0.0.1:4000/fake-register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
