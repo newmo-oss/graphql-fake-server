@@ -191,14 +191,11 @@ const createRoutingServer = async ({
             body,
         });
         if (!validateSequenceRegistration(body)) {
-            return Response.json(
-                JSON.stringify({ ok: false, errors: ["invalid fake body"] }),
-                {
-                    status: 400,
-                },
-            );
+            return Response.json(JSON.stringify({ ok: false, errors: ["invalid fake body"] }), {
+                status: 400,
+            });
         }
-        logger.debug(`/fake got body type`, {
+        logger.debug("/fake got body type", {
             sequenceId,
             type: body.type,
         });

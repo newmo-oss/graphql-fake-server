@@ -15,7 +15,7 @@ export type PluginConfig = {
 };
 const plugin: CodegenPlugin<PluginConfig> = {
     plugin(schema, documents, config, _info) {
-        console.log(config)
+        console.log(config);
         const fakeEndpoint = config.fakeServerEndpoint || "http://127.0.0.1:4000/fake";
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
         const generateRegisterOperation = (name: string) => {

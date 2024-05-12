@@ -1,12 +1,12 @@
 import { createFakeServer } from "@newmo/graphql-fake-server";
 import { GraphQLClient, gql } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { GetBooksDocument } from "./generated/graphql.js";
 import {
     registerCreateBookMutationResponse,
     registerGetBooksQueryErrorResponse,
     registerGetBooksQueryResponse,
 } from "./generated/fake.js";
+import { GetBooksDocument } from "./generated/graphql.js";
 
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
