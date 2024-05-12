@@ -29,22 +29,65 @@ importers:
 
   e2e/node:
     dependencies:
+      '@newmo/graphql-codegen-fake-server-client':
+        specifier: workspace:*
+        version: link:../../packages/@newmo/graphql-codegen-fake-server-client
       '@newmo/graphql-fake-server':
         specifier: workspace:*
         version: link:../../packages/@newmo/graphql-fake-server
     devDependencies:
+      '@graphql-codegen/cli':
+        specifier: ^5.0.0
+        version: 5.0.2(@types/node@20.12.7)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.4.5)
+      '@graphql-codegen/typescript':
+        specifier: ^4.0.1
+        version: 4.0.6(encoding@0.1.13)(graphql@16.8.1)
       '@tsconfig/node18':
         specifier: ^18.2.0
         version: 18.2.4
       '@tsconfig/strictest':
         specifier: ^2.0.1
         version: 2.0.5
+      graphql-request:
+        specifier: ^6.1.0
+        version: 6.1.0(encoding@0.1.13)(graphql@16.8.1)
       vitest:
         specifier: ^1.3.1
         version: 1.5.2(@types/node@20.12.7)(@vitest/browser@1.5.2)
       vitest-github-actions-reporter:
         specifier: ^0.11.1
         version: 0.11.1(vitest@1.5.2(@types/node@20.12.7)(@vitest/browser@1.5.2))
+
+  packages/@newmo/graphql-codegen-fake-server-client:
+    dependencies:
+      '@graphql-codegen/plugin-helpers':
+        specifier: ^5.0.3
+        version: 5.0.3(graphql@16.8.1)
+    devDependencies:
+      '@graphql-codegen/cli':
+        specifier: ^5.0.0
+        version: 5.0.2(@types/node@20.12.7)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.4.5)
+      '@graphql-codegen/typescript':
+        specifier: ^4.0.1
+        version: 4.0.6(encoding@0.1.13)(graphql@16.8.1)
+      '@tsconfig/node18':
+        specifier: ^18.2.0
+        version: 18.2.4
+      '@tsconfig/strictest':
+        specifier: ^2.0.1
+        version: 2.0.5
+      '@types/eslint':
+        specifier: ^8.44.2
+        version: 8.56.10
+      '@types/node':
+        specifier: ^20.5.1
+        version: 20.12.7
+      graphql:
+        specifier: ^16.8.1
+        version: 16.8.1
+      typescript:
+        specifier: ^5.4.2
+        version: 5.4.5
 
   packages/@newmo/graphql-fake-core:
     dependencies:
@@ -103,19 +146,19 @@ importers:
       '@graphql-tools/schema':
         specifier: ^10.0.3
         version: 10.0.3(graphql@16.8.1)
+      '@hono/node-server':
+        specifier: ^1.11.1
+        version: 1.11.1
       '@newmo/graphql-fake-core':
         specifier: workspace:*
         version: link:../graphql-fake-core
       graphql-depth-limit:
         specifier: ^1.1.0
         version: 1.1.0(graphql@16.8.1)
+      hono:
+        specifier: ^4.3.2
+        version: 4.3.2
     devDependencies:
-      '@graphql-codegen/cli':
-        specifier: ^5.0.0
-        version: 5.0.2(@types/node@20.12.7)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.4.5)
-      '@graphql-codegen/typescript':
-        specifier: ^4.0.1
-        version: 4.0.6(encoding@0.1.13)(graphql@16.8.1)
       '@tsconfig/node18':
         specifier: ^18.2.0
         version: 18.2.4
@@ -137,9 +180,6 @@ importers:
       graphql:
         specifier: ^16.8.1
         version: 16.8.1
-      npm-run-all:
-        specifier: ^4.1.5
-        version: 4.1.5
       typescript:
         specifier: ^5.4.2
         version: 5.4.5
@@ -1125,6 +1165,10 @@ packages:
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+
+  '@hono/node-server@1.11.1':
+    resolution: {integrity: sha512-GW1Iomhmm1o4Z+X57xGby8A35Cu9UZLL7pSMdqDBkD99U5cywff8F+8hLk5aBTzNubnsFAvWQ/fZjNwPsEn9lA==}
+    engines: {node: '>=18.14.1'}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -2932,6 +2976,10 @@ packages:
 
   header-case@2.0.4:
     resolution: {integrity: sha512-H/vuk5TEEVZwrR0lp2zed9OCo1uAILMlx0JEMgC26rzyJJ3N1v6XkwHHXJQdR2doSjcGPM6OKPYoJgf0plJ11Q==}
+
+  hono@4.3.2:
+    resolution: {integrity: sha512-wiZcF5N06tc232U11DnqW6hP8DNoypjsrxslKXfvOqOAkTdh7K1HLZJH/92Mf+urxUTGi96f1w4xx/1Qozoqiw==}
+    engines: {node: '>=16.0.0'}
 
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -6272,6 +6320,8 @@ snapshots:
     dependencies:
       graphql: 16.8.1
 
+  '@hono/node-server@1.11.1': {}
+
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -8604,6 +8654,8 @@ snapshots:
     dependencies:
       capital-case: 1.0.4
       tslib: 2.6.2
+
+  hono@4.3.2: {}
 
   hosted-git-info@2.8.9: {}
 

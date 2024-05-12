@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 import { createFakeServer } from "./index.js";
-import { createLogger, type LogLevel } from "./logger.js";
+import { type LogLevel, createLogger } from "./logger.js";
 
 const HELP = `
 Usage: npx @newmo/graphql-fake-server --schema <path> [options]
@@ -23,10 +23,15 @@ export const cli = parseArgs({
             description: "Path to the schema file. e.g. schema.graphql",
         },
         // --port
-        port: {
+        mainPort: {
             type: "string",
             description: "Port to run the server on",
             default: "4000",
+        },
+        apolloPort: {
+            type: "string",
+            description: "Port to run the server on",
+            default: "4002",
         },
         logLevel: {
             type: "string",
@@ -61,22 +66,26 @@ export const run = async ({
             exitCode: 1,
         };
     }
-    const port = values.port ? Number.parseInt(values.port, 10) : Number.NaN;
-    if (Number.isNaN(port)) {
+    const mainPort = values.mainPort ? Number.parseInt(values.mainPort, 10) : Number.NaN;
+    const apolloPort = values.apolloPort ? Number.parseInt(values.apolloPort, 10) : Number.NaN;
+    if (Number.isNaN(mainPort) || Number.isNaN(apolloPort)) {
         logger.info(HELP);
         return {
             stdout: "",
-            stderr: "--port must be a number",
+            stderr: "port must be a number",
             exitCode: 1,
         };
     }
     try {
         const server = await createFakeServer({
             schemaFilePath: schemaPath,
-            port,
+            ports: {
+                fakeServer: mainPort,
+                apolloServer: apolloPort,
+            },
         });
-        const { url } = await server.start();
-        logger.info(`🚀 GraphQL Fake Server listening at: ${url}`);
+        const { urls } = await server.start();
+        logger.info(`🚀 GraphQL Fake Server listening at: ${urls.fakeServer}`);
         return {
             stdout: "",
             stderr: "",

@@ -1,0 +1,61 @@
+{
+  "name": "@newmo/graphql-codegen-fake-server-client",
+  "version": "0.3.0",
+  "private": false,
+  "description": "GraphQL Codegen plugin for generating a fake server client",
+  "keywords": [
+    "testing",
+    "mock",
+    "graphql"
+  ],
+  "repository": "https://github.com/newmo-oss/graphql-fake-server.git",
+  "license": "MIT",
+  "author": "newmo, Inc.",
+  "sideEffects": false,
+  "type": "commonjs",
+  "main": "./dist/graphql-codegen-fake-server-client.js",
+  "exports": {
+    ".": {
+      "import": "./dist/graphql-codegen-fake-server-client.js",
+      "require": "./dist/graphql-codegen-fake-server-client.js",
+      "default": "./dist/graphql-codegen-fake-server-client.js"
+    }
+  },
+  "files": [
+    "src/",
+    "!src/test",
+    "!src/**/*.test.ts",
+    "!src/**/__snapshots__",
+    "dist/"
+  ],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "npm run build && npm run codege",
+    "codegen": "graphql-codegen --config graphql-codegen.ts"
+  },
+  "dependencies": {
+    "@graphql-codegen/plugin-helpers": "^5.0.3"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/typescript": "^4.0.1",
+    "@tsconfig/node18": "^18.2.0",
+    "@tsconfig/strictest": "^2.0.1",
+    "@types/eslint": "^8.44.2",
+    "@types/node": "^20.5.1",
+    "graphql": "^16.8.1",
+    "typescript": "^5.4.2"
+  },
+  "peerDependencies": {
+    "graphql": "^16.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

@@ -77,3 +77,11 @@ type Query {
     book(id: ID!): Book
     books: [Book!]!
 }
+
+input CreateBookInput {
+    title: String!
+}
+
+type Mutation {
+    createBook(input: CreateBookInput!): Book!
+}

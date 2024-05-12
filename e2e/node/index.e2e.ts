@@ -1,26 +1,37 @@
 import { createFakeServer } from "@newmo/graphql-fake-server";
+import { GraphQLClient, gql } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {
+    registerCreateBookMutationResponse,
+    registerGetBooksQueryErrorResponse,
+    registerGetBooksQueryResponse,
+} from "./generated/fake.js";
+import { GetBooksDocument } from "./generated/graphql.js";
 
 describe("integration test", async () => {
-    let closeServer: () => void;
+    let server: Awaited<ReturnType<typeof createFakeServer>>;
+    let fakeServerUrl = "";
     beforeAll(async () => {
-        const server = await createFakeServer({
-            schemaFilePath: "./1-basic-schema.graphql",
+        server = await createFakeServer({
+            schemaFilePath: "./api/api.graphqls",
+            logLevel: "info",
         });
-        closeServer = server.stop;
+        const { urls } = await server.start();
+        fakeServerUrl = urls.fakeServer;
     });
     afterAll(() => {
-        closeServer?.();
+        server?.stop();
     });
     it("request to server and get response", async () => {
-        const response = await fetch("http://localhost:4000/graphql", {
+        const response = await fetch(`${fakeServerUrl}/graphql`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
+                operationName: "GetAuthors",
                 query: `
-                    query {
+                    query GetAuthors {
                       authors {
                         id
                         name
@@ -130,5 +141,94 @@ describe("integration test", async () => {
             },
           }
         `);
+    });
+    it("register fake response for query", async () => {
+        const sequenceId = crypto.randomUUID();
+        // register fake response for GetBooks query
+        const resRegister = await registerGetBooksQueryResponse(sequenceId, {
+            books: [
+                {
+                    id: "new id",
+                    title: "new title",
+                },
+            ],
+        });
+        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+        // request to server
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+            headers: {
+                "sequence-id": sequenceId,
+            },
+        });
+        // get fake response
+        const response = await client.request(GetBooksDocument);
+        expect(response).toMatchInlineSnapshot(`
+          {
+            "books": [
+              {
+                "id": "new id",
+                "title": "new title",
+              },
+            ],
+          }
+        `);
+    });
+    it("register fake response for mutation", async () => {
+        const sequenceId = crypto.randomUUID();
+        // register fake response for mutation
+        const resRegister = await registerCreateBookMutationResponse(sequenceId, {
+            createBook: {
+                id: "new id",
+                title: "new title",
+            },
+        });
+        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+        // request to server
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+            headers: {
+                "sequence-id": sequenceId,
+            },
+        });
+        // get fake response
+        const mutation = gql`
+            mutation  CreateBook {
+                createBook(input: { title: "new title" }) {
+                    id
+                    title
+                }
+            }
+        `;
+        const response = await client.request(mutation);
+        expect(response).toMatchInlineSnapshot(`
+          {
+            "createBook": {
+              "id": "new id",
+              "title": "new title",
+            },
+          }
+        `);
+    });
+    it("register fake error response for query", async () => {
+        const sequenceId = crypto.randomUUID();
+        // register fake error response for GetBooks query
+        const resRegister = await registerGetBooksQueryErrorResponse(sequenceId, {
+            errors: [{ message: "fake error message" }],
+            responseStatusCode: 400,
+        });
+        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+        // request to server
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+            headers: {
+                "sequence-id": sequenceId,
+            },
+        });
+        // get fake response
+        try {
+            await client.request(GetBooksDocument);
+        } catch (e) {
+            expect(e).toMatchInlineSnapshot(
+                `[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
+            );
+        }
     });
 });

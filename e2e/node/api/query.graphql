@@ -1,0 +1,13 @@
+query GetBooks {
+    books {
+        id
+        title
+    }
+}
+
+mutation CreateBook($title: String!) {
+    createBook(input: { title: $title }) {
+        id
+        title
+    }
+}
