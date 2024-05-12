@@ -1,6 +1,7 @@
 # @newmo/graphql-codegen-fake-server-client
 
-GraphQL Code Generator plugin for generating a fake server client.
+GraphQL Code Generator plugin that generates fake client for [@newmo/graphql-fake-server
+](https://github.com/newmo-oss/graphql-fake-server).
 
 ## Installation
 
