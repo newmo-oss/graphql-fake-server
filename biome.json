@@ -5,6 +5,12 @@
     "clientKind": "git",
     "useIgnoreFile": true
   },
+  "files": {
+    "ignore": [
+      "**/generated/**",
+      "**/snapshots/**"
+    ]
+  },
   "json": {
     "formatter": {
       "enabled": false
@@ -16,10 +22,6 @@
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
-    "ignore": [
-      "**/generated/**",
-      "**/snapshots/**"
-    ],
     "attributePosition": "auto",
     "indentStyle": "space",
     "indentWidth": 4,
@@ -33,10 +35,6 @@
     "enabled": true,
     "rules": {
       "recommended": true
-    },
-    "ignore": [
-      "**/generated/**",
-      "**/snapshots/**"
-    ]
+    }
   }
 }
