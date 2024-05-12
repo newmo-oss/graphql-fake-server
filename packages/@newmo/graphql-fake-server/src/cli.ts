@@ -35,17 +35,17 @@ export const cli = parseArgs({
         maxRegisteredSequences: {
             type: "string",
             description: "Max number of registered sequences.",
-            default: "1000"
+            default: "1000",
         },
         maxQueryDepth: {
             type: "string",
             description: "max query depth for complexity of query",
-            default: "3"
+            default: "3",
         },
         maxFieldRecursionDepth: {
             type: "string",
             description: "maxFieldRecursionDepth for creating fake data",
-            default: "4"
+            default: "4",
         },
         logLevel: {
             type: "string",
@@ -55,8 +55,8 @@ export const cli = parseArgs({
     },
 });
 export const run = async ({
-                              values,
-                          }: typeof cli = cli): Promise<{
+    values,
+}: typeof cli = cli): Promise<{
     stdout: string;
     stderr: string | Error;
     exitCode: number;
