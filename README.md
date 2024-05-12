@@ -240,6 +240,10 @@ console.log(json);
 > [!NOTE]
 > If you use TypeScript, you can use [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client) to generate a client for the Fake Server.
 
+## Examples
+
+- [examples/e2e/node](./examples/e2e/node): Example of using Fake Server in Node.js.
+
 ## Contributing
 
 1. Fork it!
