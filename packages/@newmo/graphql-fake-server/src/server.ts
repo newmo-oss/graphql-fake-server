@@ -174,8 +174,8 @@ const createRoutingServer = async ({
         maxSize: maxRegisteredSequences,
     });
     const app = new Hono();
-    app.post("/fake-register", async (c) => {
-        logger.debug("/fake-register");
+    app.post("/fake", async (c) => {
+        logger.debug("/fake");
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
             return Response.json(
@@ -186,19 +186,19 @@ const createRoutingServer = async ({
             );
         }
         const body = await c.req.json();
-        logger.debug("/fake-register: got fake body", {
+        logger.debug("/fake: got fake body", {
             sequenceId,
             body,
         });
         if (!validateSequenceRegistration(body)) {
             return Response.json(
-                JSON.stringify({ ok: false, errors: ["invalid fake-register body"] }),
+                JSON.stringify({ ok: false, errors: ["invalid fake body"] }),
                 {
                     status: 400,
                 },
             );
         }
-        logger.debug(`/fake-register got body type`, {
+        logger.debug(`/fake got body type`, {
             sequenceId,
             type: body.type,
         });

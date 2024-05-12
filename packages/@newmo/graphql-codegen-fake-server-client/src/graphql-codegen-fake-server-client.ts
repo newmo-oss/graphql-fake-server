@@ -9,17 +9,18 @@ export type PluginConfig = {
     typesFile: string;
     /**
      * The URL of the fake server
-     * Default: 'http://127.0.0.1:4000/fake-register'
+     * Default: 'http://127.0.0.1:4000/fake'
      */
-    fakeServerUrl: string;
+    fakeServerEndpoint: string;
 };
 const plugin: CodegenPlugin<PluginConfig> = {
     plugin(schema, documents, config, _info) {
-        const fakeServerUrl = config.fakeServerUrl || "http://127.0.0.1:4000/fake-register";
+        console.log(config)
+        const fakeEndpoint = config.fakeServerEndpoint || "http://127.0.0.1:4000/fake";
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
         const generateRegisterOperation = (name: string) => {
             return `export async function register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeServerUrl}', {
+    return await fetch('${fakeEndpoint}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -35,7 +36,7 @@ const plugin: CodegenPlugin<PluginConfig> = {
         };
         const generateRegisterOperationError = (name: string) => {
             return `export async function register${name}QueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeServerUrl}', {
+    return await fetch('${fakeEndpoint}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ const plugin: CodegenPlugin<PluginConfig> = {
         };
         const generateRegisterMutation = (name: string) => {
             return `export async function register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeServerUrl}', {
+    return await fetch('${fakeEndpoint}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ const plugin: CodegenPlugin<PluginConfig> = {
         };
         const generateRegisterMutationError = (name: string) => {
             return `export async function register${name}MutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeServerUrl}', {
+    return await fetch('${fakeEndpoint}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -6,7 +6,7 @@ import {
     registerCreateBookMutationResponse,
     registerGetBooksQueryErrorResponse,
     registerGetBooksQueryResponse,
-} from "./generated/fake-register.js";
+} from "./generated/fake.js";
 
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;

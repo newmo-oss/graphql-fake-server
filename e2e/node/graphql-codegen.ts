@@ -12,7 +12,7 @@ const config: CodegenConfig = {
             },
             documentTransforms: [],
         },
-        "./generated/fake-register.ts": {
+        "./generated/fake.ts": {
             plugins: ["@newmo/graphql-codegen-fake-server-client"],
             config: {
                 typesFile: "./graphql.js",
