@@ -19,18 +19,18 @@ export type CreateFakeServerOptions = {
         apolloServer: number;
     };
     /**
-     * maxDepth for depthLimit
+     * max query depth for complexity of query
      * Default is 3
      */
-    maxDepth?: number;
+    maxQueryDepth?: number;
     /**
-     * maxFieldRecursionDepth for Mocking
+     * maxFieldRecursionDepth for creating fake data
      * Default is maxDepth + 1
      */
     maxFieldRecursionDepth?: number;
     /**
      * max number of registered sequences
-     * Default is 100
+     * Default is 1000
      * If the number of registered sequences exceeds this number, the oldest sequence is deleted.
      */
     maxRegisteredSequences?: number;
@@ -44,7 +44,7 @@ type FakeServerInternal = {
         fakeServer: number;
         apolloServer: number;
     };
-    maxDepth: number;
+    maxQueryDepth: number;
     maxFieldRecursionDepth: number;
     maxRegisteredSequences: number;
     logLevel: LogLevel;
@@ -62,7 +62,7 @@ const creteApolloServer = async (options: FakeServerInternal) => {
             }),
             mocks,
         }),
-        validationRules: [depthLimit(options.maxDepth)],
+        validationRules: [depthLimit(options.maxQueryDepth)],
     });
 };
 export type RegisterSequenceNetworkError = {
@@ -302,14 +302,14 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         fakeServer: options.ports?.fakeServer ?? 4000,
         apolloServer: options.ports?.apolloServer ?? 4001,
     };
-    const maxDepth = options.maxDepth ?? 3;
-    const maxFieldRecursionDepth = options.maxFieldRecursionDepth ?? maxDepth + 1;
-    const maxRegisteredSequences = options.maxRegisteredSequences ?? 100;
+    const maxQueryDepth = options.maxQueryDepth ?? 3;
+    const maxFieldRecursionDepth = options.maxFieldRecursionDepth ?? maxQueryDepth + 1;
+    const maxRegisteredSequences = options.maxRegisteredSequences ?? 1000;
     return createFakeServerInternal({
         ports,
         schema,
         mockObject,
-        maxDepth,
+        maxQueryDepth,
         maxFieldRecursionDepth,
         maxRegisteredSequences,
         logLevel: options.logLevel ?? "info",

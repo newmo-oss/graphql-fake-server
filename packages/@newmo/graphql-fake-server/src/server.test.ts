@@ -28,7 +28,7 @@ const startTestFakeServer = async ({
         mockObject,
         logLevel,
         ports: ports,
-        maxDepth: 3,
+        maxQueryDepth: 3,
         maxFieldRecursionDepth: 4,
         maxRegisteredSequences: 100,
     });

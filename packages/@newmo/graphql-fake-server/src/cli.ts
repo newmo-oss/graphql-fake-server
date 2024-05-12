@@ -22,7 +22,6 @@ export const cli = parseArgs({
             type: "string",
             description: "Path to the schema file. e.g. schema.graphql",
         },
-        // --port
         mainPort: {
             type: "string",
             description: "Port to run the server on",
@@ -32,6 +31,21 @@ export const cli = parseArgs({
             type: "string",
             description: "Port to run the server on",
             default: "4002",
+        },
+        maxRegisteredSequences: {
+            type: "string",
+            description: "Max number of registered sequences.",
+            default: "1000",
+        },
+        maxQueryDepth: {
+            type: "string",
+            description: "max query depth for complexity of query",
+            default: "3",
+        },
+        maxFieldRecursionDepth: {
+            type: "string",
+            description: "maxFieldRecursionDepth for creating fake data",
+            default: "4",
         },
         logLevel: {
             type: "string",
@@ -76,9 +90,45 @@ export const run = async ({
             exitCode: 1,
         };
     }
+    const maxFieldRecursionDepth = values.maxFieldRecursionDepth
+        ? Number.parseInt(values.maxFieldRecursionDepth, 10)
+        : Number.NaN;
+    if (Number.isNaN(maxFieldRecursionDepth)) {
+        logger.info(HELP);
+        return {
+            stdout: "",
+            stderr: "maxFieldRecursionDepth must be a number",
+            exitCode: 1,
+        };
+    }
+    const maxQueryDepth = values.maxQueryDepth
+        ? Number.parseInt(values.maxQueryDepth, 10)
+        : Number.NaN;
+    if (Number.isNaN(maxQueryDepth)) {
+        logger.info(HELP);
+        return {
+            stdout: "",
+            stderr: "maxQueryDepth must be a number",
+            exitCode: 1,
+        };
+    }
+    const maxRegisteredSequences = values.maxRegisteredSequences
+        ? Number.parseInt(values.maxRegisteredSequences, 10)
+        : Number.NaN;
+    if (Number.isNaN(maxRegisteredSequences)) {
+        logger.info(HELP);
+        return {
+            stdout: "",
+            stderr: "maxRegisteredSequences must be a number",
+            exitCode: 1,
+        };
+    }
     try {
         const server = await createFakeServer({
             schemaFilePath: schemaPath,
+            maxRegisteredSequences,
+            maxFieldRecursionDepth,
+            maxQueryDepth,
             ports: {
                 fakeServer: mainPort,
                 apolloServer: apolloPort,
