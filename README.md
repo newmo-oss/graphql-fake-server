@@ -256,3 +256,4 @@ MIT
 
 - [mizdra/graphql-codegen-typescript-fabbrica: GraphQL Code Generator Plugin to define fake data factory.](https://github.com/mizdra/graphql-codegen-typescript-fabbrica)
 - [graphql-kit/graphql-faker: 🎲 Mock or extend your GraphQL API with faked data. No coding required.](https://github.com/graphql-kit/graphql-faker)
+- [wayfair-incubator/gqmock: Project generated via @wayfair-incubator oss-template](https://github.com/wayfair-incubator/gqmock)
