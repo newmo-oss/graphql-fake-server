@@ -1,6 +1,6 @@
 # @newmo/graphql-fake-server
 
-GraphQL Fake Server.
+GraphQL Fake Server and Toolkits for Declarative and Dynamic Fake.
 
 ## Motivation
 
