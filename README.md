@@ -5,7 +5,6 @@ GraphQL Fake Server and Toolkits for Declarative and Dynamic Fake.
 ## Motivation
 
 `@newmo/graphql-fake-server` is for developers who use Fake data in GraphQL API.
-However, We do not want to have a complex implementation for Fake.
 
 `@newmo/graphql-fake-server` provides a two-way GraphQL API Fake.
 
