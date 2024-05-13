@@ -211,6 +211,42 @@ type RequiredDocument {
           }
         `);
     });
+    it("should extend interface type", async () => {
+        // https://spec.graphql.org/October2021/#sec-Interface-Extensions
+        const schema = buildSchema(`
+        interface Node {
+            id: ID!
+        }
+        extend interface Node {
+            name: String
+        }
+        type User implements Node {
+            id: ID!
+            name: String
+        }
+        type Query {
+            user: User
+        }
+    `);
+        const result = await createMock({
+            schema,
+        });
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "name": "string",
+              },
+            },
+            "User": {
+              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "name": "string",
+            },
+          }
+        `);
+    });
     it("should support union with @example directive", async () => {
         const schema = buildSchema(
             extendSchema(`
