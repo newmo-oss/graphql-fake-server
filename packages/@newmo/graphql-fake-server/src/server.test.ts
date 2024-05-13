@@ -12,15 +12,16 @@ const getPorts = () => {
     };
 };
 const startTestFakeServer = async ({
-    schemaString,
-    ports,
-}: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
+                                       schemaString,
+                                       ports,
+                                   }: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
     const mockResult = await createMock({
         schema,
         maxFieldRecursionDepth: 3,
     });
+    if (!mockResult.ok) throw new Error("Failed to create mock server.")
     return createFakeServerInternal({
         schema,
         mockObject: mockResult.mock,

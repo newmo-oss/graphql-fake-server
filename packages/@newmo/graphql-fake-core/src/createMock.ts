@@ -21,7 +21,6 @@ export type CreateMockResult =
     | {
           ok: false;
           code: string;
-          mock: MockObject;
           error: Error;
       };
 /**
@@ -55,7 +54,6 @@ export const createMock = async (options: CreateMockOptions): Promise<CreateMock
         return {
             ok: false,
             code,
-            mock: {},
             error: error as Error,
         };
     }
