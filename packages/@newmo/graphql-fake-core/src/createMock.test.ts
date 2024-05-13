@@ -129,6 +129,41 @@ type RequiredDocument {
           }
         `);
     });
+    it("should support multiple interface", async () => {
+        const schema = buildSchema(`
+        interface Node {
+            id: ID!
+        }
+        interface Name {
+            name: String
+        }
+        type User implements Node & Name {
+            id: ID!
+            name: String
+        }
+        type Query {
+            user: User
+        }
+    `);
+        const result = await createMock({
+            schema,
+        });
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "name": "string",
+              },
+            },
+            "User": {
+              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "name": "string",
+            },
+          }
+        `);
+    });
     it("should support union", async () => {
         const schema = buildSchema(`
         type User {
