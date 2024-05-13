@@ -212,8 +212,8 @@ describe("generateCode", () => {
             expect(
                 generateCodeFromSchema(`
         input NewUserInput {
-            name: String!
-            email: String!
+            name: String! @exampleString(value: "John Doe")
+            email: String! @exampleString(value: "example@example.com")
         }
 
         type Mutation {
@@ -227,37 +227,37 @@ describe("generateCode", () => {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
-      return {
-          name: "string",
-          email: "string",
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
+              return {
+                  name: "John Doe",
+                  email: "example@example.com",
+                };
+              }
 
-      export const NewUserInput = createNewUserInput();
-      export function createMutation({ defaultFields, depth = 0 } = {}) {
-      return {
-          createUser: (depth < 3 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+              export const NewUserInput = createNewUserInput();
+              export function createMutation({ defaultFields, depth = 0 } = {}) {
+              return {
+                  createUser: (depth < 3 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
+                };
+              }
 
-      export const Mutation = createMutation();
-      export function createUser({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
-          name: "string",
-          email: "string",
-        };
-      }
+              export const Mutation = createMutation();
+              export function createUser({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+                  name: "string",
+                  email: "string",
+                };
+              }
 
-      export const User = createUser();"
-    `);
+              export const User = createUser();"
+            `);
         });
     });
     describe("execute generateCode", () => {
