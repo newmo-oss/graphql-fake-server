@@ -181,31 +181,38 @@ describe("generateCode", () => {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createCat({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id", depth }),
-          name: "string",
-          livesLeft: 12,
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
 
-      export const Cat = createCat();
-      export function createDog({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Dog.id", depth }),
-          name: "string",
-          breed: "string",
-        };
-      }
+              function createAnimal({ defaultFields, depth = 0 } = {}) {
+              return {
+                  __typename: "Cat",
+                  ...(depth < 3 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
+              };
+              }
+              export function createCat({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id", depth }),
+                  name: "string",
+                  livesLeft: 12,
+                };
+              }
 
-      export const Dog = createDog();"
-    `);
+              export const Cat = createCat();
+              export function createDog({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Dog.id", depth }),
+                  name: "string",
+                  breed: "string",
+                };
+              }
+
+              export const Dog = createDog();"
+            `);
         });
 
         it("generates code for input types", () => {
@@ -458,31 +465,38 @@ type Book {
         }
     `),
                     ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createCat({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"Cat.id.1234", depth }),
-          name: "Tom",
-          livesLeft: 9,
-        };
-      }
+                      "const __idCountMap = new Map()
+                      function __id({ name, key, depth }) {
+                          const count = __idCountMap.get(key) ?? 0;
+                          __idCountMap.set(key, count + 1);
+                          return name + String(depth) + String(count);
+                      }
 
-      export const Cat = createCat();
-      export function createDog({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"Dog.id.1234", depth }),
-          name: "Spike",
-          breed: "Bulldog",
-        };
-      }
+                      function createAnimal({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          __typename: "Cat",
+                          ...(depth < 3 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
+                      };
+                      }
+                      export function createCat({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          id: __id({ name: "1234", key:"Cat.id.1234", depth }),
+                          name: "Tom",
+                          livesLeft: 9,
+                        };
+                      }
 
-      export const Dog = createDog();"
-    `);
+                      export const Cat = createCat();
+                      export function createDog({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          id: __id({ name: "1234", key:"Dog.id.1234", depth }),
+                          name: "Spike",
+                          breed: "Bulldog",
+                        };
+                      }
+
+                      export const Dog = createDog();"
+                    `);
                 });
 
                 it("generates code for input types with @exampleString directive", () => {

@@ -317,14 +317,14 @@ type RequiredDocument {
                   "possibleTypes": [
                     "ImplementingType",
                   ],
-                  "type": "abstract",
+                  "type": "interface",
                 },
                 {
                   "name": "Interface2",
                   "possibleTypes": [
                     "ImplementingType",
                   ],
-                  "type": "abstract",
+                  "type": "interface",
                 },
                 {
                   "fields": [
@@ -641,7 +641,7 @@ type RequiredDocument {
                       "possibleTypes": [
                         "IType",
                       ],
-                      "type": "abstract",
+                      "type": "interface",
                     },
                     {
                       "name": "IUnion",
@@ -710,7 +710,7 @@ type RequiredDocument {
                       "possibleTypes": [
                         "TypeI",
                       ],
-                      "type": "abstract",
+                      "type": "interface",
                     },
                     {
                       "name": "UnionI",
