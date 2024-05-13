@@ -1,6 +1,6 @@
-import { createMock, extendSchema } from "@newmo/graphql-fake-core";
 import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
+import { createMock, extendSchema } from "@newmo/graphql-fake-core";
 import { type RegisterSequenceNetworkError, createFakeServerInternal } from "./server.js";
 
 let portCounter = 0;
@@ -17,13 +17,13 @@ const startTestFakeServer = async ({
 }: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
-    const mockObject = await createMock({
+    const mockResult = await createMock({
         schema,
         maxFieldRecursionDepth: 3,
     });
     return createFakeServerInternal({
         schema,
-        mockObject,
+        mockObject: mockResult.mock,
         logLevel,
         ports: ports,
         maxQueryDepth: 3,
@@ -87,38 +87,70 @@ describe("graphql-fake-server", () => {
             "data": {
               "authors": [
                 {
-                  "age": -3,
+                  "age": 33,
                   "books": [
                     {
-                      "genre": "NON_FICTION",
-                      "id": "431f6d71-124f-4fcc-98c8-2378deb64020",
-                      "title": "Hello World",
+                      "genre": "FICTION",
+                      "id": "book-id24",
+                      "title": "The Great Gatsby",
                     },
                     {
                       "genre": "FICTION",
-                      "id": "2b1ae99c-8e2b-495c-aa1d-5684e333ddb3",
-                      "title": "Hello World",
+                      "id": "book-id25",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "genre": "FICTION",
+                      "id": "book-id26",
+                      "title": "The Great Gatsby",
                     },
                   ],
-                  "id": "3c49b51e-dc45-423f-ba96-f96416cede8f",
-                  "name": "Hello World",
+                  "id": "author-id11",
+                  "name": "F. Scott Fitzgerald",
                 },
                 {
-                  "age": 29,
+                  "age": 33,
                   "books": [
                     {
                       "genre": "FICTION",
-                      "id": "196f5b92-4694-494d-8d0e-67efb3735437",
-                      "title": "Hello World",
+                      "id": "book-id27",
+                      "title": "The Great Gatsby",
                     },
                     {
                       "genre": "FICTION",
-                      "id": "33fa2cbb-28d1-402e-a288-dd053e190b5a",
-                      "title": "Hello World",
+                      "id": "book-id28",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "genre": "FICTION",
+                      "id": "book-id29",
+                      "title": "The Great Gatsby",
                     },
                   ],
-                  "id": "e53f20c0-dec0-414c-b85b-0c0e72924ce1",
-                  "name": "Hello World",
+                  "id": "author-id12",
+                  "name": "F. Scott Fitzgerald",
+                },
+                {
+                  "age": 33,
+                  "books": [
+                    {
+                      "genre": "FICTION",
+                      "id": "book-id210",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "genre": "FICTION",
+                      "id": "book-id211",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "genre": "FICTION",
+                      "id": "book-id212",
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                  "id": "author-id13",
+                  "name": "F. Scott Fitzgerald",
                 },
               ],
             },
