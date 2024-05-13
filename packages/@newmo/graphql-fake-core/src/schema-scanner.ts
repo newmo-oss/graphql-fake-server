@@ -397,8 +397,8 @@ export type EnumTypeInfo = {
     name: string;
     fields: FieldInfo[];
 };
-export type AbstractTypeInfo = {
-    type: "abstract";
+export type InterfaceTypeInfo = {
+    type: "interface";
     name: string;
     possibleTypes: string[];
     comment?: string | undefined;
@@ -410,7 +410,7 @@ export type UnionTypeInfo = {
     possibleTypes: string[];
     example?: ExampleDirective | undefined;
 };
-export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo | EnumTypeInfo | UnionTypeInfo;
+export type TypeInfo = ObjectTypeInfo | InterfaceTypeInfo | EnumTypeInfo | UnionTypeInfo;
 export type EnumMap = Map<string, TypeInfo>;
 const createObjectTypeInfo = ({
     config,
@@ -478,11 +478,11 @@ const createObjectTypeInfo = ({
                     config,
                     idFactory,
                     enumMap,
-                });
+                }) satisfies ObjectTypeInfo;
             }
             if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {
-                    type: "abstract",
+                    type: "interface",
                     name: convertName(node.name.value, config),
                     possibleTypes: objectTypeDefinitions
                         .filter((objectTypeDefinitionNode) =>
@@ -493,7 +493,7 @@ const createObjectTypeInfo = ({
                         .map((objectTypeDefinitionNode) =>
                             convertName(objectTypeDefinitionNode.name.value, config),
                         ),
-                };
+                } satisfies InterfaceTypeInfo;
             }
             if (node?.kind === Kind.UNION_TYPE_DEFINITION) {
                 return {
@@ -519,7 +519,7 @@ const createEnumTypeInfo = ({
     // https://astexplorer.net/#/gist/bbfe3f7414a904b453e173d82e836525/bab0cc96ffb951909dc3cf67a67bd67d09948be6
     // Therefore, We need to create "object" type from EnumTypeDefinitionNode
     // enum Color { RED, GREEN, BLUE }
-    // -> object Color { RED: "RED", GREEN: "GREEN", BLUE: "BLUE" }
+    // -> const Color = { RED: "RED", GREEN: "GREEN", BLUE: "BLUE" }
     const types = Object.values(schema.getTypeMap());
     const userDefinedEnumTypeDefinitions = types
         .map((type) => type.astNode)

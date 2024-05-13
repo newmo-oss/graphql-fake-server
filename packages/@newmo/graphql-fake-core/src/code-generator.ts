@@ -2,6 +2,7 @@ import type { Config } from "./config.js";
 import type {
     EnumTypeInfo,
     ExampleDirective,
+    InterfaceTypeInfo,
     ObjectTypeInfo,
     TypeInfo,
     UnionTypeInfo,
@@ -135,11 +136,14 @@ function __id({ name, key, depth }${
 }`;
 }
 
-// Return first type of union type
+// Return first type of union type / interface
 // union Author = User | Admin
 // We can not understand which type should be returned
-// As a result, we always return the first type of the union type
-function generateUnionTypeCode(config: ConfigWithOutput, typeInfo: UnionTypeInfo): string {
+// As a result, we always return the first type of the union type/interface
+function generateUnionOrInterfaceTypeCode(
+    config: ConfigWithOutput,
+    typeInfo: UnionTypeInfo | InterfaceTypeInfo,
+): string {
     const { name } = typeInfo;
     const indent = "  ";
     const firstTypeNameOfUnionType = typeInfo.possibleTypes[0];
@@ -187,8 +191,8 @@ export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): s
         }
     }
     for (const typeInfo of typeInfos) {
-        if (typeInfo.type === "union") {
-            code += generateUnionTypeCode(config, typeInfo);
+        if (typeInfo.type === "union" || typeInfo.type === "interface") {
+            code += generateUnionOrInterfaceTypeCode(config, typeInfo);
             code += "\n";
         }
         if (typeInfo.type === "object") {
