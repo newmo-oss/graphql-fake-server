@@ -247,6 +247,93 @@ console.log(json);
 
 - [examples/e2e/node](./examples/e2e/node): Example of using Fake Server in Node.js.
 
+## Limitations
+
+Declarative Fake is a static fake, so it has the following limitations.
+
+### Enum
+
+`@newmo/graphql-fake-core` always returns the first value of the enum type.
+
+```graphql
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+type User {
+  status: Status!
+}
+```
+
+Return the following response:
+
+```json
+{
+  "data": {
+    "user": {
+      "status": "ACTIVE"
+    }
+  }
+}
+```
+
+If you want to return a different value, you need to use `@exampleString` directive.
+
+```graphql
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+type User {
+  status: Status! @exampleString(value: "INACTIVE")
+}
+```
+
+Of, You can use Dynamic Fake to return a different value.
+
+- [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
+
+### Union
+
+`@newmo/graphql-fake-core` always returns the first type of the union type.
+
+```graphql
+type User {
+  id: ID!
+  name: String
+}
+type Suspended {
+  reason: String
+}
+type IsBlocked {
+  message: String
+  blockedByUser: User
+}
+union UserResult = User | IsBlocked | Suspended
+type Query {
+  user: UserResult
+}
+```
+
+Return the following response:
+
+```json
+{
+  "data": {
+    "user": {
+      "id": "xxxx-xxxx-xxxx-xxxx",
+      "name": "String"
+    }
+  }
+}
+```
+
+It is first type `User` of the union type `UserResult`.
+
+If you want to return a different type, you need to use Dynamic Fake via HTTP.
+
+- [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
+
 ## FAQ
 
 ### Can I use example directives to `input` type?

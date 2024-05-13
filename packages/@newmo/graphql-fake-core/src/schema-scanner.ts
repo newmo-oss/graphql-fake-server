@@ -404,7 +404,13 @@ export type AbstractTypeInfo = {
     comment?: string | undefined;
     example?: ExampleDirective | undefined;
 };
-export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo | EnumTypeInfo;
+export type UnionTypeInfo = {
+    type: "union";
+    name: string;
+    possibleTypes: string[];
+    example?: ExampleDirective | undefined;
+};
+export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo | EnumTypeInfo | UnionTypeInfo;
 export type EnumMap = Map<string, TypeInfo>;
 const createObjectTypeInfo = ({
     config,
@@ -487,17 +493,18 @@ const createObjectTypeInfo = ({
                         .map((objectTypeDefinitionNode) =>
                             convertName(objectTypeDefinitionNode.name.value, config),
                         ),
-                    comment: node.description ? transformComment(node.description) : undefined,
                 };
             }
-            return {
-                type: "abstract",
-                name: convertName(node.name.value, config),
-                possibleTypes: (node.types ?? []).map((type) =>
-                    convertName(type.name.value, config),
-                ),
-                comment: node.description ? transformComment(node.description) : undefined,
-            };
+            if (node?.kind === Kind.UNION_TYPE_DEFINITION) {
+                return {
+                    type: "union",
+                    name: convertName(node.name.value, config),
+                    possibleTypes: (node.types ?? []).map((type) =>
+                        convertName(type.name.value, config),
+                    ),
+                } satisfies UnionTypeInfo;
+            }
+            throw new Error(`Unknown kind of node: ${node}`);
         });
 };
 

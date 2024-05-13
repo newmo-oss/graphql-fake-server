@@ -1,3 +1,4 @@
+import exp from "node:constants";
 // NOTE: To avoid `Cannot use GraphQLSchema xxx from another module or realm.`, import from 'graphql/index.js' instead of 'graphql'.
 // ref: https://github.com/graphql/graphql-js/issues/1479
 import { convertFactory } from "@graphql-codegen/visitor-plugin-common";
@@ -312,7 +313,6 @@ type RequiredDocument {
             expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
               [
                 {
-                  "comment": undefined,
                   "name": "Interface1",
                   "possibleTypes": [
                     "ImplementingType",
@@ -320,7 +320,6 @@ type RequiredDocument {
                   "type": "abstract",
                 },
                 {
-                  "comment": undefined,
                   "name": "Interface2",
                   "possibleTypes": [
                     "ImplementingType",
@@ -364,22 +363,20 @@ type RequiredDocument {
             expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
               [
                 {
-                  "comment": undefined,
                   "name": "Union1",
                   "possibleTypes": [
                     "Member1",
                     "Member2",
                   ],
-                  "type": "abstract",
+                  "type": "union",
                 },
                 {
-                  "comment": undefined,
                   "name": "Union2",
                   "possibleTypes": [
                     "Member1",
                     "Member2",
                   ],
-                  "type": "abstract",
+                  "type": "union",
                 },
                 {
                   "fields": [
@@ -410,7 +407,7 @@ type RequiredDocument {
               ]
             `);
         });
-        it("input", () => {
+        it("should support input type", () => {
             const schema = buildSchema(`
         input Input {
           field1: String!
@@ -442,6 +439,104 @@ type RequiredDocument {
                 "name": "Input",
                 "type": "object",
               }
+            `);
+        });
+        it("should support union", () => {
+            const schema = buildSchema(`
+        type User {
+          id: ID!
+          name: String
+        }
+        type Suspended {
+          reason: String
+        }
+        type IsBlocked {
+          message: String
+          blockedByUser: User
+        }
+        union UserResult = User | IsBlocked | Suspended
+        type Query {
+            user: UserResult
+        }
+    `);
+            expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
+              [
+                {
+                  "fields": [
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": "__id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth })",
+                      },
+                      "name": "id",
+                    },
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": ""xxxx"",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "name": "User",
+                  "type": "object",
+                },
+                {
+                  "fields": [
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": ""xxxx"",
+                      },
+                      "name": "reason",
+                    },
+                  ],
+                  "name": "Suspended",
+                  "type": "object",
+                },
+                {
+                  "fields": [
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": ""xxxx"",
+                      },
+                      "name": "message",
+                    },
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": "(depth < 1 ? createUser({ defaultFields: defaultFields?.blockedByUser ?? {}, depth: depth + 1 }) : undefined)",
+                      },
+                      "name": "blockedByUser",
+                    },
+                  ],
+                  "name": "IsBlocked",
+                  "type": "object",
+                },
+                {
+                  "name": "UserResult",
+                  "possibleTypes": [
+                    "User",
+                    "IsBlocked",
+                    "Suspended",
+                  ],
+                  "type": "union",
+                },
+                {
+                  "fields": [
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": "(depth < 1 ? createUserResult({ defaultFields: defaultFields?.user ?? {}, depth: depth + 1 }) : undefined)",
+                      },
+                      "name": "user",
+                    },
+                  ],
+                  "name": "Query",
+                  "type": "object",
+                },
+              ]
             `);
         });
     });
@@ -542,7 +637,6 @@ type RequiredDocument {
                       "type": "object",
                     },
                     {
-                      "comment": undefined,
                       "name": "IInterface",
                       "possibleTypes": [
                         "IType",
@@ -550,12 +644,11 @@ type RequiredDocument {
                       "type": "abstract",
                     },
                     {
-                      "comment": undefined,
                       "name": "IUnion",
                       "possibleTypes": [
                         "IType",
                       ],
-                      "type": "abstract",
+                      "type": "union",
                     },
                   ]
                 `);
@@ -613,7 +706,6 @@ type RequiredDocument {
                       "type": "object",
                     },
                     {
-                      "comment": undefined,
                       "name": "InterfaceI",
                       "possibleTypes": [
                         "TypeI",
@@ -621,12 +713,11 @@ type RequiredDocument {
                       "type": "abstract",
                     },
                     {
-                      "comment": undefined,
                       "name": "UnionI",
                       "possibleTypes": [
                         "TypeI",
                       ],
-                      "type": "abstract",
+                      "type": "union",
                     },
                   ]
                 `);

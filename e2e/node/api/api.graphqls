@@ -72,11 +72,38 @@ type Author {
     age: Int! @exampleInt(value: 33)
     books: [Book!]!
 }
+
+# Interface for errors
+interface Character {
+    id: ID!
+    name: String!
+}
+type Dog implements Character {
+    id: ID!
+    name: String!
+    nickname: String!
+}
+# union types
+type User {
+    id: ID!
+    name: String
+}
+type UserSuspended {
+    reason: String
+}
+type UserIsBlocked {
+    message: String
+    blockedByUser: User
+}
+union UnionUserResult = User | UserSuspended | UserIsBlocked
+
 type Query {
     author(id: ID!): Author
     authors: [Author!]!
     book(id: ID!): Book
     books: [Book!]!
+    dog: Dog!
+    unionUser: UnionUserResult
 }
 
 input CreateBookInput {
