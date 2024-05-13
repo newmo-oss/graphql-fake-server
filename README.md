@@ -254,12 +254,12 @@ console.log(json);
 Yes, It is allowed to use example directives to `input` type.
 
 `@example*` directive is for defining fake data of response, but it is also useful for declaring example value of input.
-`@newmo/graphql-fake-server` does not generate fake data for input, but it is useful for understanding the example value of input.
+`@newmo/graphql-fake-server` can not fake the request data, but you can use `@example*` directive to declare example value of input.
 
 ```graphql
 input CreateDocumentInput {
   """
-  This @exampleString directive does not affect the fake data.
+  This @exampleString directive does not affect the request for fake server
   It is like comment for the input field.
   """
   name: String! @exampleString(value: "new doc")
