@@ -289,7 +289,7 @@ type User {
 }
 ```
 
-Of, You can use Dynamic Fake to return a different value.
+Or, You can use Dynamic Fake to return a different value.
 
 - [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
 
