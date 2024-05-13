@@ -128,6 +128,7 @@ type RequiredDocument {
             },
             "Query": {
               "user": {
+                "__typename": "User",
                 "id": "xxxx-xxxx-xxxx-xxxx22",
                 "name": "string",
               },
