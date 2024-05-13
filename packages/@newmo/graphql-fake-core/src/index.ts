@@ -6,7 +6,7 @@ export { extendSchema, EXAMPLE_DIRECTIVE } from "./extend-schema.js";
 export { getTypeInfos } from "./schema-scanner.js";
 export type {
     TypeInfo,
-    AbstractTypeInfo,
+    InterfaceTypeInfo,
     ObjectTypeInfo,
     ExampleDirective,
     ExampleDirectiveValue,

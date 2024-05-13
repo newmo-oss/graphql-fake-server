@@ -397,14 +397,20 @@ export type EnumTypeInfo = {
     name: string;
     fields: FieldInfo[];
 };
-export type AbstractTypeInfo = {
-    type: "abstract";
+export type InterfaceTypeInfo = {
+    type: "interface";
     name: string;
     possibleTypes: string[];
     comment?: string | undefined;
     example?: ExampleDirective | undefined;
 };
-export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo | EnumTypeInfo;
+export type UnionTypeInfo = {
+    type: "union";
+    name: string;
+    possibleTypes: string[];
+    example?: ExampleDirective | undefined;
+};
+export type TypeInfo = ObjectTypeInfo | InterfaceTypeInfo | EnumTypeInfo | UnionTypeInfo;
 export type EnumMap = Map<string, TypeInfo>;
 const createObjectTypeInfo = ({
     config,
@@ -472,11 +478,11 @@ const createObjectTypeInfo = ({
                     config,
                     idFactory,
                     enumMap,
-                });
+                }) satisfies ObjectTypeInfo;
             }
             if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {
-                    type: "abstract",
+                    type: "interface",
                     name: convertName(node.name.value, config),
                     possibleTypes: objectTypeDefinitions
                         .filter((objectTypeDefinitionNode) =>
@@ -487,17 +493,18 @@ const createObjectTypeInfo = ({
                         .map((objectTypeDefinitionNode) =>
                             convertName(objectTypeDefinitionNode.name.value, config),
                         ),
-                    comment: node.description ? transformComment(node.description) : undefined,
-                };
+                } satisfies InterfaceTypeInfo;
             }
-            return {
-                type: "abstract",
-                name: convertName(node.name.value, config),
-                possibleTypes: (node.types ?? []).map((type) =>
-                    convertName(type.name.value, config),
-                ),
-                comment: node.description ? transformComment(node.description) : undefined,
-            };
+            if (node?.kind === Kind.UNION_TYPE_DEFINITION) {
+                return {
+                    type: "union",
+                    name: convertName(node.name.value, config),
+                    possibleTypes: (node.types ?? []).map((type) =>
+                        convertName(type.name.value, config),
+                    ),
+                } satisfies UnionTypeInfo;
+            }
+            throw new Error(`Unknown kind of node: ${node}`);
         });
 };
 
@@ -512,7 +519,7 @@ const createEnumTypeInfo = ({
     // https://astexplorer.net/#/gist/bbfe3f7414a904b453e173d82e836525/bab0cc96ffb951909dc3cf67a67bd67d09948be6
     // Therefore, We need to create "object" type from EnumTypeDefinitionNode
     // enum Color { RED, GREEN, BLUE }
-    // -> object Color { RED: "RED", GREEN: "GREEN", BLUE: "BLUE" }
+    // -> const Color = { RED: "RED", GREEN: "GREEN", BLUE: "BLUE" }
     const types = Object.values(schema.getTypeMap());
     const userDefinedEnumTypeDefinitions = types
         .map((type) => type.astNode)

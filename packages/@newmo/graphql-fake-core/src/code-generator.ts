@@ -1,5 +1,12 @@
 import type { Config } from "./config.js";
-import type { EnumTypeInfo, ExampleDirective, ObjectTypeInfo, TypeInfo } from "./schema-scanner.js";
+import type {
+    EnumTypeInfo,
+    ExampleDirective,
+    InterfaceTypeInfo,
+    ObjectTypeInfo,
+    TypeInfo,
+    UnionTypeInfo,
+} from "./schema-scanner.js";
 
 export type ConfigWithOutput = {
     outputType: "typescript" | "javascript" | "commonjs";
@@ -129,6 +136,46 @@ function __id({ name, key, depth }${
 }`;
 }
 
+// Return first type of union type / interface
+// union Author = User | Admin
+// We can not understand which type should be returned
+// As a result, we always return the first type of the union type/interface
+function generateUnionOrInterfaceTypeCode(
+    config: ConfigWithOutput,
+    typeInfo: UnionTypeInfo | InterfaceTypeInfo,
+): string {
+    const { name } = typeInfo;
+    const indent = "  ";
+    const firstTypeNameOfUnionType = typeInfo.possibleTypes[0];
+    if (!firstTypeNameOfUnionType) {
+        throw new Error(`Union type ${name} has no possible types`);
+    }
+    // __typename is required for Union type
+    // https://stackoverflow.com/questions/59519816/abstract-type-x-must-resolve-to-an-object-type-at-runtime-for-field-query-user
+    // https://www.apollographql.com/docs/federation/entities/#2-define-a-reference-resolver
+    const functionBodyCode = `
+${indent}return {
+${indent}${indent}__typename: "${firstTypeNameOfUnionType}",
+${indent}${indent}...${generateCreateReferenceCode({
+        typeName: firstTypeNameOfUnionType,
+        fieldName: typeInfo.name,
+        config,
+    })}
+};
+`.trim();
+    if (config.outputType === "typescript") {
+        return `
+export function create${name}({ defaultFields, depth = 0 }: { defaultFields?: Partial<${name}>, depth?: number } = {}): ${name} {
+${functionBodyCode}
+}
+`.trim();
+    }
+    return `
+function create${name}({ defaultFields, depth = 0 } = {}) {
+${functionBodyCode}
+}`;
+}
+
 export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): string {
     let code = "";
     if (config.outputType === "typescript") {
@@ -144,6 +191,10 @@ export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): s
         }
     }
     for (const typeInfo of typeInfos) {
+        if (typeInfo.type === "union" || typeInfo.type === "interface") {
+            code += generateUnionOrInterfaceTypeCode(config, typeInfo);
+            code += "\n";
+        }
         if (typeInfo.type === "object") {
             code += generateFactoryCode(config, typeInfo);
             code += "\n";

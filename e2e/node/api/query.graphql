@@ -5,6 +5,29 @@ query GetBooks {
     }
 }
 
+query GetDog {
+    dog {
+        id
+        name
+    }
+}
+
+query GotUnionUser {
+    unionUser {
+        ... on User {
+            id
+            name
+        }
+        ... on UserIsBlocked {
+            message
+            blockedByUser {
+                id
+                name
+            }
+        }
+    }
+}
+
 mutation CreateBook($title: String!) {
     createBook(input: { title: $title }) {
         id
@@ -18,3 +41,4 @@ mutation CreateBookInline($title: String!) {
         title
     }
 }
+

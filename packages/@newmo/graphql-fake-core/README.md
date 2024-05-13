@@ -1,83 +1,22 @@
-# @newmo/graphql-fake-server
+# @newmo/graphql-fake-core
 
-GraphQL Fake Server.
-
-## Motivation
-
-- Static Path
-  - Support Declarative Fake via `@example` directive.
-- [ ] Dynamic Path
-  - Support Framework-Agnostic Fake for testing via HTTP
-  
-## Installation
-
-1. Add `@exampleID`, `@exampleString`, `@exampleInt`, `@exampleFloat`, `@exampleBoolean` directive to your schema.
-
-```graphql
-"""
-@exampleID directive specifies an example value for a ID field.
-This example value is used in the fake data.
-ID value will be unique between all ID fake data.
-"""
-directive @exampleID(
-  """
-  The value of the ID field.
-  @exampleID(value: "id")
-  """
-  value: ID!
-) on FIELD_DEFINITION
-"""
-@exampleString directive specifies an example value for a String field.
-This example value is used in the fake data.
-"""
-directive @exampleString(
-  """
-  The value of the String field.
-  @exampleString(value: "example")
-  """
-  value: String!
-) on FIELD_DEFINITION
-"""
-@exampleInt directive specifies an example value for a Inf field.
-This example value is used in the fake data.
-"""
-directive @exampleInt(
-  """
-  The value of the Int field.
-  @exampleInt(value: 1)
-  """
-  value: Int!
-) on FIELD_DEFINITION
-"""
-@exampleFloat directive specifies an example value for a Float field.
-This example value is used in the fake data.
-"""
-directive @exampleFloat(
-  """
-  The value of the Float field.
-  @exampleFloat(value: 1.0)
-  """
-  value: Float!
-) on FIELD_DEFINITION
-"""
-@exampleBoolean directive specifies an example value for a Boolean field.
-This example value is used in the fake data.
-"""
-directive @exampleBoolean(
-  """
-  The value of the Boolean field.
-  @exampleBoolean(value: true)
-  """
-  value: Boolean!
-) on FIELD_DEFINITION
-```
+GraphQL Fake Core Library.
 
 ## Usage
 
+See <https://github.com/newmo-oss/graphql-fake-server>
+
+## Features
+
+- Example directive using `@exampleString` etc...
+- Generate Mock data model from GraphQL Schema
+- Run mock data model and get mock data
 
 ## Tests
 
-- [ ] Write How to Tests
+```sh
+npm test
+```
 
 ## Contributing
 
@@ -94,4 +33,3 @@ MIT
 ## Credits
 
 - [mizdra/graphql-codegen-typescript-fabbrica: GraphQL Code Generator Plugin to define fake data factory.](https://github.com/mizdra/graphql-codegen-typescript-fabbrica)
-- [graphql-kit/graphql-faker: 🎲 Mock or extend your GraphQL API with faked data. No coding required.](https://github.com/graphql-kit/graphql-faker)

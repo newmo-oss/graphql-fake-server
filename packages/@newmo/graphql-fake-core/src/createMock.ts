@@ -2,7 +2,7 @@ import vm from "node:vm";
 import type { GraphQLSchema } from "graphql/index.js";
 import { generateCode } from "./code-generator.js";
 import { normalizeConfig } from "./config.js";
-import { getTypeInfos } from "./schema-scanner.js";
+import { type TypeInfo, getTypeInfos } from "./schema-scanner.js";
 
 export type MockObject = Record<string, unknown>;
 export type CreateMockOptions = {
@@ -21,6 +21,7 @@ export type CreateMockResult =
     | {
           ok: false;
           code: string;
+          typeInfos: TypeInfo[];
           error: Error;
       };
 /**
@@ -54,6 +55,7 @@ export const createMock = async (options: CreateMockOptions): Promise<CreateMock
         return {
             ok: false,
             code,
+            typeInfos,
             error: error as Error,
         };
     }

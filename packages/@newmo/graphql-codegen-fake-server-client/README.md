@@ -40,7 +40,9 @@ export default config;
 You can use `./generated/fake-client.ts` to register the fake to the fake server.
 
 ```ts
+import { it, expect } from "vitest";
 import { registerFake } from "./generated/fake-client";
+
 it("register fake response for query", async () => {
     const sequenceId = crypto.randomUUID();
     // register fake response for GetBooks query
