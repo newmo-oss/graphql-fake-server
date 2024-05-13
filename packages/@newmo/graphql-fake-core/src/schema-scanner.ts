@@ -15,7 +15,6 @@ import {
     type ObjectTypeDefinitionNode,
     type TypeNode,
     type UnionTypeDefinitionNode,
-    isEnumType,
 } from "graphql";
 import { generateCreateReferenceCode, generateEnumReferenceCode } from "./code-generator.js";
 import type { Config } from "./config.js";
