@@ -14,8 +14,8 @@ const handleExample = (exampleDirective: ExampleDirective): string => {
     throw new Error(`Invalid example directive${JSON.stringify(exampleDirective)}`);
 };
 export const generateEnumReferenceCode = ({
-                                              typeName,
-                                          }: {
+    typeName,
+}: {
     fieldName: string;
     typeName: string;
     config: Config;
@@ -24,10 +24,10 @@ export const generateEnumReferenceCode = ({
     return `Object.values(${typeName})[0]`;
 };
 export const generateCreateReferenceCode = ({
-                                                fieldName,
-                                                typeName,
-                                                config,
-                                            }: {
+    fieldName,
+    typeName,
+    config,
+}: {
     fieldName: string;
     typeName: string;
     config: Config;
@@ -53,12 +53,12 @@ function generateEnumFactoryCode(config: ConfigWithOutput, typeInfo: EnumTypeInf
     return `
 const ${name} = {
 ${typeInfo.fields
-        .map((value) => {
-            const example = value.example ? handleExample(value.example) : "undefined";
-            return `${indent}${value.name}: ${example},`;
-        })
-        .join("\n")}
-}${isTypescript ? ` as const` : ""};
+    .map((value) => {
+        const example = value.example ? handleExample(value.example) : "undefined";
+        return `${indent}${value.name}: ${example},`;
+    })
+    .join("\n")}
+}${isTypescript ? " as const" : ""};
 `.trimStart();
 }
 
@@ -69,11 +69,11 @@ function generateFactoryCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo)
     const functionBodyCode = `
 ${indent}return {
 ${typeInfo.fields
-        .map((field) => {
-            const example = field.example ? handleExample(field.example) : "undefined";
-            return `${indent}${indent}${field.name}: ${example},`;
-        })
-        .join("\n")}
+    .map((field) => {
+        const example = field.example ? handleExample(field.example) : "undefined";
+        return `${indent}${indent}${field.name}: ${example},`;
+    })
+    .join("\n")}
 ${indent}};
 `.trim();
     if (config.outputType === "commonjs") {

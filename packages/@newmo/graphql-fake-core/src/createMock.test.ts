@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { extendSchema } from "./extend-schema.js";
 import { buildSchema } from "graphql";
+import { describe, expect, it } from "vitest";
 import { type MockObject, createMock } from "./createMock.js";
+import { extendSchema } from "./extend-schema.js";
 
 describe("createMock", () => {
     it("should generate a mock object", async () => {

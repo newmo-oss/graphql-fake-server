@@ -1,8 +1,8 @@
 import vm from "node:vm";
 import type { GraphQLSchema } from "graphql/index.js";
+import { generateCode } from "./code-generator.js";
 import { normalizeConfig } from "./config.js";
 import { getTypeInfos } from "./schema-scanner.js";
-import { generateCode } from "./code-generator.js";
 
 export type MockObject = Record<string, unknown>;
 export type CreateMockOptios = {
@@ -12,16 +12,18 @@ export type CreateMockOptios = {
 const cloneAsJSON = (obj: unknown) => {
     return JSON.parse(JSON.stringify(obj));
 };
-export type CreateMockResult = {
-    ok: true,
-    code: string,
-    mock: MockObject,
-} | {
-    ok: false,
-    code: string,
-    mock: MockObject,
-    error: Error,
-};
+export type CreateMockResult =
+    | {
+          ok: true;
+          code: string;
+          mock: MockObject;
+      }
+    | {
+          ok: false;
+          code: string;
+          mock: MockObject;
+          error: Error;
+      };
 /**
  * Create mock object from schema
  * It supports @example directive
@@ -48,14 +50,13 @@ export const createMock = async (options: CreateMockOptios): Promise<CreateMockR
             ok: true,
             code,
             mock: plainObject,
-        }
+        };
     } catch (error) {
         return {
             ok: false,
             code,
             mock: {},
             error: error as Error,
-        }
-
+        };
     }
 };

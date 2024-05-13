@@ -14,4 +14,3 @@ export type {
 } from "./schema-scanner.js";
 export { createMock } from "./createMock.js";
 export type { CreateMockResult, MockObject, CreateMockOptios } from "./createMock.js";
-

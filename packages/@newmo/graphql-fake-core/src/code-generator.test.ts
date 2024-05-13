@@ -673,7 +673,9 @@ type Book {
         `);
     });
     it("can output TypeScript code with outputType: 'typescript'", () => {
-        expect(generateCodeFromSchema(`
+        expect(
+            generateCodeFromSchema(
+                `
         enum Status {
             ACTIVE
             INACTIVE
@@ -683,7 +685,10 @@ type Book {
             id: ID!
             status: Status!
         }
-        `, "typescript")).toMatchInlineSnapshot(`
+        `,
+                "typescript",
+            ),
+        ).toMatchInlineSnapshot(`
           "import type { 
             User
           } from './type.ts';
@@ -707,10 +712,11 @@ type Book {
           }
 
           export const User = createUser();"
-        `)
+        `);
     });
     it("should support enum", () => {
-        expect(generateCodeFromSchema(`
+        expect(
+            generateCodeFromSchema(`
         enum Status {
             ACTIVE
             INACTIVE
@@ -720,7 +726,8 @@ type Book {
             id: ID!
             status: Status!
         }
-        `)).toMatchInlineSnapshot(`
+        `),
+        ).toMatchInlineSnapshot(`
           "const __idCountMap = new Map()
           function __id({ name, key, depth }) {
               const count = __idCountMap.get(key) ?? 0;
@@ -741,5 +748,5 @@ type Book {
 
           export const User = createUser();"
         `);
-    })
+    });
 });

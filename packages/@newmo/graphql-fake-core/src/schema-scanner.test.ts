@@ -185,7 +185,7 @@ type RequiredDocument {
             },
           ]
         `);
-    })
+    });
     it("includes description comment", () => {
         const schema = buildSchema(`
       "The book"
