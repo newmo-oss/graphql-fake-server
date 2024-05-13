@@ -50,7 +50,7 @@ directive @exampleID(
   @exampleID(value: "id")
   """
   value: ID!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleString directive specifies an example value for a String field.
 This example value is used in the fake data.
@@ -61,7 +61,7 @@ directive @exampleString(
   @exampleString(value: "example")
   """
   value: String!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleInt directive specifies an example value for a Inf field.
 This example value is used in the fake data.
@@ -72,7 +72,7 @@ directive @exampleInt(
   @exampleInt(value: 1)
   """
   value: Int!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleFloat directive specifies an example value for a Float field.
 This example value is used in the fake data.
@@ -83,7 +83,7 @@ directive @exampleFloat(
   @exampleFloat(value: 1.0)
   """
   value: Float!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleBoolean directive specifies an example value for a Boolean field.
 This example value is used in the fake data.
@@ -94,7 +94,7 @@ directive @exampleBoolean(
   @exampleBoolean(value: true)
   """
   value: Boolean!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 # Your schema
 type Book {
@@ -246,6 +246,25 @@ console.log(json);
 ## Examples
 
 - [examples/e2e/node](./examples/e2e/node): Example of using Fake Server in Node.js.
+
+## FAQ
+
+### Can I use example directives to `input` type?
+
+Yes, It is allowed to use example directives to `input` type.
+
+`@example*` directive is for defining fake data of response, but it is also useful for declaring example value of input.
+`@newmo/graphql-fake-server` does not generate fake data for input, but it is useful for understanding the example value of input.
+
+```graphql
+input CreateDocumentInput {
+  """
+  This @exampleString directive does not affect the fake data.
+  It is like comment for the input field.
+  """
+  name: String! @exampleString(value: "new doc")
+}
+```
 
 ## Contributing
 

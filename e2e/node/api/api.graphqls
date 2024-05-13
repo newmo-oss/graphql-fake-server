@@ -9,7 +9,7 @@ directive @exampleID(
     @exampleID(value: "id")
     """
     value: ID!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleString directive specifies an example value for a String field.
 This example value is used in the fake data.
@@ -20,7 +20,7 @@ directive @exampleString(
     @exampleString(value: "example")
     """
     value: String!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleInt directive specifies an example value for a Inf field.
 This example value is used in the fake data.
@@ -31,7 +31,7 @@ directive @exampleInt(
     @exampleInt(value: 1)
     """
     value: Int!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleFloat directive specifies an example value for a Float field.
 This example value is used in the fake data.
@@ -42,7 +42,7 @@ directive @exampleFloat(
     @exampleFloat(value: 1.0)
     """
     value: Float!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleBoolean directive specifies an example value for a Boolean field.
 This example value is used in the fake data.
@@ -53,7 +53,7 @@ directive @exampleBoolean(
     @exampleBoolean(value: true)
     """
     value: Boolean!
-) on FIELD_DEFINITION
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 enum BookGenre {
     FICTION
@@ -80,9 +80,10 @@ type Query {
 }
 
 input CreateBookInput {
-    title: String!
+    title: String! @exampleString(value: "input title")
 }
 
 type Mutation {
     createBook(input: CreateBookInput!): Book!
+    createBookInline(bookId: ID! @exampleID(value: "id"), bookTitle:String! @exampleString(value: "input title")): Book!
 }
