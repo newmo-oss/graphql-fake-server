@@ -1,6 +1,6 @@
 {
     "name": "@newmo/graphql-fake-core",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "private": false,
     "description": "GraphQL fake core library",
     "keywords": [
