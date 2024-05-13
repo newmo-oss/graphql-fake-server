@@ -1,5 +1,5 @@
 import type { Config } from "./config.js";
-import type { ExampleDirective, ObjectTypeInfo, TypeInfo } from "./schema-scanner.js";
+import type { EnumTypeInfo, ExampleDirective, ObjectTypeInfo, TypeInfo } from "./schema-scanner.js";
 
 export type ConfigWithOutput = {
     outputType: "typescript" | "javascript" | "commonjs";
@@ -13,11 +13,21 @@ const handleExample = (exampleDirective: ExampleDirective): string => {
     }
     throw new Error(`Invalid example directive${JSON.stringify(exampleDirective)}`);
 };
+export const generateEnumReferenceCode = ({
+                                              typeName,
+                                          }: {
+    fieldName: string;
+    typeName: string;
+    config: Config;
+}): string => {
+    // always return the first value of the enum
+    return `Object.values(${typeName})[0]`;
+};
 export const generateCreateReferenceCode = ({
-    fieldName,
-    typeName,
-    config,
-}: {
+                                                fieldName,
+                                                typeName,
+                                                config,
+                                            }: {
     fieldName: string;
     typeName: string;
     config: Config;
@@ -32,18 +42,38 @@ export const generateCreateReferenceCode = ({
     return `(depth < ${config.maxFieldRecursionDepth} ? create${typeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, depth: depth + 1 }) : undefined)`;
 };
 
-function generateExampleCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo): string {
+// GraphQL AST Limitations
+// GraphQL ASTs do not distinguish between object references and enum references.
+// https://astexplorer.net/#/gist/bbfe3f7414a904b453e173d82e836525/bab0cc96ffb951909dc3cf67a67bd67d09948be6
+// so, we need to use same interface for both enum and object types
+function generateEnumFactoryCode(config: ConfigWithOutput, typeInfo: EnumTypeInfo): string {
+    const { name } = typeInfo;
+    const indent = "  ";
+    const isTypescript = config.outputType === "typescript";
+    return `
+const ${name} = {
+${typeInfo.fields
+        .map((value) => {
+            const example = value.example ? handleExample(value.example) : "undefined";
+            return `${indent}${value.name}: ${example},`;
+        })
+        .join("\n")}
+}${isTypescript ? ` as const` : ""};
+`.trimStart();
+}
+
+function generateFactoryCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo): string {
     const { name } = typeInfo;
     const indent = "  ";
     const isTypescript = config.outputType === "typescript";
     const functionBodyCode = `
 ${indent}return {
 ${typeInfo.fields
-    .map((field) => {
-        const example = field.example ? handleExample(field.example) : "undefined";
-        return `${indent}${indent}${field.name}: ${example},`;
-    })
-    .join("\n")}
+        .map((field) => {
+            const example = field.example ? handleExample(field.example) : "undefined";
+            return `${indent}${indent}${field.name}: ${example},`;
+        })
+        .join("\n")}
 ${indent}};
 `.trim();
     if (config.outputType === "commonjs") {
@@ -57,7 +87,7 @@ exports.create${name} = create${name};
     return `
 export function create${name}({ defaultFields, depth = 0 }${
         isTypescript ? `: { defaultFields?: Partial<${name}>, depth?: number }` : ""
-    } = {})${isTypescript ? `: ${name}Type` : ""} {
+    } = {})${isTypescript ? `: ${name}` : ""} {
 ${functionBodyCode}
 }
 `.trimStart();
@@ -91,7 +121,7 @@ function idGeneratorCode(config: ConfigWithOutput): string {
     return `
 const __idCountMap = new Map${isTypescript ? "<string, number>" : ""}()
 function __id({ name, key, depth }${
-        isTypescript ? "{ name: string; key: string; depth: number; }" : ""
+        isTypescript ? ": { name: string; key: string; depth: number; }" : ""
     })${isTypescript ? ": string" : ""} {
     const count = __idCountMap.get(key) ?? 0;
     __idCountMap.set(key, count + 1);
@@ -108,8 +138,14 @@ export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): s
     code += idGeneratorCode(config);
     code += "\n";
     for (const typeInfo of typeInfos) {
+        if (typeInfo.type === "enum") {
+            code += generateEnumFactoryCode(config, typeInfo);
+            code += "\n";
+        }
+    }
+    for (const typeInfo of typeInfos) {
         if (typeInfo.type === "object") {
-            code += generateExampleCode(config, typeInfo);
+            code += generateFactoryCode(config, typeInfo);
             code += "\n";
             code += generateDefaultCode(config, typeInfo);
             code += "\n";

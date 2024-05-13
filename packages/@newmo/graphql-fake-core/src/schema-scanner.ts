@@ -1,7 +1,7 @@
 import { convertFactory, transformComment } from "@graphql-codegen/visitor-plugin-common";
 import {
     type ASTNode,
-    type ConstValueNode,
+    type ConstValueNode, EnumTypeDefinitionNode,
     type FieldDefinitionNode,
     type GraphQLSchema,
     type InputObjectTypeDefinitionNode,
@@ -14,8 +14,9 @@ import {
     type ObjectTypeDefinitionNode,
     type TypeNode,
     type UnionTypeDefinitionNode,
+    isEnumType
 } from "graphql";
-import { generateCreateReferenceCode } from "./code-generator.js";
+import { generateCreateReferenceCode, generateEnumReferenceCode } from "./code-generator.js";
 import type { Config } from "./config.js";
 
 function convertName(node: ASTNode | string, config: Config): string {
@@ -120,48 +121,58 @@ function valueOfNode(value: ConstValueNode): ValuePrimitive | ValueArray | Value
 }
 
 const typeToFunction = ({
-    convertedTypeName,
-    fieldName,
-    type,
-    config,
-    idFactory,
-}: {
-    convertedTypeName: string;
-    fieldName: string;
-    type: string;
-    config: Config;
-    idFactory: ReturnType<typeof createIDFactory>;
-}): string => {
-    switch (type) {
-        case "String":
-            return `"${config.defaultValues.String}"`;
-        case "Int":
-            return `${config.defaultValues.Int}`;
-        case "Float":
-            return `${config.defaultValues.Float}`;
-        case "Boolean":
-            return `${config.defaultValues.Boolean ? "true" : "false"}`;
-        case "ID": {
-            const pathOfField = `${convertedTypeName}.${fieldName}`;
-            return `${idFactory(config.defaultValues.ID, pathOfField)}`;
+                            convertedTypeName,
+                            fieldName,
+                            type,
+                            config,
+                            idFactory,
+                            enumMap
+                        }: {
+        convertedTypeName: string;
+        fieldName: string;
+        type: string;
+        config: Config;
+        idFactory: ReturnType<typeof createIDFactory>;
+        enumMap: EnumMap;
+    }): string => {
+        switch (type) {
+            case "String":
+                return `"${config.defaultValues.String}"`;
+            case "Int":
+                return `${config.defaultValues.Int}`;
+            case "Float":
+                return `${config.defaultValues.Float}`;
+            case "Boolean":
+                return `${config.defaultValues.Boolean ? "true" : "false"}`;
+            case "ID": {
+                const pathOfField = `${convertedTypeName}.${fieldName}`;
+                return `${idFactory(config.defaultValues.ID, pathOfField)}`;
+            }
+            default: {
+                // if enum type(name is equaled) is defined, reference to the enum
+                if (enumMap.has(type)) {
+                    return `${generateEnumReferenceCode({ fieldName, typeName: type, config: config })}`;
+                }
+                // reference to the object
+                return `${generateCreateReferenceCode({ fieldName, typeName: type, config: config })}`;
+            }
         }
-        default:
-            // reference to the object
-            return `${generateCreateReferenceCode({ fieldName, typeName: type, config: config })}`;
     }
-};
+;
 const typeToFunctionWithArray = ({
-    convertedTypeName,
-    fieldName,
-    type,
-    config,
-    idFactory,
-}: {
+                                     convertedTypeName,
+                                     fieldName,
+                                     type,
+                                     config,
+                                     idFactory,
+                                     enumMap
+                                 }: {
     convertedTypeName: string;
     fieldName: string;
     type: string;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
+    enumMap: EnumMap;
 }): string => {
     // Avoid [null, null, null]
     // Mock server can't handle null values in the array
@@ -173,23 +184,26 @@ const typeToFunctionWithArray = ({
         type: type,
         config: config,
         idFactory: idFactory,
+        enumMap,
     })}) : []`;
 };
 // NamedType/ListType handling
 const nodeToExpression = ({
-    convertedTypeName,
-    fieldName,
-    currentNode,
-    isArray = false,
-    config,
-    idFactory,
-}: {
+                              convertedTypeName,
+                              fieldName,
+                              currentNode,
+                              isArray = false,
+                              config,
+                              idFactory,
+                              enumMap
+                          }: {
     convertedTypeName: string;
     fieldName: string;
     currentNode: NonNullTypeNode | NamedTypeNode | ListTypeNode;
     config: Config;
     isArray?: boolean;
     idFactory: ReturnType<typeof createIDFactory>;
+    enumMap: EnumMap;
 }): ExampleDirectionExpression => {
     if (currentNode.kind === "NonNullType") {
         return nodeToExpression({
@@ -199,6 +213,7 @@ const nodeToExpression = ({
             isArray,
             config,
             idFactory,
+            enumMap
         });
     }
     if (currentNode.kind === "NamedType") {
@@ -210,6 +225,7 @@ const nodeToExpression = ({
                     type: currentNode.name.value,
                     config: config,
                     idFactory: idFactory,
+                    enumMap
                 }),
             };
         }
@@ -220,6 +236,7 @@ const nodeToExpression = ({
                 type: currentNode.name.value,
                 config: config,
                 idFactory: idFactory,
+                enumMap
             }),
         };
     }
@@ -231,6 +248,7 @@ const nodeToExpression = ({
             isArray: true,
             config,
             idFactory,
+            enumMap
         });
     }
     throw new Error("Unknown node kind");
@@ -257,15 +275,17 @@ const isIdType = (node: NonNullTypeNode | NamedTypeNode | ListTypeNode): boolean
 };
 
 function parseFieldOrInputValueDefinition({
-    node,
-    convertedTypeName,
-    config,
-    idFactory,
-}: {
+                                              node,
+                                              convertedTypeName,
+                                              config,
+                                              idFactory,
+                                              enumMap
+                                          }: {
     node: FieldDefinitionNode | InputValueDefinitionNode;
     convertedTypeName: string;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
+    enumMap: EnumMap;
 }): { comment?: string | undefined; example?: ExampleDirective | undefined } {
     const fieldName = node.name.value;
     const comment = node.description ? transformComment(node.description) : undefined;
@@ -282,6 +302,7 @@ function parseFieldOrInputValueDefinition({
                 currentNode: node.type,
                 config,
                 idFactory,
+                enumMap
             }),
         };
     }
@@ -329,13 +350,15 @@ function parseFieldOrInputValueDefinition({
 }
 
 function parseObjectTypeOrInputObjectTypeDefinition({
-    node,
-    config,
-    idFactory,
-}: {
+                                                        node,
+                                                        config,
+                                                        idFactory,
+                                                        enumMap
+                                                    }: {
     node: ObjectTypeDefinitionNode | InputObjectTypeDefinitionNode;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
+    enumMap: EnumMap;
 }): ObjectTypeInfo {
     const originalTypeName = node.name.value;
     const convertedTypeName = convertName(originalTypeName, config);
@@ -350,6 +373,7 @@ function parseObjectTypeOrInputObjectTypeDefinition({
                     convertedTypeName,
                     config,
                     idFactory,
+                    enumMap
                 }),
             })),
         ],
@@ -365,6 +389,11 @@ export type ObjectTypeInfo = {
     name: string;
     fields: FieldInfo[];
 };
+export type EnumTypeInfo = {
+    type: "enum";
+    name: string;
+    fields: FieldInfo[];
+};
 export type AbstractTypeInfo = {
     type: "abstract";
     name: string;
@@ -372,11 +401,14 @@ export type AbstractTypeInfo = {
     comment?: string | undefined;
     example?: ExampleDirective | undefined;
 };
-export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo;
-
-export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] {
+export type TypeInfo = ObjectTypeInfo | AbstractTypeInfo | EnumTypeInfo;
+export type EnumMap = Map<string, TypeInfo>;
+const createObjectTypeInfo = ({ config, schema, enumMap }: {
+    config: Config,
+    schema: GraphQLSchema,
+    enumMap: EnumMap
+}): TypeInfo[] => {
     const types = Object.values(schema.getTypeMap());
-
     const idFactory = createIDFactory();
     const userDefinedTypeDefinitions = types
         .map((type) => type.astNode)
@@ -428,7 +460,7 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
                 node?.kind === Kind.OBJECT_TYPE_DEFINITION ||
                 node?.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION
             ) {
-                return parseObjectTypeOrInputObjectTypeDefinition({ node, config, idFactory });
+                return parseObjectTypeOrInputObjectTypeDefinition({ node, config, idFactory, enumMap });
             }
             if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
                 return {
@@ -455,4 +487,42 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
                 comment: node.description ? transformComment(node.description) : undefined,
             };
         });
+};
+
+const createEnumTypeInfo = ({ config, schema }: {
+    config: Config,
+    schema: GraphQLSchema,
+}): TypeInfo[] => {
+    // GraphQL AST does not represent enum values
+    // https://astexplorer.net/#/gist/bbfe3f7414a904b453e173d82e836525/bab0cc96ffb951909dc3cf67a67bd67d09948be6
+    // Therefore, We need to create "object" type from EnumTypeDefinitionNode
+    // enum Color { RED, GREEN, BLUE }
+    // -> object Color { RED: "RED", GREEN: "GREEN", BLUE: "BLUE" }
+    const types = Object.values(schema.getTypeMap());
+    const userDefinedEnumTypeDefinitions = types
+        .map((type) => type.astNode)
+        .filter((node): node is EnumTypeDefinitionNode => {
+            if (!node) return false;
+            return node.kind === Kind.ENUM_TYPE_DEFINITION;
+        });
+    return userDefinedEnumTypeDefinitions.map((node) => {
+        return {
+            type: "enum",
+            name: convertName(node.name.value, config),
+            fields: node?.values?.map((value) => {
+                return {
+                    name: value.name.value,
+                    example: {
+                        value: value.name.value,
+                    },
+                }
+            }) ?? [],
+        };
+    });
+}
+
+export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] {
+    const enumTypeInfo = createEnumTypeInfo({ config: config, schema: schema })
+    const enumMap = new Map(enumTypeInfo.map((info) => [info.name, info]))
+    return [...enumTypeInfo, ...createObjectTypeInfo({ config: config, schema: schema, enumMap })];
 }

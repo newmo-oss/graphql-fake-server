@@ -9,8 +9,8 @@ import depthLimit from "graphql-depth-limit";
 import type { GraphQLSchema } from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
 import { type Context, Hono } from "hono";
-import { type MockObject, createMock } from "./createMock.js";
 import { type LogLevel, createLogger } from "./logger.js";
+import { createMock, MockObject } from "@newmo/graphql-fake-core";
 
 export type CreateFakeServerOptions = {
     schemaFilePath: string;
@@ -79,12 +79,12 @@ export type RegisterSequenceOperation = {
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 export type RegisterOperationResponse =
     | {
-          ok: true;
-      }
+    ok: true;
+}
     | {
-          ok: false;
-          errors: string[];
-      };
+    ok: false;
+    errors: string[];
+};
 const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOptions => {
     if (typeof data !== "object" || data === null) return false;
     if ("type" in data && typeof data.type === "string") {
@@ -136,10 +136,10 @@ class LRUMap<K, V> {
 }
 
 const createRoutingServer = async ({
-    logLevel,
-    ports,
-    maxRegisteredSequences,
-}: {
+                                       logLevel,
+                                       ports,
+                                       maxRegisteredSequences,
+                                   }: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
     ports: {
@@ -292,12 +292,20 @@ const createRoutingServer = async ({
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
+    const logger = createLogger(options.logLevel);
     const schema = buildSchema(await fs.readFile(options.schemaFilePath, "utf-8"));
-    const mockObject = await createMock({
+    const mockResult = await createMock({
         schema,
-        logLevel: options.logLevel,
         maxFieldRecursionDepth: options.maxFieldRecursionDepth,
     });
+    if (!mockResult.ok) {
+        logger.error("Failed to create mock data", mockResult);
+        throw new Error("Failed to create mock data", {
+            cause: mockResult.error
+        });
+    }
+    logger.debug("created mock code", mockResult.code);
+    logger.debug("created mock data", mockResult.mock);
     const ports = {
         fakeServer: options.ports?.fakeServer ?? 4000,
         apolloServer: options.ports?.apolloServer ?? 4001,
@@ -308,7 +316,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
     return createFakeServerInternal({
         ports,
         schema,
-        mockObject,
+        mockObject: mockResult.mock,
         maxQueryDepth,
         maxFieldRecursionDepth,
         maxRegisteredSequences,
