@@ -21,7 +21,11 @@ const startTestFakeServer = async ({
         schema,
         maxFieldRecursionDepth: 3,
     });
-    if (!mockResult.ok) throw new Error("Failed to create mock server.")
+    if (!mockResult.ok) {
+        throw new Error("Failed to create mock server.", {
+            cause: mockResult.error,
+        });
+    }
     return createFakeServerInternal({
         schema,
         mockObject: mockResult.mock,
