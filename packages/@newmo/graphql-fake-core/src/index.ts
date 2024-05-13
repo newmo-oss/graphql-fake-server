@@ -12,3 +12,5 @@ export type {
     ExampleDirectiveValue,
     ExampleDirectionExpression,
 } from "./schema-scanner.js";
+export { createMock } from "./createMock.js";
+export type { CreateMockResult, MockObject, CreateMockOptions } from "./createMock.js";

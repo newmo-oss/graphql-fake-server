@@ -1,7 +1,6 @@
-import { extendSchema } from "@newmo/graphql-fake-core";
+import { createMock, extendSchema } from "@newmo/graphql-fake-core";
 import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
-import { createMock } from "./createMock.js";
 import { type RegisterSequenceNetworkError, createFakeServerInternal } from "./server.js";
 
 let portCounter = 0;
@@ -18,14 +17,18 @@ const startTestFakeServer = async ({
 }: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
-    const mockObject = await createMock({
+    const mockResult = await createMock({
         schema,
-        logLevel,
         maxFieldRecursionDepth: 3,
     });
+    if (!mockResult.ok) {
+        throw new Error("Failed to create mock server.", {
+            cause: mockResult.error,
+        });
+    }
     return createFakeServerInternal({
         schema,
-        mockObject,
+        mockObject: mockResult.mock,
         logLevel,
         ports: ports,
         maxQueryDepth: 3,

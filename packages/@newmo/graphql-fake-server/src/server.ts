@@ -4,12 +4,12 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { serve } from "@hono/node-server";
+import { type MockObject, createMock } from "@newmo/graphql-fake-core";
 //@ts-expect-error
 import depthLimit from "graphql-depth-limit";
 import type { GraphQLSchema } from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
 import { type Context, Hono } from "hono";
-import { type MockObject, createMock } from "./createMock.js";
 import { type LogLevel, createLogger } from "./logger.js";
 
 export type CreateFakeServerOptions = {
@@ -292,12 +292,20 @@ const createRoutingServer = async ({
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
+    const logger = createLogger(options.logLevel);
     const schema = buildSchema(await fs.readFile(options.schemaFilePath, "utf-8"));
-    const mockObject = await createMock({
+    const mockResult = await createMock({
         schema,
-        logLevel: options.logLevel,
         maxFieldRecursionDepth: options.maxFieldRecursionDepth,
     });
+    if (!mockResult.ok) {
+        logger.error("Failed to create mock data", mockResult);
+        throw new Error("Failed to create mock data", {
+            cause: mockResult.error,
+        });
+    }
+    logger.debug("created mock code", mockResult.code);
+    logger.debug("created mock data", mockResult.mock);
     const ports = {
         fakeServer: options.ports?.fakeServer ?? 4000,
         apolloServer: options.ports?.apolloServer ?? 4001,
@@ -308,7 +316,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
     return createFakeServerInternal({
         ports,
         schema,
-        mockObject,
+        mockObject: mockResult.mock,
         maxQueryDepth,
         maxFieldRecursionDepth,
         maxRegisteredSequences,

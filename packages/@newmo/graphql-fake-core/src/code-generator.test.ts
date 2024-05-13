@@ -138,21 +138,26 @@ describe("generateCode", () => {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createUser({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
-          status: (depth < 3 ? createStatus({ defaultFields: defaultFields?.status ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              const Status = {
+                ACTIVE: "ACTIVE",
+                INACTIVE: "INACTIVE",
+              };
 
-      export const User = createUser();"
-    `);
+              export function createUser({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+                  status: Object.values(Status)[0],
+                };
+              }
+
+              export const User = createUser();"
+            `);
         });
 
         it("generates code for an interface", () => {
@@ -410,21 +415,26 @@ type Book {
         }
     `),
                     ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createUser({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"User.id.1234", depth }),
-          status: (depth < 3 ? createStatus({ defaultFields: defaultFields?.status ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+                      "const __idCountMap = new Map()
+                      function __id({ name, key, depth }) {
+                          const count = __idCountMap.get(key) ?? 0;
+                          __idCountMap.set(key, count + 1);
+                          return name + String(depth) + String(count);
+                      }
+                      const Status = {
+                        ACTIVE: "ACTIVE",
+                        INACTIVE: "INACTIVE",
+                      };
 
-      export const User = createUser();"
-    `);
+                      export function createUser({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          id: __id({ name: "1234", key:"User.id.1234", depth }),
+                          status: Object.values(Status)[0],
+                        };
+                      }
+
+                      export const User = createUser();"
+                    `);
                 });
 
                 it("generates code for an interface with @exampleID, @exampleString, and @exampleInt directives", () => {
@@ -643,23 +653,100 @@ type Book {
                 "typescript",
             ),
         ).toMatchInlineSnapshot(`
-      "import type { 
-        Query
-      } from './type.ts';
+          "import type { 
+            Query
+          } from './type.ts';
 
-      const __idCountMap = new Map<string, number>()
-      function __id({ name, key, depth }{ name: string; key: string; depth: number; }): string {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createQuery({ defaultFields, depth = 0 }: { defaultFields?: Partial<Query>, depth?: number } = {}): QueryType {
-      return {
-          hello: "string",
-        };
-      }
+          const __idCountMap = new Map<string, number>()
+          function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
+              const count = __idCountMap.get(key) ?? 0;
+              __idCountMap.set(key, count + 1);
+              return name + String(depth) + String(count);
+          }
+          export function createQuery({ defaultFields, depth = 0 }: { defaultFields?: Partial<Query>, depth?: number } = {}): Query {
+          return {
+              hello: "string",
+            };
+          }
 
-      export const Query = createQuery();"
-    `);
+          export const Query = createQuery();"
+        `);
+    });
+    it("can output TypeScript code with outputType: 'typescript'", () => {
+        expect(
+            generateCodeFromSchema(
+                `
+        enum Status {
+            ACTIVE
+            INACTIVE
+        }
+       
+        type User {
+            id: ID!
+            status: Status!
+        }
+        `,
+                "typescript",
+            ),
+        ).toMatchInlineSnapshot(`
+          "import type { 
+            User
+          } from './type.ts';
+
+          const __idCountMap = new Map<string, number>()
+          function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
+              const count = __idCountMap.get(key) ?? 0;
+              __idCountMap.set(key, count + 1);
+              return name + String(depth) + String(count);
+          }
+          const Status = {
+            ACTIVE: "ACTIVE",
+            INACTIVE: "INACTIVE",
+          } as const;
+
+          export function createUser({ defaultFields, depth = 0 }: { defaultFields?: Partial<User>, depth?: number } = {}): User {
+          return {
+              id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+              status: Object.values(Status)[0],
+            };
+          }
+
+          export const User = createUser();"
+        `);
+    });
+    it("should support enum", () => {
+        expect(
+            generateCodeFromSchema(`
+        enum Status {
+            ACTIVE
+            INACTIVE
+        }
+       
+        type User {
+            id: ID!
+            status: Status!
+        }
+        `),
+        ).toMatchInlineSnapshot(`
+          "const __idCountMap = new Map()
+          function __id({ name, key, depth }) {
+              const count = __idCountMap.get(key) ?? 0;
+              __idCountMap.set(key, count + 1);
+              return name + String(depth) + String(count);
+          }
+          const Status = {
+            ACTIVE: "ACTIVE",
+            INACTIVE: "INACTIVE",
+          };
+
+          export function createUser({ defaultFields, depth = 0 } = {}) {
+          return {
+              id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+              status: Object.values(Status)[0],
+            };
+          }
+
+          export const User = createUser();"
+        `);
     });
 });

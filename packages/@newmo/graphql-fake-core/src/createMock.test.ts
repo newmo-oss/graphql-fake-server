@@ -1,12 +1,12 @@
-import { extendSchema } from "@newmo/graphql-fake-core";
-import { buildSchema } from "graphql/utilities/index.js";
+import { buildSchema } from "graphql";
 import { describe, expect, it } from "vitest";
 import { type MockObject, createMock } from "./createMock.js";
+import { extendSchema } from "./extend-schema.js";
 
 describe("createMock", () => {
     it("should generate a mock object", async () => {
         const schema = buildSchema("type Query { hello: String }");
-        const mock: MockObject = await createMock({
+        const { mock }: MockObject = await createMock({
             schema,
         });
         expect(mock).toMatchInlineSnapshot(`
@@ -27,7 +27,7 @@ describe("createMock", () => {
            }
         `),
         );
-        const mock: MockObject = await createMock({
+        const { mock }: MockObject = await createMock({
             schema,
         });
         expect(mock).toMatchInlineSnapshot(`
@@ -59,13 +59,39 @@ describe("createMock", () => {
         const schema = buildSchema(
             extendSchema(`type Query { hello: String! @exampleString(value: "Hello World") }`),
         );
-        const mock: MockObject = await createMock({
+        const { mock }: MockObject = await createMock({
             schema,
         });
         expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "hello": "Hello World",
+            },
+          }
+        `);
+    });
+    it("should support Enum for a mock object", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+enum DocumentType {
+    LICENSE
+    TICKET
+}
+
+type RequiredDocument {
+  name: String!
+  type: DocumentType!
+}
+`),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "RequiredDocument": {
+              "name": "string",
+              "type": "LICENSE",
             },
           }
         `);

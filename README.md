@@ -26,6 +26,8 @@ Main interface is HTTP, so you can use it in any language.
 
 ### Declarative Fake
 
+Declarative Fake is used to define fake data in the GraphQL schema.
+
 1. Install the package.
 
 ```bash
@@ -164,6 +166,8 @@ Return the following response:
 ```
 
 ### Dynamic Fake
+
+Dynamic Fake is used to integration testing with dynamic fake data.
 
 1. Launch Fake Server.
 

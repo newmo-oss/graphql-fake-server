@@ -64,6 +64,7 @@ type Book {
     title: String! @exampleString(value: "The Great Gatsby")
     author: Author!
     genre: BookGenre! @exampleString(value: "FICTION")
+    genre_non_example: BookGenre!
 }
 type Author {
     id: ID! @exampleID(value: "author-id")

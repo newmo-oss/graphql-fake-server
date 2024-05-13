@@ -130,6 +130,62 @@ describe("getTypeInfos", () => {
           ]
         `);
     });
+    it("should support enum types", () => {
+        const schema = buildSchema(`
+enum DocumentType {
+    LICENSE
+    TICKET
+}
+
+type RequiredDocument {
+  name: String!
+  type: DocumentType!
+}
+`);
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+          [
+            {
+              "fields": [
+                {
+                  "example": {
+                    "value": "LICENSE",
+                  },
+                  "name": "LICENSE",
+                },
+                {
+                  "example": {
+                    "value": "TICKET",
+                  },
+                  "name": "TICKET",
+                },
+              ],
+              "name": "DocumentType",
+              "type": "enum",
+            },
+            {
+              "fields": [
+                {
+                  "comment": undefined,
+                  "example": {
+                    "expression": ""xxxx"",
+                  },
+                  "name": "name",
+                },
+                {
+                  "comment": undefined,
+                  "example": {
+                    "expression": "Object.values(DocumentType)[0]",
+                  },
+                  "name": "type",
+                },
+              ],
+              "name": "RequiredDocument",
+              "type": "object",
+            },
+          ]
+        `);
+    });
     it("includes description comment", () => {
         const schema = buildSchema(`
       "The book"
