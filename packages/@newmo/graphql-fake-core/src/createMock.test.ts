@@ -143,4 +143,53 @@ type RequiredDocument {
           }
         `);
     });
+    it("should support union with @example directive", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+        type User {
+          id: ID! @exampleID(value: "id")
+          name: String @exampleString(value: "john")
+        }
+        type Suspended {
+          reason: String @exampleString(value: "error reason")
+        }
+        type IsBlocked {
+          message: String @exampleString(value: "blocked")
+          blockedByUser: User
+        }
+        union UserResult = User | IsBlocked | Suspended
+        type Query {
+            user: UserResult
+        }
+    `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "IsBlocked": {
+              "blockedByUser": {
+                "id": "id11",
+                "name": "john",
+              },
+              "message": "blocked",
+            },
+            "Query": {
+              "user": {
+                "__typename": "User",
+                "id": "id22",
+                "name": "john",
+              },
+            },
+            "Suspended": {
+              "reason": "error reason",
+            },
+            "User": {
+              "id": "id00",
+              "name": "john",
+            },
+          }
+        `);
+    });
 });
