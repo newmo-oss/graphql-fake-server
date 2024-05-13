@@ -4,7 +4,16 @@ query GetBooks {
         title
     }
 }
-
+# Fragment
+fragment BookFragmentParts on Book {
+    id
+    title
+}
+query GetBookWithFragments($bookId: ID!) {
+    book(id: $bookId) {
+        ...BookFragmentParts
+    }
+}
 query GetDog {
     dog {
         id

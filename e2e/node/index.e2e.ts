@@ -3,12 +3,22 @@ import { GraphQLClient, gql } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
     registerCreateBookMutationResponse,
+    registerGetBookWithFragmentsQueryResponse,
     registerGetBooksQueryErrorResponse,
     registerGetBooksQueryResponse,
     registerGetDogQueryResponse,
     registerGotUnionUserQueryResponse,
 } from "./generated/fake.js";
-import { GetBooksDocument, GetDogDocument, GotUnionUserDocument } from "./generated/graphql.js";
+import { type FragmentType, getFragmentData } from "./generated/fragment-masking.js";
+import {
+    type BookFragmentPartsFragment,
+    BookFragmentPartsFragmentDoc,
+    CreateBookDocument,
+    GetBookWithFragmentsDocument,
+    GetBooksDocument,
+    GetDogDocument,
+    GotUnionUserDocument,
+} from "./generated/graphql.js";
 
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
@@ -264,6 +274,33 @@ describe("integration test", async () => {
           }
         `);
     });
+    it("register fake response which use Fragement", async () => {
+        const sequenceId = crypto.randomUUID();
+        // register fake response for mutation
+        const resRegister = await registerGetBookWithFragmentsQueryResponse(sequenceId, {
+            book: {
+                id: "new id",
+                title: "new title",
+            } as FragmentType<BookFragmentPartsFragment>,
+        });
+        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+        // request to server
+        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+            headers: {
+                "sequence-id": sequenceId,
+            },
+        });
+        const response = await client.request(GetBookWithFragmentsDocument);
+        expect(response).toMatchInlineSnapshot(`
+          {
+            "book": {
+              "id": "new id",
+              "title": "new title",
+            },
+          }
+        `);
+    });
+
     it("register fake error response for query", async () => {
         const sequenceId = crypto.randomUUID();
         // register fake error response for GetBooks query
