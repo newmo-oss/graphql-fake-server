@@ -23,7 +23,7 @@ const startTestFakeServer = async ({
     });
     return createFakeServerInternal({
         schema,
-        mockObject: mockResult,
+        mockObject: mockResult.mock,
         logLevel,
         ports: ports,
         maxQueryDepth: 3,
