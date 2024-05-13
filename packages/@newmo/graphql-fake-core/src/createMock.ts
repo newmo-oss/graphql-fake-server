@@ -5,7 +5,7 @@ import { normalizeConfig } from "./config.js";
 import { getTypeInfos } from "./schema-scanner.js";
 
 export type MockObject = Record<string, unknown>;
-export type CreateMockOptios = {
+export type CreateMockOptions = {
     schema: GraphQLSchema;
     maxFieldRecursionDepth?: number | undefined;
 };
@@ -28,7 +28,7 @@ export type CreateMockResult =
  * Create mock object from schema
  * It supports @example directive
  */
-export const createMock = async (options: CreateMockOptios): Promise<CreateMockResult> => {
+export const createMock = async (options: CreateMockOptions): Promise<CreateMockResult> => {
     const normalizedConfig = normalizeConfig({
         maxFieldRecursionDepth: options.maxFieldRecursionDepth ?? 3,
     });
