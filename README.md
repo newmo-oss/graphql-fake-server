@@ -293,9 +293,9 @@ Or, You can use Dynamic Fake to return a different value.
 
 - [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
 
-### Union
+### `union` and `inteface`
 
-`@newmo/graphql-fake-core` always returns the first type of the union type.
+`@newmo/graphql-fake-core` always returns the first type of the union type/interface type.
 
 ```graphql
 type User {
@@ -328,7 +328,7 @@ Return the following response:
 }
 ```
 
-It is first type `User` of the union type `UserResult`.
+The default response is first type `User` of the union type `UserResult`.
 
 If you want to return a different type, you need to use Dynamic Fake via HTTP.
 
