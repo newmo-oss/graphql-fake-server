@@ -318,6 +318,28 @@ type RequiredDocument {
           }
         `);
     });
+    it("should allow [String!]! @exampleArrayString()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+                names: [String!]! @exampleArrayString(values: ["john", "mike"])
+            }
+            `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "names": [
+                "john",
+                "mike",
+              ],
+            },
+          }
+        `);
+    });
     it("should allow [Int!] @exampleArrayInt()", async () => {
         const schema = buildSchema(
             extendSchema(`
