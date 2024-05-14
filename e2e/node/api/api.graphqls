@@ -55,6 +55,66 @@ directive @exampleBoolean(
     value: Boolean!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
+"""
+@exampleArrayID directive specifies an example value for a array of ID field.
+This example value is used in the fake data.
+ID value will be unique between all ID fake data.
+"""
+directive @exampleArrayID(
+    """
+    The value of the ID field.
+    @exampleArrayID(value: ["id1", "id2"])
+    """
+    values: [ID!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayString directive specifies an example value for a array of String field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayString(
+    """
+    The value of the String field.
+    @exampleArrayString(value: ["example1", "example2"])
+    """
+    values: [String!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayInt directive specifies an example value for a array of Int field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayInt(
+    """
+    The value of the Int field.
+    @exampleArrayInt(value: [1, 2])
+    """
+    values: [Int!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayFloat directive specifies an example value for a array of Float field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayFloat(
+    """
+    The value of the Float field.
+    @exampleArrayFloat(value: [1.0, 2.0])
+    """
+    values: [Float!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayBoolean directive specifies an example value for a array of Boolean field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayBoolean(
+    """
+    The value of the Boolean field.
+    @exampleArrayBoolean(value: [true, false])
+    """
+    values: [Boolean!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+"""
+You Schema definition goes here
+"""
 enum BookGenre {
     FICTION
     NON_FICTION
@@ -73,6 +133,10 @@ type Author {
     books: [Book!]!
 }
 
+# multiple types
+type UserNamesArrayExample {
+    names: [String!]! @exampleArrayString(values: ["name1", "name2"])
+}
 # Interface for errors
 interface Character {
     id: ID!
@@ -104,6 +168,7 @@ type Query {
     books: [Book!]!
     dog: Dog!
     unionUser: UnionUserResult
+    userNamesArray: UserNamesArrayExample!
 }
 
 input CreateBookInput {

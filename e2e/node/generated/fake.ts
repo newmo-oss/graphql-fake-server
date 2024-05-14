@@ -5,6 +5,7 @@ import type { GetBooksQuery } from './graphql.js';
 import type { GetBookWithFragmentsQuery } from './graphql.js';
 import type { GetDogQuery } from './graphql.js';
 import type { GotUnionUserQuery } from './graphql.js';
+import type { GetUserNamesArrayExampleQuery } from './graphql.js';
 import type { CreateBookMutation } from './graphql.js';
 import type { CreateBookInlineMutation } from './graphql.js';
 export async function registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
@@ -118,6 +119,35 @@ export async function registerGotUnionUserQueryErrorResponse(sequenceId:string, 
         body: JSON.stringify({
             type: "network-error",
             operationName: "GotUnionUser",
+            responseStatusCode,
+            errors
+        }),
+    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+}
+export async function registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    return await fetch('http://127.0.0.1:4000/fake', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "operation",
+            operationName: "GetUserNamesArrayExample",
+            data: queryResponse
+        }),
+    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+}
+export async function registerGetUserNamesArrayExampleQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    return await fetch('http://127.0.0.1:4000/fake', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "network-error",
+            operationName: "GetUserNamesArrayExample",
             responseStatusCode,
             errors
         }),

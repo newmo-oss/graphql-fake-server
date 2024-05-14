@@ -263,6 +263,12 @@ const SUPPORTED_EXAMPLE_DIRECTIVES = [
     "exampleInt",
     "exampleFloat",
     "exampleBoolean",
+    // array
+    "exampleArrayID",
+    "exampleArrayString",
+    "exampleArrayInt",
+    "exampleArrayFloat",
+    "exampleArrayBoolean",
 ];
 const isIdType = (node: NonNullTypeNode | NamedTypeNode | ListTypeNode): boolean => {
     if (node.kind === "NonNullType") {
@@ -314,6 +320,99 @@ function parseFieldOrInputValueDefinition({
             `@${exampleDirective.name.value} directive must have arguments. @${exampleDirective.name.value}(value: ...)`,
         );
     }
+    // [String!]! -> true
+    // [String!] -> true
+    // String -> false
+    const isListTypeNode = (node: TypeNode): node is ListTypeNode | NonNullTypeNode => {
+        if (node.kind === "ListType") {
+            return true;
+        }
+        if (node.kind === "NonNullType") {
+            return isListTypeNode(node.type);
+        }
+        return false;
+    };
+    if (isListTypeNode(node.type)) {
+        /**
+         * @exampleArrayID(values: ["id1", "id2"])
+         * -> { values: ["id1", "id2"] }
+         * @exampleArrayString(values: ["value 1", "value 2"])
+         * -> { values: ["value 1", "value 2"] }
+         * @exampleArrayInt(values: [1, 2])
+         * -> { values: [1, 2] }
+         * @exampleArrayFloat(values: [1.1, 2.2])
+         * -> { values: [1.1, 2.2] }
+         * @exampleArrayBoolean(values: [true, false])
+         * -> { values: [true, false] }
+         */
+        const exampleDirectiveValues = exampleDirective.arguments.find(
+            (a) => a.name.value === "values",
+        );
+        if (!exampleDirectiveValues) {
+            throw new Error(
+                `@${exampleDirective.name.value} directive must have values argument. @${exampleDirective.name.value}(values: ...)`,
+            );
+        }
+        if (exampleDirectiveValues.value.kind !== "ListValue") {
+            throw new Error(
+                `@${exampleDirective.name.value} directive must have values argument. @${exampleDirective.name.value}(values: ...). values is not array.`,
+            );
+        }
+        // [String!]! -> String
+        // [String!] -> String
+        const unwrapListNodeType = (node: ListTypeNode | NonNullTypeNode | TypeNode): TypeNode => {
+            if (node.kind === "ListType") {
+                return unwrapListNodeType(node.type);
+            }
+            if (node.kind === "NonNullType") {
+                return unwrapListNodeType(node.type);
+            }
+            return node;
+        };
+        const itemOfArrayNodeType = unwrapListNodeType(node.type);
+        const itemOfArrayRawValueType = parseTypeNodeStructure(itemOfArrayNodeType);
+        const exampleDirectiveRawValues = exampleDirectiveValues.value.values.map((v) => {
+            return valueOfNode(v);
+        }) as ValuePrimitive[]; // TODO: need to fix type
+        // all raw values should be the same type
+        const exampleDirectiveRawValueTypeSet = new Set<string>([
+            ...exampleDirectiveRawValues.map((value) => {
+                // array, object, string, number, boolean, null
+                return Object.prototype.toString.call(value).slice(8, -1).toLowerCase();
+            }),
+        ]);
+        if (exampleDirectiveRawValueTypeSet.size !== 1) {
+            throw new Error(
+                `${convertedTypeName}.${fieldName}: @${
+                    exampleDirective.name.value
+                } directive values must be the same type. Got [${exampleDirectiveRawValues.join(
+                    ", ",
+                )}]`,
+            );
+        }
+        // pick one of the raw value type
+        const oneOfExampleDirectiveRawValueType = exampleDirectiveRawValueTypeSet
+            .values()
+            .next().value;
+        if (itemOfArrayRawValueType !== oneOfExampleDirectiveRawValueType) {
+            throw new Error(
+                `${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive values type must be ${itemOfArrayRawValueType}. Got ${oneOfExampleDirectiveRawValueType}`,
+            );
+        }
+        // if ID type, add idFactory() to the value
+        // e.g. @exampleArrayID(values: ["id1", "id2"]) -> { expression: [__id("id1"), __id("id2")] }
+        const isExampleArrayIdDirective = exampleDirective.name.value === "exampleArrayID";
+        if (isExampleArrayIdDirective) {
+            const expressions = exampleDirectiveRawValues.flatMap((rawValue) => {
+                if (typeof rawValue !== "string") {
+                    return [];
+                }
+                return idFactory(rawValue, `${convertedTypeName}.${fieldName}.${rawValue}`);
+            });
+            return { comment, example: { expression: `[${expressions.join(",")}]` } };
+        }
+        return { comment, example: { value: exampleDirectiveRawValues } };
+    }
     /**
      * @exampleID(value: "id")
      * -> { value: "id1" }
@@ -326,30 +425,36 @@ function parseFieldOrInputValueDefinition({
      * @exampleBoolean(value: true)
      * -> { value: true }
      */
-    const value = exampleDirective.arguments.find((a) => a.name.value === "value");
-    if (!value) {
+    const exampleDirectiveValue = exampleDirective.arguments.find((a) => a.name.value === "value");
+    if (!exampleDirectiveValue) {
         throw new Error(
             `@${exampleDirective.name.value} directive must have value argument. @${exampleDirective.name.value}(value: ...)`,
         );
     }
-    const rawValue = valueOfNode(value.value);
+    const exampleDirectiveRawValue = valueOfNode(exampleDirectiveValue.value);
     // if node type is not equal to the value type, throw an error
     const nodeType = parseTypeNodeStructure(node.type);
     // array, object, string, number, boolean, null
-    const rawValueType = Object.prototype.toString.call(rawValue).slice(8, -1).toLowerCase();
-    if (nodeType !== rawValueType) {
+    const directiveRawValueType = Object.prototype.toString
+        .call(exampleDirectiveRawValue)
+        .slice(8, -1)
+        .toLowerCase();
+    if (nodeType !== directiveRawValueType) {
         throw new Error(
-            `${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive value type must be ${nodeType}. Got ${rawValueType}`,
+            `${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive value type must be ${nodeType}. Got ${directiveRawValueType}`,
         );
     }
     // if ID type, add idFactory() to the value
     // e.g. @exampleID(value: "id") -> { expression: __id("id") }
     const isExampleIdDirective = exampleDirective.name.value === "exampleID";
-    if (isExampleIdDirective && typeof rawValue === "string") {
-        const pathOfField = `${convertedTypeName}.${fieldName}.${rawValue}`;
-        return { comment, example: { expression: idFactory(rawValue, pathOfField) } };
+    if (isExampleIdDirective && typeof exampleDirectiveRawValue === "string") {
+        const pathOfField = `${convertedTypeName}.${fieldName}.${exampleDirectiveRawValue}`;
+        return {
+            comment,
+            example: { expression: idFactory(exampleDirectiveRawValue, pathOfField) },
+        };
     }
-    return { comment, example: { value: rawValue } };
+    return { comment, example: { value: exampleDirectiveRawValue } };
 }
 
 function parseObjectTypeOrInputObjectTypeDefinition({

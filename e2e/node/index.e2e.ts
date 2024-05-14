@@ -17,6 +17,7 @@ import {
     GetBookWithFragmentsDocument,
     GetBooksDocument,
     GetDogDocument,
+    GetUserNamesArrayExampleDocument,
     GotUnionUserDocument,
 } from "./generated/graphql.js";
 
@@ -34,15 +35,32 @@ describe("integration test", async () => {
     afterAll(() => {
         server?.stop();
     });
-    it("request to server and get response", async () => {
-        const response = await fetch(`${fakeServerUrl}/graphql`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
+    describe("@example ", () => {
+        it("should fetch array example values", async () => {
+            // just request
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`);
+            // get fake response
+            const response = await client.request(GetUserNamesArrayExampleDocument);
+            expect(response).toMatchInlineSnapshot(`
+          {
+            "userNamesArray": {
+              "names": [
+                "name1",
+                "name2",
+              ],
             },
-            body: JSON.stringify({
-                operationName: "GetAuthors",
-                query: `
+          }
+        `);
+        });
+        it("request to server and get response", async () => {
+            const response = await fetch(`${fakeServerUrl}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    operationName: "GetAuthors",
+                    query: `
                     query GetAuthors {
                       authors {
                         id
@@ -58,10 +76,10 @@ describe("integration test", async () => {
                       }
                     }
                 `,
-            }),
-        });
-        const data = await response.json();
-        expect(data).toMatchInlineSnapshot(`
+                }),
+            });
+            const data = await response.json();
+            expect(data).toMatchInlineSnapshot(`
           {
             "data": {
               "authors": [
@@ -153,28 +171,30 @@ describe("integration test", async () => {
             },
           }
         `);
+        });
     });
-    it("register fake response for query", async () => {
-        const sequenceId = crypto.randomUUID();
-        // register fake response for GetBooks query
-        const resRegister = await registerGetBooksQueryResponse(sequenceId, {
-            books: [
-                {
-                    id: "new id",
-                    title: "new title",
+    describe("/fake", () => {
+        it("register fake response for query", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake response for GetBooks query
+            const resRegister = await registerGetBooksQueryResponse(sequenceId, {
+                books: [
+                    {
+                        id: "new id",
+                        title: "new title",
+                    },
+                ],
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
                 },
-            ],
-        });
-        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-        // request to server
-        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            headers: {
-                "sequence-id": sequenceId,
-            },
-        });
-        // get fake response
-        const response = await client.request(GetBooksDocument);
-        expect(response).toMatchInlineSnapshot(`
+            });
+            // get fake response
+            const response = await client.request(GetBooksDocument);
+            expect(response).toMatchInlineSnapshot(`
           {
             "books": [
               {
@@ -184,25 +204,25 @@ describe("integration test", async () => {
             ],
           }
         `);
-    });
-    it("register fake response for query Dog which is implemented an interface", async () => {
-        const sequenceId = crypto.randomUUID();
-        const resRegister = await registerGetDogQueryResponse(sequenceId, {
-            dog: {
-                id: "dog id",
-                name: "dog name",
-            },
         });
-        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-        // request to server
-        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            headers: {
-                "sequence-id": sequenceId,
-            },
-        });
-        // get fake response
-        const response = await client.request(GetDogDocument);
-        expect(response).toMatchInlineSnapshot(`
+        it("register fake response for query Dog which is implemented an interface", async () => {
+            const sequenceId = crypto.randomUUID();
+            const resRegister = await registerGetDogQueryResponse(sequenceId, {
+                dog: {
+                    id: "dog id",
+                    name: "dog name",
+                },
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+            // get fake response
+            const response = await client.request(GetDogDocument);
+            expect(response).toMatchInlineSnapshot(`
           {
             "dog": {
               "id": "dog id",
@@ -210,34 +230,34 @@ describe("integration test", async () => {
             },
           }
         `);
-    });
-    it("register fake response for mutation", async () => {
-        const sequenceId = crypto.randomUUID();
-        // register fake response for mutation
-        const resRegister = await registerCreateBookMutationResponse(sequenceId, {
-            createBook: {
-                id: "new id",
-                title: "new title",
-            },
         });
-        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-        // request to server
-        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            headers: {
-                "sequence-id": sequenceId,
-            },
-        });
-        // get fake response
-        const mutation = gql`
-            mutation  CreateBook {
-                createBook(input: { title: "new title" }) {
-                    id
-                    title
+        it("register fake response for mutation", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake response for mutation
+            const resRegister = await registerCreateBookMutationResponse(sequenceId, {
+                createBook: {
+                    id: "new id",
+                    title: "new title",
+                },
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+            // get fake response
+            const mutation = gql`
+                mutation  CreateBook {
+                    createBook(input: { title: "new title" }) {
+                        id
+                        title
+                    }
                 }
-            }
-        `;
-        const response = await client.request(mutation);
-        expect(response).toMatchInlineSnapshot(`
+            `;
+            const response = await client.request(mutation);
+            expect(response).toMatchInlineSnapshot(`
           {
             "createBook": {
               "id": "new id",
@@ -245,26 +265,26 @@ describe("integration test", async () => {
             },
           }
         `);
-    });
-    it("register fake data for union type", async () => {
-        const sequenceId = crypto.randomUUID();
-        const resRegister = await registerGotUnionUserQueryResponse(sequenceId, {
-            unionUser: {
-                __typename: "User",
-                id: "student id",
-                name: "student name",
-            },
         });
-        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-        // request to server
-        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            headers: {
-                "sequence-id": sequenceId,
-            },
-        });
-        // get fake response
-        const response = await client.request(GotUnionUserDocument);
-        expect(response).toMatchInlineSnapshot(`
+        it("register fake data for union type", async () => {
+            const sequenceId = crypto.randomUUID();
+            const resRegister = await registerGotUnionUserQueryResponse(sequenceId, {
+                unionUser: {
+                    __typename: "User",
+                    id: "student id",
+                    name: "student name",
+                },
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+            // get fake response
+            const response = await client.request(GotUnionUserDocument);
+            expect(response).toMatchInlineSnapshot(`
           {
             "unionUser": {
               "__typename": "User",
@@ -273,25 +293,25 @@ describe("integration test", async () => {
             },
           }
         `);
-    });
-    it("register fake response which use Fragement", async () => {
-        const sequenceId = crypto.randomUUID();
-        // register fake response for mutation
-        const resRegister = await registerGetBookWithFragmentsQueryResponse(sequenceId, {
-            book: {
-                id: "new id",
-                title: "new title",
-            } as FragmentType<BookFragmentPartsFragment>,
         });
-        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-        // request to server
-        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            headers: {
-                "sequence-id": sequenceId,
-            },
-        });
-        const response = await client.request(GetBookWithFragmentsDocument);
-        expect(response).toMatchInlineSnapshot(`
+        it("register fake response which use Fragment", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake response for mutation
+            const resRegister = await registerGetBookWithFragmentsQueryResponse(sequenceId, {
+                book: {
+                    id: "new id",
+                    title: "new title",
+                } as FragmentType<BookFragmentPartsFragment>,
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+            const response = await client.request(GetBookWithFragmentsDocument);
+            expect(response).toMatchInlineSnapshot(`
           {
             "book": {
               "id": "new id",
@@ -299,29 +319,30 @@ describe("integration test", async () => {
             },
           }
         `);
-    });
+        });
 
-    it("register fake error response for query", async () => {
-        const sequenceId = crypto.randomUUID();
-        // register fake error response for GetBooks query
-        const resRegister = await registerGetBooksQueryErrorResponse(sequenceId, {
-            errors: [{ message: "fake error message" }],
-            responseStatusCode: 400,
+        it("register fake error response for query", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake error response for GetBooks query
+            const resRegister = await registerGetBooksQueryErrorResponse(sequenceId, {
+                errors: [{ message: "fake error message" }],
+                responseStatusCode: 400,
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+            // get fake response
+            try {
+                await client.request(GetBooksDocument);
+            } catch (e) {
+                expect(e).toMatchInlineSnapshot(
+                    `[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
+                );
+            }
         });
-        expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-        // request to server
-        const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            headers: {
-                "sequence-id": sequenceId,
-            },
-        });
-        // get fake response
-        try {
-            await client.request(GetBooksDocument);
-        } catch (e) {
-            expect(e).toMatchInlineSnapshot(
-                `[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
-            );
-        }
     });
 });
