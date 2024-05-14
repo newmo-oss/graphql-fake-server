@@ -65,7 +65,7 @@ directive @exampleArrayID(
     The value of the ID field.
     @exampleArrayID(value: ["id1", "id2"])
     """
-    value: [ID!]!
+    values: [ID!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleArrayString directive specifies an example value for a array of String field.
@@ -76,7 +76,7 @@ directive @exampleArrayString(
     The value of the String field.
     @exampleArrayString(value: ["example1", "example2"])
     """
-    value: [String!]!
+    values: [String!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleArrayInt directive specifies an example value for a array of Int field.
@@ -87,7 +87,7 @@ directive @exampleArrayInt(
     The value of the Int field.
     @exampleArrayInt(value: [1, 2])
     """
-    value: [Int!]!
+    values: [Int!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleArrayFloat directive specifies an example value for a array of Float field.
@@ -98,7 +98,7 @@ directive @exampleArrayFloat(
     The value of the Float field.
     @exampleArrayFloat(value: [1.0, 2.0])
     """
-    value: [Float!]!
+    values: [Float!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
 @exampleArrayBoolean directive specifies an example value for a array of Boolean field.
@@ -109,7 +109,7 @@ directive @exampleArrayBoolean(
     The value of the Boolean field.
     @exampleArrayBoolean(value: [true, false])
     """
-    value: [Boolean!]!
+    values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 """
@@ -133,6 +133,10 @@ type Author {
     books: [Book!]!
 }
 
+# multiple types
+type UserNamesArrayExample {
+    names: [String!]! @exampleArrayString(values: ["name1", "name2"])
+}
 # Interface for errors
 interface Character {
     id: ID!
@@ -161,9 +165,10 @@ type Query {
     author(id: ID!): Author
     authors: [Author!]!
     book(id: ID!): Book
-    books: [Book!]! @exampleArrayString(value:1)
+    books: [Book!]!
     dog: Dog!
     unionUser: UnionUserResult
+    userNamesArray: UserNamesArrayExample!
 }
 
 input CreateBookInput {

@@ -296,11 +296,11 @@ type RequiredDocument {
           }
         `);
     });
-    it("should allow [String!] @exampleString()", async () => {
+    it("should allow [String!] @exampleArrayString()", async () => {
         const schema = buildSchema(
             extendSchema(`
             type Query {
-                names: [String!] @exampleString(value: "john")
+                names: [String!] @exampleArrayString(values: ["john", "mike"])
             }
             `),
         );
@@ -309,28 +309,135 @@ type RequiredDocument {
         });
         expect(mock).toMatchInlineSnapshot(`
           {
-            "IsBlocked": {
-              "blockedByUser": {
-                "id": "id11",
-                "name": "john",
-              },
-              "message": "blocked",
-            },
             "Query": {
-              "user": {
-                "__typename": "User",
-                "id": "id22",
-                "name": "john",
-              },
-            },
-            "Suspended": {
-              "reason": "error reason",
-            },
-            "User": {
-              "id": "id00",
-              "name": "john",
+              "names": [
+                "john",
+                "mike",
+              ],
             },
           }
         `);
+    });
+    it("should allow [Int!] @exampleArrayInt()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+             values: [Int!] @exampleArrayInt(values: [1, 2, 3])
+            }
+            `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "values": [
+                1,
+                2,
+                3,
+              ],
+            },
+          }
+        `);
+    });
+    it("should allow [Float!] @exampleArrayFloat()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+             values: [Float!] @exampleArrayFloat(values: [1.1, 2.2, 3.3])
+            }
+            `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "values": [
+                1.1,
+                2.2,
+                3.3,
+              ],
+            },
+          }
+        `);
+    });
+    it("should allow [Boolean!] @exampleArrayBoolean()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+             values: [Boolean!] @exampleArrayBoolean(values: [true, false])
+            }
+            `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "values": [
+                true,
+                false,
+              ],
+            },
+          }
+        `);
+    });
+    it("should allow [ID!] @exampleArrayID()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+             values: [ID!] @exampleArrayID(values: ["id1", "id2"])
+            }
+            `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "values": [
+                "id100",
+                "id200",
+              ],
+            },
+          }
+        `);
+    });
+    it("should throw error if @exampleArrayString() is not a array", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+                names: [String!] @exampleArrayString(values: "john")
+            }
+            `),
+        );
+        await expect(() =>
+            createMock({
+                schema,
+            }),
+        ).rejects.toMatchInlineSnapshot(
+            "[Error: @exampleArrayString directive must have values argument. @exampleArrayString(values: ...). values is not array.]",
+        );
+    });
+    it("should throw error if @exampleArrayInt() is not a array", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+                values: [Int!] @exampleArrayInt(values: 1)
+            }
+            `),
+        );
+        await expect(() =>
+            createMock({
+                schema,
+            }),
+        ).rejects.toMatchInlineSnapshot(
+            "[Error: @exampleArrayInt directive must have values argument. @exampleArrayInt(values: ...). values is not array.]",
+        );
     });
 });

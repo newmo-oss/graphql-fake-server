@@ -34,7 +34,17 @@ Declarative Fake is used to define fake data in the GraphQL schema.
 npm install @newmo/graphql-fake-server --save-dev
 ```
 
-2. Add `@exampleID`, `@exampleString`, `@exampleInt`, `@exampleFloat`, `@exampleBoolean` directive to your schema and use it.
+2. Add example directives to the GraphQL schema.
+  - `@exampleID`: Specifies an example value for a ID field.
+  - `@exampleString`: Specifies an example value for a String field.
+  - `@exampleInt`: Specifies an example value for a Int field.
+  - `@exampleFloat`: Specifies an example value for a Float field.
+  - `@exampleBoolean`: Specifies an example value for a Boolean field.
+  - `@exampleArrayID`: Specifies an example value for a array of ID field.
+  - `@exampleArrayString`: Specifies an example value for a array of String field.
+  - `@exampleArrayInt`: Specifies an example value for a array of Int field.
+  - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
+  - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
 
 `graphql/schema.graphql`:
 
@@ -94,6 +104,63 @@ directive @exampleBoolean(
   @exampleBoolean(value: true)
   """
   value: Boolean!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+"""
+@exampleArrayID directive specifies an example value for a array of ID field.
+This example value is used in the fake data.
+ID value will be unique between all ID fake data.
+"""
+directive @exampleArrayID(
+  """
+  The value of the ID field.
+  @exampleArrayID(value: ["id1", "id2"])
+  """
+  values: [ID!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayString directive specifies an example value for a array of String field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayString(
+  """
+  The value of the String field.
+  @exampleArrayString(value: ["example1", "example2"])
+  """
+  values: [String!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayInt directive specifies an example value for a array of Int field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayInt(
+  """
+  The value of the Int field.
+  @exampleArrayInt(value: [1, 2])
+  """
+  values: [Int!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayFloat directive specifies an example value for a array of Float field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayFloat(
+  """
+  The value of the Float field.
+  @exampleArrayFloat(value: [1.0, 2.0])
+  """
+  values: [Float!]!
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@exampleArrayBoolean directive specifies an example value for a array of Boolean field.
+This example value is used in the fake data.
+"""
+directive @exampleArrayBoolean(
+  """
+  The value of the Boolean field.
+  @exampleArrayBoolean(value: [true, false])
+  """
+  values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 # Your schema

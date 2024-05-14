@@ -37,6 +37,12 @@ query GotUnionUser {
     }
 }
 
+query GetUserNamesArrayExample{
+    userNamesArray {
+        names
+    }
+}
+
 mutation CreateBook($title: String!) {
     createBook(input: { title: $title }) {
         id
