@@ -296,4 +296,41 @@ type RequiredDocument {
           }
         `);
     });
+    it("should allow [String!] @exampleString()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+                names: [String!] @exampleString(value: "john")
+            }
+            `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "IsBlocked": {
+              "blockedByUser": {
+                "id": "id11",
+                "name": "john",
+              },
+              "message": "blocked",
+            },
+            "Query": {
+              "user": {
+                "__typename": "User",
+                "id": "id22",
+                "name": "john",
+              },
+            },
+            "Suspended": {
+              "reason": "error reason",
+            },
+            "User": {
+              "id": "id00",
+              "name": "john",
+            },
+          }
+        `);
+    });
 });

@@ -333,10 +333,32 @@ function parseFieldOrInputValueDefinition({
         );
     }
     const rawValue = valueOfNode(value.value);
+    const isListType = node.type.kind === Kind.LIST_TYPE;
     // if node type is not equal to the value type, throw an error
     const nodeType = parseTypeNodeStructure(node.type);
     // array, object, string, number, boolean, null
     const rawValueType = Object.prototype.toString.call(rawValue).slice(8, -1).toLowerCase();
+    if (isListType) {
+        const itemOfArrayNodeType = node.type.type;
+        const itemOfArrayRawValueType = parseTypeNodeStructure(itemOfArrayNodeType);
+        console.log({
+            itemOfArrayRawValueType,
+        });
+        if (itemOfArrayRawValueType !== rawValueType) {
+            throw new Error(
+                `${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive value type must be ${nodeType}. Got ${rawValueType}`,
+            );
+        }
+        // if ID type, add idFactory() to the value
+        // e.g. @exampleID(value: "id") -> { expression: __id("id") }
+        const isExampleIdDirective = exampleDirective.name.value === "exampleID";
+        if (isExampleIdDirective && typeof rawValue === "string") {
+            const pathOfField = `${convertedTypeName}.${fieldName}.${rawValue}`;
+            return { comment, example: { expression: idFactory(rawValue, pathOfField) } };
+        }
+        // @ts-expect-error
+        return { comment, example: { value: [rawValue] } };
+    }
     if (nodeType !== rawValueType) {
         throw new Error(
             `${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive value type must be ${nodeType}. Got ${rawValueType}`,
