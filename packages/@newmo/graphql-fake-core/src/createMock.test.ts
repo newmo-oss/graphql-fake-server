@@ -462,4 +462,21 @@ type RequiredDocument {
             "[Error: @exampleArrayInt directive must have values argument. @exampleArrayInt(values: ...). values is not array.]",
         );
     });
+
+    it("should throw error if @exampleArray* mismatch type value", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+                values: [Int!] @exampleArrayInt(values: [1, "test"])
+            }
+            `),
+        );
+        await expect(() =>
+            createMock({
+                schema,
+            }),
+        ).rejects.toMatchInlineSnapshot(
+            "[Error: Query.values: @exampleArrayInt directive values must be the same type. Got [1, test]]",
+        );
+    });
 });
