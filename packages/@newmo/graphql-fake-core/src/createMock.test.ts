@@ -345,7 +345,7 @@ type RequiredDocument {
         const schema = buildSchema(
             extendSchema(`
             type Query {
-             values: [Float!] @exampleArrayFloat(values: [1.1, 2.2, 3.3])
+              values: [Float!] @exampleArrayFloat(values: [1.1, 2.2, 3.3])
             }
             `),
         );

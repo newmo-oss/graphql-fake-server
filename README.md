@@ -232,6 +232,26 @@ Return the following response:
 }
 ```
 
+#### Examples of `@example*` directive
+
+```graphql
+"""
+All example directives are used to define fake data.
+"""
+type TestThings {
+    id: ID! @exampleID(value: "id")
+    name: String! @exampleString(value: "example")
+    age: Int! @exampleInt(value: 1)
+    height: Float! @exampleFloat(value: 1.0)
+    isBool: Boolean! @exampleBoolean(value: true)
+    ids: [ID!]! @exampleArrayID(values: ["id1", "id2"])
+    names: [String!]! @exampleArrayString(values: ["example1", "example2"])
+    ages: [Int!]! @exampleArrayInt(values: [1, 2])
+    heights: [Float!]! @exampleArrayFloat(values: [1.0, 2.0])
+    isBools: [Boolean!]! @exampleArrayBoolean(values: [true, false])
+}
+```
+
 ### Dynamic Fake
 
 Dynamic Fake is used to integration testing with dynamic fake data.
