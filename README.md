@@ -73,7 +73,7 @@ directive @exampleString(
   value: String!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
-@exampleInt directive specifies an example value for a Inf field.
+@exampleInt directive specifies an example value for a Int field.
 This example value is used in the fake data.
 """
 directive @exampleInt(
