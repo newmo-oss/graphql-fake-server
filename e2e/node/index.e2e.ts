@@ -4,7 +4,6 @@ import { createFakeServer } from "@newmo/graphql-fake-server";
 import { GraphQLClient } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
-    registerCreateBookMutationErrorResponse,
     registerCreateBookMutationResponse,
     registerGetBookWithFragmentsQueryResponse,
     registerGetBooksQueryErrorResponse,
@@ -370,52 +369,7 @@ describe("integration test", async () => {
                 );
             }
         });
-        it("register fake response for errors pattern", async () => {
-            const sequenceId = crypto.randomUUID();
-            // register fake response for UseFooBarMutationMutation mutation
-            const resRegister = await registerUseFooBarMutationMutationResponse(sequenceId, {
-                useFooBar: {
-                    errors: [
-                        {
-                            message: "error message",
-                            code: AbcErrorCode.AlreadyExist,
-                        },
-                    ],
-                },
-            });
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-            // request to server
-            const client = new ApolloClient({
-                link: new HttpLink({
-                    uri: `${fakeServerUrl}/graphql`,
-                    headers: {
-                        "sequence-id": sequenceId,
-                    },
-                    fetch,
-                }),
-                cache: new InMemoryCache(),
-            });
-            // get fake response
-            const response = await client.mutate({
-                mutation: UseFooBarMutationDocument,
-            });
-            expect(response).toMatchInlineSnapshot(`
-              {
-                "data": {
-                  "useFooBar": {
-                    "errors": [
-                      {
-                        "code": "ALREADY_EXIST",
-                        "message": "error message",
-                      },
-                    ],
-                  },
-                },
-              }
-            `);
-        });
-
-        it("register fake response for UseFooBarMutationMutation", async () => {
+        it("register fake response for mutation errors pattern", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
             const resRegister = await registerUseMutationErrorPatternMutationMutationResponse(
