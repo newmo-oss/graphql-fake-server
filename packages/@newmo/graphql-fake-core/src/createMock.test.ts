@@ -479,4 +479,140 @@ type RequiredDocument {
             "[Error: Query.values: @exampleArrayInt directive values must be the same type. Got [1, test]]",
         );
     });
+    it("should handle mutation errors pattern", async () => {
+        // https://productionreadygraphql.com/2020-08-01-guide-to-graphql-errors
+        // https://speakerdeck.com/yukukotani/graphql-schema-design-practice?slide=23
+        const schema = buildSchema(`
+    type Mutation {
+      useFooBar(input: UseFooBarInput!): UseFooBarPayload!
+    }
+   
+    input UseFooBarInput {
+      id: String!
+    }
+    
+    type FooBar {
+        id: ID!
+        name: String
+    }
+    type UseFooBarPayload {
+      fooBar: FooBar
+      
+      errors: [UseFooBarError!]!
+    }
+    
+    union UseFooBarError = GeneralError | AbcError
+
+    type GeneralError implements Error {
+      message: String!
+    }
+    
+    type AbcError implements Error & DisplayableError {
+      message: String!
+      code: AbcErrorCode!
+      localizedMessage: String!
+    }
+    
+    enum AbcErrorCode {
+      INVALID
+      ALREADY_EXIST
+    }
+    interface Error {
+      message: String!
+    }
+    
+    interface DisplayableError {
+      message: String
+      localizedMessage: String!
+    }
+    
+    mutation UseFooBarMutation {
+        useFooBar(input: {
+          id: "x"
+        }) {
+        userErrors {
+          ... on GeneralError {
+            message
+          }
+          ... on AbcError {
+            message
+            code
+            localizedMessage
+          }
+          ... on DisplayableError {
+            localizedMessage
+            message
+          }
+          ... on Error {
+            message
+          }
+        }
+      }
+    }
+`);
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "AbcError": {
+              "code": "INVALID",
+              "localizedMessage": "string",
+              "message": "string",
+            },
+            "FooBar": {
+              "id": "xxxx-xxxx-xxxx-xxxx01",
+              "name": "string",
+            },
+            "GeneralError": {
+              "message": "string",
+            },
+            "Mutation": {
+              "useFooBar": {
+                "errors": [
+                  {
+                    "__typename": "GeneralError",
+                    "message": "string",
+                  },
+                  {
+                    "__typename": "GeneralError",
+                    "message": "string",
+                  },
+                  {
+                    "__typename": "GeneralError",
+                    "message": "string",
+                  },
+                ],
+                "fooBar": {
+                  "id": "xxxx-xxxx-xxxx-xxxx20",
+                  "name": "string",
+                },
+              },
+            },
+            "UseFooBarInput": {
+              "id": "string",
+            },
+            "UseFooBarPayload": {
+              "errors": [
+                {
+                  "__typename": "GeneralError",
+                  "message": "string",
+                },
+                {
+                  "__typename": "GeneralError",
+                  "message": "string",
+                },
+                {
+                  "__typename": "GeneralError",
+                  "message": "string",
+                },
+              ],
+              "fooBar": {
+                "id": "xxxx-xxxx-xxxx-xxxx12",
+                "name": "string",
+              },
+            },
+          }
+        `);
+    });
 });

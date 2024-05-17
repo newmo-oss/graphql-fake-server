@@ -1,25 +1,35 @@
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client/core";
+import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
 import { createFakeServer } from "@newmo/graphql-fake-server";
-import { GraphQLClient, gql } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+    registerCreateBookMutationErrorResponse,
     registerCreateBookMutationResponse,
     registerGetBookWithFragmentsQueryResponse,
     registerGetBooksQueryErrorResponse,
     registerGetBooksQueryResponse,
     registerGetDogQueryResponse,
     registerGotUnionUserQueryResponse,
+    registerUseMutationErrorPatternMutationMutationResponse,
 } from "./generated/fake.js";
-import { type FragmentType, getFragmentData } from "./generated/fragment-masking.js";
+import type { FragmentType } from "./generated/fragment-masking.js";
 import {
+    AbcErrorCode,
     type BookFragmentPartsFragment,
-    BookFragmentPartsFragmentDoc,
     CreateBookDocument,
+    type CreateBookInput,
     GetBookWithFragmentsDocument,
     GetBooksDocument,
     GetDogDocument,
     GetUserNamesArrayExampleDocument,
     GotUnionUserDocument,
+    UseMutationErrorPatternMutationDocument,
+    type UseMutationErrorPatternMutationMutation,
 } from "./generated/graphql.js";
+
+loadDevMessages();
+loadErrorMessages();
 
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
@@ -215,7 +225,7 @@ describe("integration test", async () => {
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
             // request to server
-            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+            const client = new GraphQLClient(`${fakeServerUrl}/query`, {
                 headers: {
                     "sequence-id": sequenceId,
                 },
@@ -242,22 +252,38 @@ describe("integration test", async () => {
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
             // request to server
-            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-                headers: {
-                    "sequence-id": sequenceId,
+            // const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+            //     headers: {
+            //         "sequence-id": sequenceId,
+            //     },
+            // });
+            // get fake response
+            // const mutation = gql`
+            //     mutation  CreateBook {
+            //         createBook(input: { title: "new title" }) {
+            //             id
+            //             title
+            //         }
+            //     }
+            // `;
+
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    headers: {
+                        "sequence-id": sequenceId,
+                    },
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+            const response = await client.mutate<CreateBookInput>({
+                mutation: CreateBookDocument,
+                variables: {
+                    title: "new title",
                 },
             });
-            // get fake response
-            const mutation = gql`
-                mutation  CreateBook {
-                    createBook(input: { title: "new title" }) {
-                        id
-                        title
-                    }
-                }
-            `;
-            const response = await client.request(mutation);
-            expect(response).toMatchInlineSnapshot(`
+            expect(response.data).toMatchInlineSnapshot(`
           {
             "createBook": {
               "id": "new id",
@@ -343,6 +369,99 @@ describe("integration test", async () => {
                     `[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
                 );
             }
+        });
+        it("register fake response for errors pattern", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake response for UseFooBarMutationMutation mutation
+            const resRegister = await registerUseFooBarMutationMutationResponse(sequenceId, {
+                useFooBar: {
+                    errors: [
+                        {
+                            message: "error message",
+                            code: AbcErrorCode.AlreadyExist,
+                        },
+                    ],
+                },
+            });
+            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            // request to server
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    headers: {
+                        "sequence-id": sequenceId,
+                    },
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+            // get fake response
+            const response = await client.mutate({
+                mutation: UseFooBarMutationDocument,
+            });
+            expect(response).toMatchInlineSnapshot(`
+              {
+                "data": {
+                  "useFooBar": {
+                    "errors": [
+                      {
+                        "code": "ALREADY_EXIST",
+                        "message": "error message",
+                      },
+                    ],
+                  },
+                },
+              }
+            `);
+        });
+
+        it("register fake response for UseFooBarMutationMutation", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake response for UseFooBarMutationMutation mutation
+            const resRegister = await registerUseMutationErrorPatternMutationMutationResponse(
+                sequenceId,
+                {
+                    useMutationErrorPattern: {
+                        errors: [
+                            {
+                                __typename: "GeneralError",
+                                message: "error message",
+                            },
+                        ],
+                    },
+                },
+            );
+            // request to server
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    headers: {
+                        "sequence-id": sequenceId,
+                    },
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+            const response = await client.mutate<UseMutationErrorPatternMutationMutation>({
+                mutation: UseMutationErrorPatternMutationDocument,
+            });
+            const errors = response.data?.useMutationErrorPattern.errors ?? [];
+            const isError = errors.length > 0;
+            expect(isError).toBe(true);
+            expect(response).toMatchInlineSnapshot(`
+              {
+                "data": {
+                  "useMutationErrorPattern": {
+                    "errors": [
+                      {
+                        "__typename": "GeneralError",
+                        "message": "error message",
+                      },
+                    ],
+                  },
+                },
+              }
+            `);
         });
     });
 });

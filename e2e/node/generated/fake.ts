@@ -8,6 +8,7 @@ import type { GotUnionUserQuery } from './graphql.js';
 import type { GetUserNamesArrayExampleQuery } from './graphql.js';
 import type { CreateBookMutation } from './graphql.js';
 import type { CreateBookInlineMutation } from './graphql.js';
+import type { UseMutationErrorPatternMutationMutation } from './graphql.js';
 export async function registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
     return await fetch('http://127.0.0.1:4000/fake', {
         method: 'POST',
@@ -206,6 +207,35 @@ export async function registerCreateBookInlineMutationErrorResponse(sequenceId:s
         body: JSON.stringify({
             type: "network-error",
             operationName: "CreateBookInline",
+            responseStatusCode,
+            errors
+        }),
+    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+}
+export async function registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    return await fetch('http://127.0.0.1:4000/fake', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "operation",
+            operationName: "UseMutationErrorPatternMutation",
+            data: mutationResponse
+        }),
+    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+}
+export async function registerUseMutationErrorPatternMutationMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    return await fetch('http://127.0.0.1:4000/fake', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "network-error",
+            operationName: "UseMutationErrorPatternMutation",
             responseStatusCode,
             errors
         }),

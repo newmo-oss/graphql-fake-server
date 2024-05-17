@@ -161,6 +161,46 @@ type UserIsBlocked {
 }
 union UnionUserResult = User | UserSuspended | UserIsBlocked
 
+# Mutation Error pattern
+# https://productionreadygraphql.com/2020-08-01-guide-to-graphql-errors
+# https://speakerdeck.com/yukukotani/graphql-schema-design-practice?slide=23
+input UseMutationErrorPatternInput {
+    id: String!
+}
+
+type MutationErrorPattern {
+    id: ID!
+    name: String
+}
+type UseMutationErrorPatternPayload {
+    MutationErrorPattern: MutationErrorPattern
+    errors: [UseMutationErrorPatternError!]!
+}
+# Union Error pattern
+union UseMutationErrorPatternError = GeneralError | AbcError
+type GeneralError implements Error {
+    message: String!
+}
+
+type AbcError implements Error & DisplayableError {
+    message: String!
+    code: AbcErrorCode!
+    localizedMessage: String!
+}
+
+enum AbcErrorCode {
+    INVALID
+    ALREADY_EXIST
+}
+interface Error {
+    message: String!
+}
+
+interface DisplayableError {
+    message: String!
+    localizedMessage: String!
+}
+
 type Query {
     author(id: ID!): Author
     authors: [Author!]!
@@ -178,4 +218,5 @@ input CreateBookInput {
 type Mutation {
     createBook(input: CreateBookInput!): Book!
     createBookInline(bookId: ID! @exampleID(value: "id"), bookTitle:String! @exampleString(value: "input title")): Book!
+    useMutationErrorPattern(input: UseMutationErrorPatternInput!): UseMutationErrorPatternPayload!
 }

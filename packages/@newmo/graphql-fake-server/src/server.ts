@@ -155,6 +155,9 @@ const createRoutingServer = async ({
         // => suffix_path = /a/b
         // let path = new URL(c.req.raw.url).pathname
         let path = c.req.path;
+        logger.debug("pass to apollo server", {
+            path,
+        });
         path = path.replace(new RegExp(`^${c.req.routePath.replace("*", "")}`), "/");
         let url = `http://127.0.0.1:${ports.apolloServer}${path}`;
         // add params to URL
