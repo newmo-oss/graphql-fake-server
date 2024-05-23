@@ -19,7 +19,7 @@
     "lint": "npm exec @biomejs/biome -- check packages/ e2e/",
     "lint:fix": "npm exec @biomejs/biome -- check --apply-unsafe packages/ e2e/",
     "format": "npm exec @biomejs/biome -- format --write packages/",
-    "test": "pnpm -r run --if-present test",
+    "test": "pnpm -r run --if-present build && pnpm -r run --if-present test",
     "updateSnapshot": "pnpm run build && pnpm -r run updateSnapshot",
     "versionup": "lerna version",
     "ci:versionup:patch": "lerna version patch --no-push --no-git-tag-version --yes && npm run commit-version",
