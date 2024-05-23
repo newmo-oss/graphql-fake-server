@@ -298,6 +298,14 @@ function parseFieldOrInputValueDefinition({
 }): { comment?: string | undefined; example?: ExampleDirective | undefined } {
     const fieldName = node.name.value;
     const comment = node.description ? transformComment(node.description) : undefined;
+    const errorDirective = node.directives?.find((d) => {
+        return d.name.value === "error"; // @error
+    });
+    if (errorDirective) {
+        return {
+            example: { value: [] }, // always empty value
+        };
+    }
     const exampleDirective = node.directives?.find((d) => {
         return SUPPORTED_EXAMPLE_DIRECTIVES.includes(d.name.value);
     });

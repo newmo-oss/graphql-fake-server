@@ -113,6 +113,12 @@ directive @exampleArrayBoolean(
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 """
+@error directive specifies a field as an error response field.
+It allows setting an error response and specifying the field name.
+"""
+directive @error on FIELD_DEFINITION
+
+"""
 You Schema definition goes here
 """
 enum BookGenre {
@@ -158,6 +164,11 @@ type UserSuspended {
 type UserIsBlocked {
     message: String
     blockedByUser: User
+}
+type UserWithErrors {
+  id: ID!
+  name: String!
+  errors: [GeneralError!]! @error
 }
 union UnionUserResult = User | UserSuspended | UserIsBlocked
 
@@ -209,6 +220,7 @@ type Query {
     dog: Dog!
     unionUser: UnionUserResult
     userNamesArray: UserNamesArrayExample!
+    userWithErrors: UserWithErrors
 }
 
 input CreateBookInput {

@@ -418,4 +418,34 @@ describe("integration test", async () => {
             `);
         });
     });
+    describe("@error", () => {
+        it("should return empty array for field with @error directive", async () => {
+            const sequenceId = crypto.randomUUID();
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+            const query = `
+              query {
+                userWithErrors {
+                  id
+                  name
+                  errors {
+                    message
+                  }
+                }
+              }
+            `;
+            const response = await client.request(query);
+            expect(response).toMatchInlineSnapshot(`{
+                "userWithErrors": {
+                  "errors": [],
+                  "id": "xxxx-xxxx-xxxx-xxxx11",
+                  "name": "string",
+                },
+              }
+            `);
+        });
+    });
 });

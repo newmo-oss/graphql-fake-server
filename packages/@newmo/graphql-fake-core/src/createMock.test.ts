@@ -17,6 +17,7 @@ describe("createMock", () => {
           }
         `);
     });
+
     it("should support @exampleID directive for a array of object ", async () => {
         const schema = buildSchema(
             extendSchema(`
@@ -614,5 +615,48 @@ type RequiredDocument {
             },
           }
         `);
+    });
+    it("should handle @error directive", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+            type Query {
+              user: User
+            }
+
+            type User {
+              id: ID!
+              name: String
+              errors: [UserError!]! @error
+            }
+
+            type UserError {
+              message: String!
+              code: String!
+            }
+          `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+        {
+          "Query": {
+            "user": {
+              "errors": [],
+              "id": "xxxx-xxxx-xxxx-xxxx10",
+              "name": "string",
+            },
+          },
+          "User": {
+            "errors": [],
+            "id": "xxxx-xxxx-xxxx-xxxx01",
+            "name": "string",
+          },
+          "UserError": {
+            "code": "string",
+            "message": "string",
+          },
+        }
+      `);
     });
 });

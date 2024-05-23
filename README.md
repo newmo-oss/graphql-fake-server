@@ -45,6 +45,7 @@ npm install @newmo/graphql-fake-server --save-dev
   - `@exampleArrayInt`: Specifies an example value for a array of Int field.
   - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
   - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
+  - `@error`: Returns the error response as an empty array.
 
 `graphql/schema.graphql`:
 
@@ -162,12 +163,18 @@ directive @exampleArrayBoolean(
   """
   values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@error directive specifies a field as an error response field.
+It allows setting an error response and specifying the field name.
+"""
+directive @error on FIELD_DEFINITION
 
 # Your schema
 type Book {
     id: ID! @exampleID(value: "book-id")
     title: String! @exampleString(value: "The Great Gatsby")
     author: Author!
+    errors: [Error!]! @error
 }
 type Author {
     id: ID! @exampleID(value: "author-id")
