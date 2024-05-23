@@ -112,6 +112,11 @@ directive @exampleArrayBoolean(
     """
     values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+"""
+@error directive specifies a field as an error response field.
+It allows setting an error response and specifying the field name.
+"""
+directive @error on FIELD_DEFINITION
 `;
 export const extendSchema = (schema: string) => {
     return EXAMPLE_DIRECTIVE + schema;
