@@ -37,7 +37,7 @@ const startTestFakeServer = async ({
     });
 };
 describe("graphql-fake-server", () => {
-    it("should response fake graphql server", async () => {
+    it("should fake response from graphql server", async () => {
         const schema = `
             enum BookGenre {
                 FICTION
@@ -158,6 +158,198 @@ describe("graphql-fake-server", () => {
                   "name": "F. Scott Fitzgerald",
                 },
               ],
+            },
+          }
+        `);
+    });
+    it("should return second registered fake response when registered twice", async () => {
+        const schema = `
+            type Dog {
+                id: ID! @exampleID(value: "dog-id")
+                name: String! @exampleString(value: "hanako")
+            }
+            type Query {
+                dog: Dog!
+            }
+        `;
+        const ports = getPorts();
+        const server = await startTestFakeServer({ schemaString: schema, ports });
+        const { urls } = await server.start();
+        const sequenceId = crypto.randomUUID();
+        // first register - this will be ignored
+        await fetch(`${urls.fakeServer}/fake`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetDog",
+                data: {
+                    dog: {
+                        id: "dog-1",
+                        name: "hanako 1",
+                    },
+                },
+            }),
+        });
+        // second register - this will be used
+        await fetch(`${urls.fakeServer}/fake`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetDog",
+                data: {
+                    dog: {
+                        id: "dog-2",
+                        name: "taro 2",
+                    },
+                },
+            }),
+        });
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                operationName: "GetDog",
+                query: `
+                    query GetDog {
+                        dog {
+                            id
+                            name
+                        }
+                    }
+                `,
+            }),
+        });
+        const result = await response.json();
+        expect(result).toMatchInlineSnapshot(`
+          {
+            "data": {
+              "dog": {
+                "id": "dog-2",
+                "name": "taro 2",
+              },
+            },
+          }
+        `);
+    });
+    // register fake key is sequence-id x operationName
+    it("should return registered fake response when register difference operation at same time", async () => {
+        const schema = `
+            type Dog {
+                id: ID! @exampleID(value: "dog-id")
+                name: String! @exampleString(value: "hanako")
+            }
+            type Query {
+                dog: Dog!
+            }
+        `;
+        const ports = getPorts();
+        const server = await startTestFakeServer({ schemaString: schema, ports });
+        const { urls } = await server.start();
+        const sequenceId = crypto.randomUUID();
+        // first register
+        await fetch(`${urls.fakeServer}/fake`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetDogFirst",
+                data: {
+                    dog: {
+                        id: "dog-first",
+                        name: "dog first",
+                    },
+                },
+            }),
+        });
+        // second register
+        await fetch(`${urls.fakeServer}/fake`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetDogSecond",
+                data: {
+                    dog: {
+                        id: "dog-second",
+                        name: "dog second",
+                    },
+                },
+            }),
+        });
+        // request for first register
+        const firstResponse = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                operationName: "GetDogFirst",
+                query: `
+                    query GetDogFirst {
+                        dog {
+                            id
+                            name
+                        }
+                    }
+                `,
+            }),
+        });
+        const firstResult = await firstResponse.json();
+        expect(firstResult).toMatchInlineSnapshot(`
+          {
+            "data": {
+              "dog": {
+                "id": "dog-first",
+                "name": "dog first",
+              },
+            },
+          }
+        `);
+        // request for second register
+        const secondResponse = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "sequence-id": sequenceId,
+            },
+            body: JSON.stringify({
+                operationName: "GetDogSecond",
+                query: `
+                    query GetDogSecond {
+                        dog {
+                            id
+                            name
+                        }
+                    }
+                `,
+            }),
+        });
+        const secondResult = await secondResponse.json();
+        expect(secondResult).toMatchInlineSnapshot(`
+          {
+            "data": {
+              "dog": {
+                "id": "dog-second",
+                "name": "dog second",
+              },
             },
           }
         `);

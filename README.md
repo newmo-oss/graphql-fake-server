@@ -428,6 +428,35 @@ If you want to return a different type, you need to use Dynamic Fake via HTTP.
 
 - [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
 
+### `operationName` is required
+
+`@newmo/graphql-fake-server` depended on `operationName` of GraphQL requests.
+The fake server manages the fakes using the `sequence-id` header and `operationName` value combination as keys.
+
+As a result, the graphql request body should includes `operationName` value.
+
+```js
+const sequenceId = crypto.randomUUID();
+const response = await fetch(`${urls.fakeServer}/graphql`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "sequence-id": sequenceId,
+    },
+    body: JSON.stringify({
+        operationName: "GetDog", // <= required
+        query: `
+            query GetDog {
+                dog {
+                    id
+                    name
+                }
+            }
+        `,
+    }),
+});
+```
+
 ## FAQ
 
 ### Can I use example directives to `input` type?

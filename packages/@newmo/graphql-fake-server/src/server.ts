@@ -136,6 +136,17 @@ class LRUMap<K, V> {
     }
 }
 
+// Map key is sequenceId x operationName
+// allow to register multiple operations with the same sequenceId at the same time
+// However, sequenceId x operationName must be unique
+// If the same sequenceId x operationName is registered, the previous one is overwritten
+const createMapKey = ({
+    sequenceId,
+    operationName,
+}: { sequenceId: string; operationName: string }) => {
+    return `${sequenceId}.${operationName}`;
+};
+
 const createRoutingServer = async ({
     logLevel,
     ports,
@@ -202,11 +213,18 @@ const createRoutingServer = async ({
                 status: 400,
             });
         }
+        const operationName = body.operationName;
         logger.debug("/fake got body type", {
             sequenceId,
             type: body.type,
         });
-        sequenceLruMap.set(sequenceId, body);
+        sequenceLruMap.set(
+            createMapKey({
+                sequenceId,
+                operationName,
+            }),
+            body,
+        );
         return Response.json(JSON.stringify({ ok: true }), {
             status: 200,
         });
@@ -223,24 +241,38 @@ const createRoutingServer = async ({
          * 5. Return the merged data
          */
         const sequenceId = c.req.header("sequence-id");
-        // 2. Does it contain a sequence id?
-        if (!sequenceId) return passToApollo(c);
-        const sequence = sequenceLruMap.get(sequenceId);
-        logger.debug(`/query: sequence-id: ${sequenceId}, sequence exists: ${Boolean(sequence)}`, {
-            sequence,
-            sequenceId,
-        });
-        if (!sequence) return passToApollo(c);
-
         const requestBody = await c.req.raw.clone().json();
         const requestOperationName =
             typeof requestBody === "object" &&
             requestBody !== null &&
             "operationName" in requestBody &&
-            requestBody.operationName;
+            requestBody.operationName &&
+            typeof requestBody.operationName === "string"
+                ? requestBody.operationName
+                : undefined;
         logger.debug(`operationName: ${requestOperationName} sequenceId: ${sequenceId}`, {
             sequenceId,
         });
+        // 2. Does it contain a sequence id?
+        if (!sequenceId) return passToApollo(c);
+        if (!requestOperationName) return passToApollo(c);
+        const sequence = sequenceLruMap.get(
+            createMapKey({
+                sequenceId,
+                operationName: requestOperationName,
+            }),
+        );
+        logger.debug(
+            `/query: sequence-id: ${sequenceId} x operationName: ${requestOperationName}, sequence exists: ${Boolean(
+                sequence,
+            )}`,
+            {
+                sequence,
+                sequenceId,
+                operationName: requestOperationName,
+            },
+        );
+        if (!sequence) return passToApollo(c);
         if (requestOperationName !== sequence.operationName) {
             return Response.json(
                 JSON.stringify({
