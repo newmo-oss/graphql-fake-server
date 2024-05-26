@@ -164,6 +164,15 @@ describe("graphql-fake-server", () => {
         `);
     });
     it("should return second registered fake response when registered twice", async () => {
+        const schema = `
+            type Dog {
+                id: ID! @exampleID(value: "dog-id")
+                name: String! @exampleString(value: "hanako")
+            }
+            type Query {
+                dog: Dog!
+            }
+        `;
         const ports = getPorts();
         const server = await startTestFakeServer({ schemaString: schema, ports });
         const { urls } = await server.start();
