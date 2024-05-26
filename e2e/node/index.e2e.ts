@@ -1,13 +1,15 @@
-import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client/core";
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, err } from "@apollo/client/core";
 import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
+import { onError as apolloOnError } from "@apollo/client/link/error/index.js";
 import { createFakeServer } from "@newmo/graphql-fake-server";
 import { GraphQLClient } from "graphql-request";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
     registerCreateBookMutationResponse,
     registerGetBookWithFragmentsQueryResponse,
     registerGetBooksQueryErrorResponse,
     registerGetBooksQueryResponse,
+    registerGetDogQueryErrorResponse,
     registerGetDogQueryResponse,
     registerGotUnionUserQueryResponse,
     registerUseMutationErrorPatternMutationMutationResponse,
@@ -365,7 +367,7 @@ describe("integration test", async () => {
                 await client.request(GetBooksDocument);
             } catch (e) {
                 expect(e).toMatchInlineSnapshot(
-                    `[Error: GraphQL Error (Code: 400): {"response":{"error":"[{\\"message\\":\\"fake error message\\"}]","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
+                    `[Error: GraphQL Error (Code: 400): {"response":{"error":"{\\"errors\\":[{\\"message\\":\\"fake error message\\"}]}","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
                 );
             }
         });
@@ -416,6 +418,42 @@ describe("integration test", async () => {
                 },
               }
             `);
+        });
+        it("apollo client catch global errors", async () => {
+            const sequenceId = crypto.randomUUID();
+            // register fake response for UseFooBarMutationMutation mutation
+            const resRegister = await registerGetDogQueryErrorResponse(sequenceId, {
+                errors: [
+                    {
+                        message: "test error",
+                    },
+                ],
+                responseStatusCode: 400,
+            });
+            const spy = vi.fn();
+            const errorLink = apolloOnError(spy);
+            // request to server
+            const client = new ApolloClient({
+                link: ApolloLink.from([
+                    errorLink,
+                    new HttpLink({
+                        uri: `${fakeServerUrl}/graphql`,
+                        headers: {
+                            "sequence-id": sequenceId,
+                        },
+                        fetch,
+                    }),
+                ]),
+                cache: new InMemoryCache(),
+            });
+            try {
+                await client.query({
+                    query: GetDogDocument,
+                });
+                throw new Error("not reach");
+            } catch {
+                expect(spy).toBeCalled();
+            }
         });
     });
     describe("@error", () => {

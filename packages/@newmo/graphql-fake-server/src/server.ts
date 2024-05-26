@@ -254,9 +254,14 @@ const createRoutingServer = async ({
             );
         }
         if (sequence.type === "network-error") {
-            return new Response(JSON.stringify(sequence.errors), {
-                status: sequence.responseStatusCode,
-            });
+            return new Response(
+                JSON.stringify({
+                    errors: sequence.errors,
+                }),
+                {
+                    status: sequence.responseStatusCode,
+                },
+            );
         }
         // 3. Send a request to Apollo Server
         logger.debug("request to apollo-server", {

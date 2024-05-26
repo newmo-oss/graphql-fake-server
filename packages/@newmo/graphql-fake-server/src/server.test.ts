@@ -386,11 +386,13 @@ describe("graphql-fake-server", () => {
         expect(response.status).toBe(400);
         const result = await response.json();
         expect(result).toMatchInlineSnapshot(`
-          [
-            {
-              "message": "Network Error",
-            },
-          ]
+          {
+            "errors": [
+              {
+                "message": "Network Error",
+              },
+            ],
+          }
         `);
     });
     it("should support CORS request", async () => {
