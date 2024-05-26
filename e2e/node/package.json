@@ -1,7 +1,7 @@
 {
     "private": true,
     "name": "e2e-node",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "type": "module",
     "scripts": {
         "start": "npm exec @newmo/graphql-fake-server -- --schema ./api/api.graphqls --logLevel=debug",
