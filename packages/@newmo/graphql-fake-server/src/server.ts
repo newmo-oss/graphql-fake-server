@@ -178,7 +178,9 @@ const createRoutingServer = async ({
         maxSize: maxRegisteredSequences,
     });
     const app = new Hono();
-    app.post("/fake", cors());
+    // /fake api does not support CORS
+    // because it allows any user to modify the response
+    // If you need to support CORS, implement with checking the origin or something
     app.post("/fake", async (c) => {
         logger.debug("/fake");
         const sequenceId = c.req.header("sequence-id");
