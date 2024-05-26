@@ -1,4 +1,4 @@
-import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, err } from "@apollo/client/core";
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client/core";
 import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
 import { onError as apolloOnError } from "@apollo/client/link/error/index.js";
 import { createFakeServer } from "@newmo/graphql-fake-server";
@@ -454,6 +454,51 @@ describe("integration test", async () => {
             } catch {
                 expect(spy).toBeCalled();
             }
+        });
+        it("should override first fake with second fake", async () => {
+            const sequenceId = crypto.randomUUID();
+            // 1. register error repose - this will be overridden
+            await registerGetDogQueryErrorResponse(sequenceId, {
+                errors: [
+                    {
+                        message: "test error",
+                    },
+                ],
+                responseStatusCode: 400,
+            });
+            // 2. register success response
+            await registerGetDogQueryResponse(sequenceId, {
+                dog: {
+                    id: "dog id",
+                    name: "dog name",
+                },
+            });
+            const spy = vi.fn();
+            const errorLink = apolloOnError(spy);
+            // request to server
+            const client = new ApolloClient({
+                link: ApolloLink.from([
+                    new HttpLink({
+                        uri: `${fakeServerUrl}/graphql`,
+                        headers: {
+                            "sequence-id": sequenceId,
+                        },
+                        fetch,
+                    }),
+                ]),
+                cache: new InMemoryCache(),
+            });
+            const response = await client.query({
+                query: GetDogDocument,
+            });
+            expect(response.data).toMatchInlineSnapshot(`
+              {
+                "dog": {
+                  "id": "dog id",
+                  "name": "dog name",
+                },
+              }
+            `);
         });
     });
     describe("@error", () => {
