@@ -293,6 +293,7 @@ const createRoutingServer = async ({
             rep,
         );
     };
+    // graphql api is for browser and need to support CORS
     app.use("/graphql", cors());
     app.use("/query", cors());
     app.use("/graphql", fakeGraphQLQuery);
