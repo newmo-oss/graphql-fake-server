@@ -10,6 +10,7 @@ import depthLimit from "graphql-depth-limit";
 import type { GraphQLSchema } from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
 import { type Context, Hono } from "hono";
+import { cors } from "hono/cors";
 import { type LogLevel, createLogger } from "./logger.js";
 
 export type CreateFakeServerOptions = {
@@ -177,6 +178,9 @@ const createRoutingServer = async ({
         maxSize: maxRegisteredSequences,
     });
     const app = new Hono();
+    // /fake api does not support CORS
+    // because it allows any user to modify the response
+    // If you need to support CORS, implement with checking the origin or something
     app.post("/fake", async (c) => {
         logger.debug("/fake");
         const sequenceId = c.req.header("sequence-id");
@@ -289,6 +293,9 @@ const createRoutingServer = async ({
             rep,
         );
     };
+    // graphql api is for browser and need to support CORS
+    app.use("/graphql", cors());
+    app.use("/query", cors());
     app.use("/graphql", fakeGraphQLQuery);
     app.use("/query", fakeGraphQLQuery);
     app.all("*", passToApollo);

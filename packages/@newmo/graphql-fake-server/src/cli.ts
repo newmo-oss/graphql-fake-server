@@ -129,6 +129,7 @@ export const run = async ({
             maxRegisteredSequences,
             maxFieldRecursionDepth,
             maxQueryDepth,
+            logLevel,
             ports: {
                 fakeServer: mainPort,
                 apolloServer: apolloPort,
