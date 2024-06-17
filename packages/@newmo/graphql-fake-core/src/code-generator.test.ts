@@ -34,20 +34,20 @@ describe("generateCode", () => {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createQuery({ defaultFields, depth = 0 } = {}) {
-      return {
-          hello: "string",
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              export function createQuery({ defaultFields, depth = 0 } = {}) {
+              return {
+                  hello: "string",
+                };
+              }
 
-      export const Query = createQuery();"
-    `);
+              export const Query = createQuery();"
+            `);
         });
 
         it("generates code for a Mutation type", () => {
@@ -63,28 +63,28 @@ describe("generateCode", () => {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createMutation({ defaultFields, depth = 0 } = {}) {
-      return {
-          addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              export function createMutation({ defaultFields, depth = 0 } = {}) {
+              return {
+                  addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
+                };
+              }
 
-      export const Mutation = createMutation();
-      export function createMessage({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
-          content: "string",
-        };
-      }
+              export const Mutation = createMutation();
+              export function createMessage({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
+                  content: "string",
+                };
+              }
 
-      export const Message = createMessage();"
-    `);
+              export const Message = createMessage();"
+            `);
         });
 
         it("generates code for a Subscription type", () => {
@@ -100,28 +100,28 @@ describe("generateCode", () => {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createSubscription({ defaultFields, depth = 0 } = {}) {
-      return {
-          messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              export function createSubscription({ defaultFields, depth = 0 } = {}) {
+              return {
+                  messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
+                };
+              }
 
-      export const Subscription = createSubscription();
-      export function createMessage({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
-          content: "string",
-        };
-      }
+              export const Subscription = createSubscription();
+              export function createMessage({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
+                  content: "string",
+                };
+              }
 
-      export const Message = createMessage();"
-    `);
+              export const Message = createMessage();"
+            `);
         });
 
         it("generates code for an enum type", () => {
@@ -318,20 +318,20 @@ type Book {
         }
     `),
                     ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createQuery({ defaultFields, depth = 0 } = {}) {
-      return {
-          hello: "Hello, World!",
-        };
-      }
+                      "const __idCountMap = new Map()
+                      function __id({ name, key, depth }) {
+                          const count = __idCountMap.get(key) ?? 0;
+                          __idCountMap.set(key, count + 1);
+                          return name + String(depth) + String(count);
+                      }
+                      export function createQuery({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          hello: "Hello, World!",
+                        };
+                      }
 
-      export const Query = createQuery();"
-    `);
+                      export const Query = createQuery();"
+                    `);
                 });
 
                 it("generates code for a Mutation type with @exampleID and @exampleString directives", () => {
@@ -347,28 +347,28 @@ type Book {
         }
     `),
                     ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createMutation({ defaultFields, depth = 0 } = {}) {
-      return {
-          addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+                      "const __idCountMap = new Map()
+                      function __id({ name, key, depth }) {
+                          const count = __idCountMap.get(key) ?? 0;
+                          __idCountMap.set(key, count + 1);
+                          return name + String(depth) + String(count);
+                      }
+                      export function createMutation({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
+                        };
+                      }
 
-      export const Mutation = createMutation();
-      export function createMessage({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"Message.id.1234", depth }),
-          content: "Hello, World!",
-        };
-      }
+                      export const Mutation = createMutation();
+                      export function createMessage({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          id: __id({ name: "1234", key:"Message.id.1234", depth }),
+                          content: "Hello, World!",
+                        };
+                      }
 
-      export const Message = createMessage();"
-    `);
+                      export const Message = createMessage();"
+                    `);
                 });
 
                 it("generates code for a Subscription type with @exampleID and @exampleString directives", () => {
@@ -384,28 +384,28 @@ type Book {
         }
     `),
                     ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createSubscription({ defaultFields, depth = 0 } = {}) {
-      return {
-          messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+                      "const __idCountMap = new Map()
+                      function __id({ name, key, depth }) {
+                          const count = __idCountMap.get(key) ?? 0;
+                          __idCountMap.set(key, count + 1);
+                          return name + String(depth) + String(count);
+                      }
+                      export function createSubscription({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
+                        };
+                      }
 
-      export const Subscription = createSubscription();
-      export function createMessage({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"Message.id.1234", depth }),
-          content: "Hello, World!",
-        };
-      }
+                      export const Subscription = createSubscription();
+                      export function createMessage({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          id: __id({ name: "1234", key:"Message.id.1234", depth }),
+                          content: "Hello, World!",
+                        };
+                      }
 
-      export const Message = createMessage();"
-    `);
+                      export const Message = createMessage();"
+                    `);
                 });
 
                 it("generates code for an enum type with @exampleID directive", () => {
@@ -518,37 +518,37 @@ type Book {
         }
     `),
                     ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
-      return {
-          name: "string",
-          email: "string",
-        };
-      }
+                      "const __idCountMap = new Map()
+                      function __id({ name, key, depth }) {
+                          const count = __idCountMap.get(key) ?? 0;
+                          __idCountMap.set(key, count + 1);
+                          return name + String(depth) + String(count);
+                      }
+                      export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          name: "string",
+                          email: "string",
+                        };
+                      }
 
-      export const NewUserInput = createNewUserInput();
-      export function createMutation({ defaultFields, depth = 0 } = {}) {
-      return {
-          createUser: (depth < 3 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+                      export const NewUserInput = createNewUserInput();
+                      export function createMutation({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          createUser: (depth < 3 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
+                        };
+                      }
 
-      export const Mutation = createMutation();
-      export function createUser({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"User.id.1234", depth }),
-          name: "John Doe",
-          email: "john.doe@example.com",
-        };
-      }
+                      export const Mutation = createMutation();
+                      export function createUser({ defaultFields, depth = 0 } = {}) {
+                      return {
+                          id: __id({ name: "1234", key:"User.id.1234", depth }),
+                          name: "John Doe",
+                          email: "john.doe@example.com",
+                        };
+                      }
 
-      export const User = createUser();"
-    `);
+                      export const User = createUser();"
+                    `);
                 });
             });
         });
@@ -602,31 +602,31 @@ type Book {
         }
     `),
             ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      export function createCategory({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "1234", key:"Category.id.1234", depth }),
-          name: "Electronics",
-          subCategory: (depth < 3 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+              "const __idCountMap = new Map()
+              function __id({ name, key, depth }) {
+                  const count = __idCountMap.get(key) ?? 0;
+                  __idCountMap.set(key, count + 1);
+                  return name + String(depth) + String(count);
+              }
+              export function createCategory({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "1234", key:"Category.id.1234", depth }),
+                  name: "Electronics",
+                  subCategory: (depth < 3 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1 }) : undefined),
+                };
+              }
 
-      export const Category = createCategory();
-      export function createSubCategory({ defaultFields, depth = 0 } = {}) {
-      return {
-          id: __id({ name: "5678", key:"SubCategory.id.5678", depth }),
-          name: "Computers",
-          parent: (depth < 3 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1 }) : undefined),
-        };
-      }
+              export const Category = createCategory();
+              export function createSubCategory({ defaultFields, depth = 0 } = {}) {
+              return {
+                  id: __id({ name: "5678", key:"SubCategory.id.5678", depth }),
+                  name: "Computers",
+                  parent: (depth < 3 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1 }) : undefined),
+                };
+              }
 
-      export const SubCategory = createSubCategory();"
-    `);
+              export const SubCategory = createSubCategory();"
+            `);
         });
     });
     it("can output commonjs code", () => {
@@ -640,21 +640,21 @@ type Book {
                 "commonjs",
             ),
         ).toMatchInlineSnapshot(`
-      "const __idCountMap = new Map()
-      function __id({ name, key, depth }) {
-          const count = __idCountMap.get(key) ?? 0;
-          __idCountMap.set(key, count + 1);
-          return name + String(depth) + String(count);
-      }
-      function createQuery({ defaultFields, depth = 0 } = {}) {
-      return {
-          hello: "string",
-        };
-      }
-      exports.createQuery = createQuery;
-      const Query = createQuery();
-      exports.Query = Query;"
-    `);
+          "const __idCountMap = new Map()
+          function __id({ name, key, depth }) {
+              const count = __idCountMap.get(key) ?? 0;
+              __idCountMap.set(key, count + 1);
+              return name + String(depth) + String(count);
+          }
+          function createQuery({ defaultFields, depth = 0 } = {}) {
+          return {
+              hello: "string",
+            };
+          }
+          exports.createQuery = createQuery;
+          const Query = createQuery();
+          exports.Query = Query;"
+        `);
     });
     it("can output TypeScript code", () => {
         expect(

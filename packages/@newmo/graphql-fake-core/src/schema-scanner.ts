@@ -151,7 +151,7 @@ const typeToFunction = ({
             // reference to the object
             return `${generateCreateReferenceCode({
                 fieldName,
-                typeName: type,
+                typeName: convertedName,
                 config: config,
             })}`;
         }
@@ -475,10 +475,10 @@ function parseObjectTypeOrInputObjectTypeDefinition({
     const convertedTypeName = convertName(originalTypeName, config);
     return {
         type: "object",
-        name: convertName(originalTypeName, config),
+        name: convertedTypeName,
         fields: [
             ...(node.fields ?? []).map((field) => ({
-                name: convertName(field.name.value, config),
+                name: field.name.value,
                 ...parseFieldOrInputValueDefinition({
                     node: field,
                     convertedTypeName,

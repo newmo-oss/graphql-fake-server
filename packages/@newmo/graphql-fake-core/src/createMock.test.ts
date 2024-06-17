@@ -639,30 +639,40 @@ type RequiredDocument {
             schema,
         });
         expect(mock).toMatchInlineSnapshot(`
-        {
-          "Query": {
-            "user": {
+          {
+            "Query": {
+              "user": {
+                "errors": [],
+                "id": "xxxx-xxxx-xxxx-xxxx10",
+                "name": "string",
+              },
+            },
+            "User": {
               "errors": [],
-              "id": "xxxx-xxxx-xxxx-xxxx10",
+              "id": "xxxx-xxxx-xxxx-xxxx01",
               "name": "string",
             },
-          },
-          "User": {
-            "errors": [],
-            "id": "xxxx-xxxx-xxxx-xxxx01",
-            "name": "string",
-          },
-          "UserError": {
-            "code": "string",
-            "message": "string",
-          },
-        }
-      `);
+            "UserError": {
+              "code": "string",
+              "message": "string",
+            },
+          }
+        `);
     });
     it("support UpperCase enum", async () => {
         const schema = buildSchema(`
 interface Error {
   message: String!
+}
+input FooURLInput {
+    "Foo URL"
+    URL: String!
+}
+type FooURLPayload {
+    "Foo URL"
+    URL: String!
+    "Errors"
+    errors: [CreateFooURLError!]!
 }
 union CreateFooURLError = CreateFooURLErrorDetail
 type CreateFooURLErrorDetail implements Error {
@@ -681,6 +691,29 @@ enum CreateFooURLErrorCode {
             "CreateFooUrlErrorDetail": {
               "code": "FAILED_TO_CREATE_FOO_URL",
               "message": "string",
+            },
+            "FooUrlInput": {
+              "URL": "string",
+            },
+            "FooUrlPayload": {
+              "URL": "string",
+              "errors": [
+                {
+                  "__typename": "CreateFooUrlErrorDetail",
+                  "code": "FAILED_TO_CREATE_FOO_URL",
+                  "message": "string",
+                },
+                {
+                  "__typename": "CreateFooUrlErrorDetail",
+                  "code": "FAILED_TO_CREATE_FOO_URL",
+                  "message": "string",
+                },
+                {
+                  "__typename": "CreateFooUrlErrorDetail",
+                  "code": "FAILED_TO_CREATE_FOO_URL",
+                  "message": "string",
+                },
+              ],
             },
           }
         `);
