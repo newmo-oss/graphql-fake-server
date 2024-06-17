@@ -659,4 +659,30 @@ type RequiredDocument {
         }
       `);
     });
+    it("support UpperCase enum", async () => {
+        const schema = buildSchema(`
+interface Error {
+  message: String!
+}
+union CreateFooURLError = CreateFooURLErrorDetail
+type CreateFooURLErrorDetail implements Error {
+  code: CreateFooURLErrorCode!
+  message: String!
+}
+enum CreateFooURLErrorCode {
+  FAILED_TO_CREATE_FOO_URL
+}
+`);
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "CreateFooURLErrorDetail": {
+              "code": "FAILED_TO_CREATE_FOO_URL",
+              "message": "string",
+            },
+          }
+        `);
+    });
 });

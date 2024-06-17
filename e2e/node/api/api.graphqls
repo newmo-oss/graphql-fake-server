@@ -209,6 +209,7 @@ interface Error {
 
 interface DisplayableError {
     message: String!
+    code: AbcErrorCode!
     localizedMessage: String!
 }
 
