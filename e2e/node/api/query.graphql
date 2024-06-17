@@ -82,3 +82,16 @@ mutation UseMutationErrorPatternMutation {
         }
     }
 }
+
+# mutation createFooURL
+mutation CreateFooURL ($input: FooURLInput!) {
+    createFooURL(input: $input) {
+        URL
+        errors {
+            ... on CreateFooURLErrorDetail{
+                code
+                message
+            }
+        }
+    }
+}

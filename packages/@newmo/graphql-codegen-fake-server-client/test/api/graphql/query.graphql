@@ -15,8 +15,15 @@ query ListRideHistories {
     }
 }
 
-mutation CreateRideHistory($desinationName: String!) {
-    createRideHistory(input: { name: $desinationName }){
+mutation CreateURLRideHistory($desinationName: String!) {
+    createURLRideHistory(input: { name: $desinationName }){
+        id
+        name
+    }
+}
+
+mutation CreateFooURLRideHistory($desinationName: String!) {
+    createURLRideHistory(input: { name: $desinationName }){
         id
         name
     }

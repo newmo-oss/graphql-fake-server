@@ -620,7 +620,7 @@ type RequiredDocument {
                           "name": "field2",
                         },
                       ],
-                      "name": "Type",
+                      "name": "IType",
                       "type": "object",
                     },
                     {
@@ -633,7 +633,7 @@ type RequiredDocument {
                           "name": "field",
                         },
                       ],
-                      "name": "SubType",
+                      "name": "ISubType",
                       "type": "object",
                     },
                     {
@@ -689,7 +689,7 @@ type RequiredDocument {
                           "name": "field2",
                         },
                       ],
-                      "name": "Type",
+                      "name": "TypeI",
                       "type": "object",
                     },
                     {
@@ -702,7 +702,7 @@ type RequiredDocument {
                           "name": "field",
                         },
                       ],
-                      "name": "SubType",
+                      "name": "SubTypeI",
                       "type": "object",
                     },
                     {

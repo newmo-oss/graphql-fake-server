@@ -18,17 +18,7 @@ import {
 } from "graphql";
 import { generateCreateReferenceCode, generateEnumReferenceCode } from "./code-generator.js";
 import type { Config } from "./config.js";
-
-function convertName(node: ASTNode | string, config: Config): string {
-    const convert = config.namingConvention
-        ? convertFactory({ namingConvention: config.namingConvention })
-        : convertFactory({});
-    let convertedName = "";
-    convertedName += config.typesPrefix;
-    convertedName += convert(node);
-    convertedName += config.typesSuffix;
-    return convertedName;
-}
+import { convertName } from "./convertName.js";
 
 const createIDFactory = () => {
     return (name: string, key: string) => {
@@ -485,10 +475,10 @@ function parseObjectTypeOrInputObjectTypeDefinition({
     const convertedTypeName = convertName(originalTypeName, config);
     return {
         type: "object",
-        name: originalTypeName,
+        name: convertName(originalTypeName, config),
         fields: [
             ...(node.fields ?? []).map((field) => ({
-                name: field.name.value,
+                name: convertName(field.name.value, config),
                 ...parseFieldOrInputValueDefinition({
                     node: field,
                     convertedTypeName,

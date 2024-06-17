@@ -678,7 +678,7 @@ enum CreateFooURLErrorCode {
         });
         expect(mock).toMatchInlineSnapshot(`
           {
-            "CreateFooURLErrorDetail": {
+            "CreateFooUrlErrorDetail": {
               "code": "FAILED_TO_CREATE_FOO_URL",
               "message": "string",
             },
