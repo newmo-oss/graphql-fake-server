@@ -80,6 +80,10 @@ it("register fake response for query", async () => {
 
 - `typesFile` (required): Path to the generated client's graphql file.
 - `fakeServerEndpoint` (optional): Fake server endpoint. Default is `http://127.0.0.1:4000/fake`.
+- `namingConvention` (optional): Naming convention for the generated types. Default is `change-case#pascalCase`.
+  - [Naming Convention](https://the-guild.dev/graphql/codegen/docs/config-reference/naming-convention)
+- `typesPrefix` (optional): Prefix for the generated types.
+- `typesSuffix` (optional): Suffix for the generated types.
 
 ## License
 
