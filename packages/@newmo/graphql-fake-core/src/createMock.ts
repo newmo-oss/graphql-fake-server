@@ -40,6 +40,7 @@ export const createMock = async (options: CreateMockOptions): Promise<CreateMock
         },
         typeInfos,
     );
+    console.log(code);
     try {
         // execute code in vm and get all exports
         const exports = {};

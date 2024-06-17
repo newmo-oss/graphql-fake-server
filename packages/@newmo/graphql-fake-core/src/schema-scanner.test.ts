@@ -98,6 +98,7 @@ describe("getTypeInfos", () => {
                 },
               ],
               "name": "Book",
+              "rawName": "Book",
               "type": "object",
             },
             {
@@ -126,6 +127,7 @@ describe("getTypeInfos", () => {
                 },
               ],
               "name": "Author",
+              "rawName": "Author",
               "type": "object",
             },
           ]
@@ -162,6 +164,7 @@ type RequiredDocument {
                 },
               ],
               "name": "DocumentType",
+              "rawName": "DocumentType",
               "type": "enum",
             },
             {
@@ -182,6 +185,7 @@ type RequiredDocument {
                 },
               ],
               "name": "RequiredDocument",
+              "rawName": "RequiredDocument",
               "type": "object",
             },
           ]
@@ -218,6 +222,7 @@ type RequiredDocument {
                 },
               ],
               "name": "Book",
+              "rawName": "Book",
               "type": "object",
             },
           ]
@@ -242,6 +247,7 @@ type RequiredDocument {
               },
             ],
             "name": "Argument",
+            "rawName": "Argument",
             "type": "object",
           }
         `);
@@ -293,6 +299,7 @@ type RequiredDocument {
                   },
                 ],
                 "name": "Type",
+                "rawName": "Type",
                 "type": "object",
               }
             `);
@@ -314,16 +321,18 @@ type RequiredDocument {
               [
                 {
                   "name": "Interface1",
-                  "possibleTypes": [
+                  "possibleRawTypeNames": [
                     "ImplementingType",
                   ],
+                  "rawName": "Interface1",
                   "type": "interface",
                 },
                 {
                   "name": "Interface2",
-                  "possibleTypes": [
+                  "possibleRawTypeNames": [
                     "ImplementingType",
                   ],
+                  "rawName": "Interface2",
                   "type": "interface",
                 },
                 {
@@ -344,6 +353,7 @@ type RequiredDocument {
                     },
                   ],
                   "name": "ImplementingType",
+                  "rawName": "ImplementingType",
                   "type": "object",
                 },
               ]
@@ -364,18 +374,20 @@ type RequiredDocument {
               [
                 {
                   "name": "Union1",
-                  "possibleTypes": [
+                  "possibleRawTypeNames": [
                     "Member1",
                     "Member2",
                   ],
+                  "rawName": "Union1",
                   "type": "union",
                 },
                 {
                   "name": "Union2",
-                  "possibleTypes": [
+                  "possibleRawTypeNames": [
                     "Member1",
                     "Member2",
                   ],
+                  "rawName": "Union2",
                   "type": "union",
                 },
                 {
@@ -389,6 +401,7 @@ type RequiredDocument {
                     },
                   ],
                   "name": "Member1",
+                  "rawName": "Member1",
                   "type": "object",
                 },
                 {
@@ -402,6 +415,7 @@ type RequiredDocument {
                     },
                   ],
                   "name": "Member2",
+                  "rawName": "Member2",
                   "type": "object",
                 },
               ]
@@ -437,6 +451,7 @@ type RequiredDocument {
                   },
                 ],
                 "name": "Input",
+                "rawName": "Input",
                 "type": "object",
               }
             `);
@@ -479,6 +494,7 @@ type RequiredDocument {
                     },
                   ],
                   "name": "User",
+                  "rawName": "User",
                   "type": "object",
                 },
                 {
@@ -492,6 +508,7 @@ type RequiredDocument {
                     },
                   ],
                   "name": "Suspended",
+                  "rawName": "Suspended",
                   "type": "object",
                 },
                 {
@@ -512,15 +529,17 @@ type RequiredDocument {
                     },
                   ],
                   "name": "IsBlocked",
+                  "rawName": "IsBlocked",
                   "type": "object",
                 },
                 {
                   "name": "UserResult",
-                  "possibleTypes": [
+                  "possibleRawTypeNames": [
                     "User",
                     "IsBlocked",
                     "Suspended",
                   ],
+                  "rawName": "UserResult",
                   "type": "union",
                 },
                 {
@@ -534,6 +553,7 @@ type RequiredDocument {
                     },
                   ],
                   "name": "Query",
+                  "rawName": "Query",
                   "type": "object",
                 },
               ]
@@ -615,12 +635,13 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "(depth < 1 ? createISubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
+                            "expression": "(depth < 1 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
                           },
                           "name": "field2",
                         },
                       ],
                       "name": "IType",
+                      "rawName": "Type",
                       "type": "object",
                     },
                     {
@@ -634,20 +655,23 @@ type RequiredDocument {
                         },
                       ],
                       "name": "ISubType",
+                      "rawName": "SubType",
                       "type": "object",
                     },
                     {
                       "name": "IInterface",
-                      "possibleTypes": [
-                        "IType",
+                      "possibleRawTypeNames": [
+                        "Type",
                       ],
+                      "rawName": "Interface",
                       "type": "interface",
                     },
                     {
                       "name": "IUnion",
-                      "possibleTypes": [
-                        "IType",
+                      "possibleRawTypeNames": [
+                        "Type",
                       ],
+                      "rawName": "Union",
                       "type": "union",
                     },
                   ]
@@ -684,12 +708,13 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "(depth < 1 ? createSubTypeI({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
+                            "expression": "(depth < 1 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
                           },
                           "name": "field2",
                         },
                       ],
                       "name": "TypeI",
+                      "rawName": "Type",
                       "type": "object",
                     },
                     {
@@ -703,20 +728,23 @@ type RequiredDocument {
                         },
                       ],
                       "name": "SubTypeI",
+                      "rawName": "SubType",
                       "type": "object",
                     },
                     {
                       "name": "InterfaceI",
-                      "possibleTypes": [
-                        "TypeI",
+                      "possibleRawTypeNames": [
+                        "Type",
                       ],
+                      "rawName": "Interface",
                       "type": "interface",
                     },
                     {
                       "name": "UnionI",
-                      "possibleTypes": [
-                        "TypeI",
+                      "possibleRawTypeNames": [
+                        "Type",
                       ],
+                      "rawName": "Union",
                       "type": "union",
                     },
                   ]

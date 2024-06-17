@@ -683,33 +683,34 @@ enum CreateFooURLErrorCode {
   FAILED_TO_CREATE_FOO_URL
 }
 `);
-        const { mock }: MockObject = await createMock({
+        const result = await createMock({
             schema,
         });
-        expect(mock).toMatchInlineSnapshot(`
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
           {
-            "CreateFooUrlErrorDetail": {
+            "CreateFooURLErrorDetail": {
               "code": "FAILED_TO_CREATE_FOO_URL",
               "message": "string",
             },
-            "FooUrlInput": {
+            "FooURLInput": {
               "URL": "string",
             },
-            "FooUrlPayload": {
+            "FooURLPayload": {
               "URL": "string",
               "errors": [
                 {
-                  "__typename": "CreateFooUrlErrorDetail",
+                  "__typename": "CreateFooURLErrorDetail",
                   "code": "FAILED_TO_CREATE_FOO_URL",
                   "message": "string",
                 },
                 {
-                  "__typename": "CreateFooUrlErrorDetail",
+                  "__typename": "CreateFooURLErrorDetail",
                   "code": "FAILED_TO_CREATE_FOO_URL",
                   "message": "string",
                 },
                 {
-                  "__typename": "CreateFooUrlErrorDetail",
+                  "__typename": "CreateFooURLErrorDetail",
                   "code": "FAILED_TO_CREATE_FOO_URL",
                   "message": "string",
                 },

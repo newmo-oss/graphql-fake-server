@@ -21,22 +21,22 @@ const handleExample = (exampleDirective: ExampleDirective): string => {
     throw new Error(`Invalid example directive${JSON.stringify(exampleDirective)}`);
 };
 export const generateEnumReferenceCode = ({
-    typeName,
+    rawTypeName,
 }: {
     fieldName: string;
-    typeName: string;
+    rawTypeName: string;
     config: Config;
 }): string => {
     // always return the first value of the enum
-    return `Object.values(${typeName})[0]`;
+    return `Object.values(${rawTypeName})[0]`;
 };
 export const generateCreateReferenceCode = ({
     fieldName,
-    typeName,
+    rawTypeName,
     config,
 }: {
     fieldName: string;
-    typeName: string;
+    rawTypeName: string;
     config: Config;
 }): string => {
     /**
@@ -46,7 +46,7 @@ export const generateCreateReferenceCode = ({
      *  }
      *}
      */
-    return `(depth < ${config.maxFieldRecursionDepth} ? create${typeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, depth: depth + 1 }) : undefined)`;
+    return `(depth < ${config.maxFieldRecursionDepth} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, depth: depth + 1 }) : undefined)`;
 };
 
 // GraphQL AST Limitations
@@ -54,11 +54,11 @@ export const generateCreateReferenceCode = ({
 // https://astexplorer.net/#/gist/bbfe3f7414a904b453e173d82e836525/bab0cc96ffb951909dc3cf67a67bd67d09948be6
 // so, we need to use same interface for both enum and object types
 function generateEnumFactoryCode(config: ConfigWithOutput, typeInfo: EnumTypeInfo): string {
-    const { name } = typeInfo;
+    const { rawName } = typeInfo;
     const indent = "  ";
     const isTypescript = config.outputType === "typescript";
     return `
-const ${name} = {
+const ${rawName} = {
 ${typeInfo.fields
     .map((value) => {
         const example = value.example ? handleExample(value.example) : "undefined";
@@ -70,7 +70,7 @@ ${typeInfo.fields
 }
 
 function generateFactoryCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo): string {
-    const { name } = typeInfo;
+    const { name, rawName } = typeInfo;
     const indent = "  ";
     const isTypescript = config.outputType === "typescript";
     const functionBodyCode = `
@@ -85,14 +85,14 @@ ${indent}};
 `.trim();
     if (config.outputType === "commonjs") {
         return `
-function create${name}({ defaultFields, depth = 0 } = {}) {
+function create${rawName}({ defaultFields, depth = 0 } = {}) {
 ${functionBodyCode}
 }
-exports.create${name} = create${name};
+exports.create${rawName} = create${rawName};
 `.trim();
     }
     return `
-export function create${name}({ defaultFields, depth = 0 }${
+export function create${rawName}({ defaultFields, depth = 0 }${
         isTypescript ? `: { defaultFields?: Partial<${name}>, depth?: number }` : ""
     } = {})${isTypescript ? `: ${name}` : ""} {
 ${functionBodyCode}
@@ -101,12 +101,12 @@ ${functionBodyCode}
 }
 
 function generateDefaultCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo): string {
-    const { name } = typeInfo;
+    const { name, rawName } = typeInfo;
     if (config.outputType === "commonjs") {
-        return `const ${name} = create${name}();
-exports.${name} = ${name};`;
+        return `const ${rawName} = create${rawName}();
+exports.${rawName} = ${rawName};`;
     }
-    return `export const ${name} = create${name}();`;
+    return `export const ${rawName} = create${rawName}();`;
 }
 
 function generateImportTypeCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): string {
@@ -144,9 +144,9 @@ function generateUnionOrInterfaceTypeCode(
     config: ConfigWithOutput,
     typeInfo: UnionTypeInfo | InterfaceTypeInfo,
 ): string {
-    const { name } = typeInfo;
+    const { name, rawName } = typeInfo;
     const indent = "  ";
-    const firstTypeNameOfUnionType = typeInfo.possibleTypes[0];
+    const firstTypeNameOfUnionType = typeInfo.possibleRawTypeNames[0];
     if (!firstTypeNameOfUnionType) {
         throw new Error(`Union type ${name} has no possible types`);
     }
@@ -157,21 +157,21 @@ function generateUnionOrInterfaceTypeCode(
 ${indent}return {
 ${indent}${indent}__typename: "${firstTypeNameOfUnionType}",
 ${indent}${indent}...${generateCreateReferenceCode({
-        typeName: firstTypeNameOfUnionType,
-        fieldName: typeInfo.name,
+        rawTypeName: firstTypeNameOfUnionType,
+        fieldName: typeInfo.rawName,
         config,
     })}
 };
 `.trim();
     if (config.outputType === "typescript") {
         return `
-export function create${name}({ defaultFields, depth = 0 }: { defaultFields?: Partial<${name}>, depth?: number } = {}): ${name} {
+export function create${rawName}({ defaultFields, depth = 0 }: { defaultFields?: Partial<${name}>, depth?: number } = {}): ${name} {
 ${functionBodyCode}
 }
 `.trim();
     }
     return `
-function create${name}({ defaultFields, depth = 0 } = {}) {
+function create${rawName}({ defaultFields, depth = 0 } = {}) {
 ${functionBodyCode}
 }`;
 }

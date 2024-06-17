@@ -240,7 +240,6 @@ enum CreateFooURLErrorCode {
     FAILED_TO_CREATE_FOO_URL
 }
 
-
 type Query {
     author(id: ID!): Author
     authors: [Author!]!
