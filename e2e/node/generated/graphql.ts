@@ -61,6 +61,7 @@ export type CreateBookInput = {
 };
 
 export type DisplayableError = {
+  code: AbcErrorCode;
   localizedMessage: Scalars['String']['output'];
   message: Scalars['String']['output'];
 };
@@ -119,6 +120,7 @@ export type Query = {
   dog: Dog;
   unionUser?: Maybe<UnionUserResult>;
   userNamesArray: UserNamesArrayExample;
+  userWithErrors?: Maybe<UserWithErrors>;
 };
 
 
@@ -165,6 +167,13 @@ export type UserNamesArrayExample = {
 export type UserSuspended = {
   __typename?: 'UserSuspended';
   reason?: Maybe<Scalars['String']['output']>;
+};
+
+export type UserWithErrors = {
+  __typename?: 'UserWithErrors';
+  errors: Array<GeneralError>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };
 
 export type GetBooksQueryVariables = Exact<{ [key: string]: never; }>;

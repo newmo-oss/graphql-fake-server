@@ -150,15 +150,20 @@ const typeToFunction = ({
         }
         default: {
             // if enum type(name is equaled) is defined, reference to the enum
-            if (enumMap.has(type)) {
+            const convertedName = convertName(type, config);
+            if (enumMap.has(convertedName)) {
                 return `${generateEnumReferenceCode({
                     fieldName,
-                    typeName: type,
+                    typeName: convertedName,
                     config: config,
                 })}`;
             }
             // reference to the object
-            return `${generateCreateReferenceCode({ fieldName, typeName: type, config: config })}`;
+            return `${generateCreateReferenceCode({
+                fieldName,
+                typeName: type,
+                config: config,
+            })}`;
         }
     }
 };
