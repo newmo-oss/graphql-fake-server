@@ -32,11 +32,12 @@
     "prepare": "npm run build",
     "build": "tsc",
     "lint": "tsc --noEmit",
-    "test": "npm run build && npm run codege",
+    "test": "npm run build && npm run codegen",
     "codegen": "graphql-codegen --config graphql-codegen.ts"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^5.0.3"
+    "@graphql-codegen/plugin-helpers": "^5.0.3",
+    "@graphql-codegen/visitor-plugin-common": "^5.2.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",

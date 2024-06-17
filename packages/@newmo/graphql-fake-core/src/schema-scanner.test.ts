@@ -615,12 +615,12 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "(depth < 1 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
+                            "expression": "(depth < 1 ? createISubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
                           },
                           "name": "field2",
                         },
                       ],
-                      "name": "Type",
+                      "name": "IType",
                       "type": "object",
                     },
                     {
@@ -633,7 +633,7 @@ type RequiredDocument {
                           "name": "field",
                         },
                       ],
-                      "name": "SubType",
+                      "name": "ISubType",
                       "type": "object",
                     },
                     {
@@ -684,12 +684,12 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "(depth < 1 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
+                            "expression": "(depth < 1 ? createSubTypeI({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1 }) : undefined)",
                           },
                           "name": "field2",
                         },
                       ],
-                      "name": "Type",
+                      "name": "TypeI",
                       "type": "object",
                     },
                     {
@@ -702,7 +702,7 @@ type RequiredDocument {
                           "name": "field",
                         },
                       ],
-                      "name": "SubType",
+                      "name": "SubTypeI",
                       "type": "object",
                     },
                     {

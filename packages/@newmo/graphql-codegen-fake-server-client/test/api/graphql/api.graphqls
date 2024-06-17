@@ -30,15 +30,51 @@ input RideHistoryInput {
     "目的地の名前"
     name: String!
 }
-type RideHistoryOutput {
-    "乗車履歴の ID"
+type RideHistory {
+    "Ride History ID"
     id: ID!
-    "目的地"
+    "Destination Name"
     name: String!
 }
+
+# CaseSensitive test
+# *URL*
+# Create*
+type FooURLResource {
+    "Foo URL"
+    URL: String!
+}
+input FooURLInput {
+    "Foo URL"
+    URL: String!
+}
+type FooURLPayload {
+    "Foo URL"
+    URL: String!
+    "Errors"
+    errors: [CreateFooURLError!]!
+}
+# Error
+interface Error {
+    message: String!
+}
+union CreateFooURLError = CreateFooURLErrorDetail
+type CreateFooURLErrorDetail implements Error {
+    code: CreateFooURLErrorCode!
+    message: String!
+}
+enum CreateFooURLErrorCode {
+    FAILED_TO_CREATE_FOO_URL
+}
+
 type Mutation {
     """
-    乗車履歴を作成する
+    Create Ride History
     """
-    createRideHistory(input: RideHistoryInput!): RideHistoryOutput!
+    createURLRideHistory(input: RideHistoryInput!): RideHistory!
+
+    """
+    Create Foo URL
+    """
+    createFooURL(input: FooURLInput!): FooURLPayload!
 }

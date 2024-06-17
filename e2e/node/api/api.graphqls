@@ -213,6 +213,34 @@ interface DisplayableError {
     localizedMessage: String!
 }
 
+
+# CaseSensitive test
+# *URL*
+# Create*
+type FooURLResource {
+    "Foo URL"
+    URL: String!
+}
+input FooURLInput {
+    "Foo URL"
+    URL: String!
+}
+type FooURLPayload {
+    "Foo URL"
+    URL: String!
+    "Errors"
+    errors: [CreateFooURLError!]!
+}
+union CreateFooURLError = CreateFooURLErrorDetail
+type CreateFooURLErrorDetail implements Error {
+    code: CreateFooURLErrorCode!
+    message: String!
+}
+enum CreateFooURLErrorCode {
+    FAILED_TO_CREATE_FOO_URL
+}
+
+
 type Query {
     author(id: ID!): Author
     authors: [Author!]!
@@ -232,4 +260,5 @@ type Mutation {
     createBook(input: CreateBookInput!): Book!
     createBookInline(bookId: ID! @exampleID(value: "id"), bookTitle:String! @exampleString(value: "input title")): Book!
     useMutationErrorPattern(input: UseMutationErrorPatternInput!): UseMutationErrorPatternPayload!
+    createFooURL(input: FooURLInput!): FooURLPayload!
 }
