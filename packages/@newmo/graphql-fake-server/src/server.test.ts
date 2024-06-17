@@ -26,6 +26,7 @@ const startTestFakeServer = async ({
             cause: mockResult.error,
         });
     }
+    console.log("mockResult.mock", JSON.stringify(mockResult.mock, null, 2));
     return createFakeServerInternal({
         schema,
         mockObject: mockResult.mock,
@@ -641,5 +642,90 @@ describe("graphql-fake-server", () => {
         });
         // response header should have Access-Control-Allow-Origin
         expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
+    });
+    it("should return namingConvention response", async () => {
+        const schema = `
+                interface Error {
+                  message: String!
+                }
+                input FooURLInput {
+                    "Foo URL"
+                    URL: String!
+                }
+                type FooURLPayload {
+                    "Foo URL"
+                    URL: String!
+                    "Errors"
+                    errors: [CreateFooURLError!]!
+                }
+                union CreateFooURLError = CreateFooURLErrorDetail
+                type CreateFooURLErrorDetail implements Error {
+                  code: CreateFooURLErrorCode!
+                  message: String!
+                }
+                enum CreateFooURLErrorCode {
+                  FAILED_TO_CREATE_FOO_URL
+                }
+                type Mutation {
+                    createFooURL(input: FooURLInput!): FooURLPayload!
+                }
+                type Query {
+                    fooURLs: [FooURLPayload!]!
+                }
+                `;
+        const ports = getPorts();
+        const server = await startTestFakeServer({
+            schemaString: schema,
+            ports,
+        });
+        const { urls } = await server.start();
+        // request without sequence-id
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                operationName: "CreateFooURL",
+                query: `
+                    mutation CreateFooURL($input: FooURLInput!) {
+                      createFooURL(input: $input) {
+                        URL
+                        errors {
+                          ... on CreateFooURLErrorDetail {
+                            message
+                          }
+                        }
+                      }
+                    }
+                `,
+                variables: {
+                    input: {
+                        URL: "http://example.com",
+                    },
+                },
+            }),
+        });
+        const result = await response.json();
+        expect(result).toMatchInlineSnapshot(`
+          {
+            "data": {
+              "createFooURL": {
+                "URL": "string",
+                "errors": [
+                  {
+                    "message": "string",
+                  },
+                  {
+                    "message": "string",
+                  },
+                  {
+                    "message": "string",
+                  },
+                ],
+              },
+            },
+          }
+        `);
     });
 });

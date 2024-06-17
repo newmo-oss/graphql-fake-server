@@ -20,6 +20,7 @@ import {
     type BookFragmentPartsFragment,
     CreateBookDocument,
     type CreateBookInput,
+    CreateFooUrlDocument,
     GetBookWithFragmentsDocument,
     GetBooksDocument,
     GetDogDocument,
@@ -45,6 +46,51 @@ describe("integration test", async () => {
     });
     afterAll(() => {
         server?.stop();
+    });
+    describe("without fake", () => {
+        it("should work createFooURL mutation", async () => {
+            // request to server
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+            const response = await client.mutate<CreateBookInput>({
+                mutation: CreateFooUrlDocument,
+                variables: {
+                    input: {
+                        URL: "https://example.com",
+                    },
+                },
+            });
+            expect(response.data).toMatchInlineSnapshot(`
+              {
+                "createFooURL": {
+                  "URL": "string",
+                  "__typename": "FooURLPayload",
+                  "errors": [
+                    {
+                      "__typename": "CreateFooURLErrorDetail",
+                      "code": "FAILED_TO_CREATE_FOO_URL",
+                      "message": "string",
+                    },
+                    {
+                      "__typename": "CreateFooURLErrorDetail",
+                      "code": "FAILED_TO_CREATE_FOO_URL",
+                      "message": "string",
+                    },
+                    {
+                      "__typename": "CreateFooURLErrorDetail",
+                      "code": "FAILED_TO_CREATE_FOO_URL",
+                      "message": "string",
+                    },
+                  ],
+                },
+              }
+            `);
+        });
     });
     describe("@example ", () => {
         it("should fetch array example values", async () => {
