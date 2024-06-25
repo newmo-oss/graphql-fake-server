@@ -8,7 +8,7 @@ const config = {
     defaultValues: {
         CustomScalar: {
             DATE_YYYYMMDD: "'2022-02-03'",
-        }
-    }
+        },
+    },
 };
 export default config;
