@@ -7,9 +7,67 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
         const config = normalizeConfig(rawConfig);
         const fakeEndpoint = config.fakeServerEndpoint;
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
-        const generateRegisterOperation = (name: string) => {
-            return `export async function register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeEndpoint}', {
+        type GenerateFakeFunction =
+            | {
+                  type: "query";
+                  name: string;
+              }
+            | {
+                  type: "mutation";
+                  name: string;
+              };
+        const indentEachLine = (indent: string, text: string) => {
+            return text
+                .split("\n")
+                .map((line) => `${indent}${line}`)
+                .join("\n");
+        };
+        const generateFakeClient = (exportsFunctions: GenerateFakeFunction[]) => {
+            const indent = "  ";
+            return `\
+export type CreateFakeClientOptions = {
+  fakeServerUrl: string;
+};
+export function createFakeClient(options: CreateFakeClientOptions) {
+  return {
+${exportsFunctions
+    .flatMap((fn) => {
+        if (fn.type === "query") {
+            return [
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterOperationMethod(fn.name, "options.fakeServerUrl"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterOperationErrorMethod(fn.name, "options.fakeServerUrl"),
+                ),
+            ];
+        }
+        if (fn.type === "mutation") {
+            return [
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterMutationMethod(fn.name, "options.fakeServerUrl"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterMutationErrorMethod(fn.name, "options.fakeServerUrl"),
+                ),
+            ];
+        }
+        throw new Error(`Unknown type${fn}`);
+    })
+    .join(",\n")}
+  };
+}`;
+        };
+        const generateRegisterOperationMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -23,9 +81,12 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
-        const generateRegisterOperationError = (name: string) => {
-            return `export async function register${name}QueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeEndpoint}', {
+        const generateRegisterOperationErrorMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}QueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -40,9 +101,9 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
-        const generateRegisterMutation = (name: string) => {
-            return `export async function register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeEndpoint}', {
+        const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
+            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -56,9 +117,12 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
-        const generateRegisterMutationError = (name: string) => {
-            return `export async function register${name}MutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
-    return await fetch('${fakeEndpoint}', {
+        const generateRegisterMutationErrorMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}MutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -107,34 +171,39 @@ ${documents
         });
     })
     .join("\n")}
-${documents
-    .flatMap((document) => {
-        return document.document?.definitions?.flatMap((definition) => {
-            // query
-            if (
-                definition.kind === "OperationDefinition" &&
-                definition.operation === "query" &&
-                definition.name
-            ) {
-                return [
-                    generateRegisterOperation(convertName(definition.name.value, config)),
-                    generateRegisterOperationError(convertName(definition.name.value, config)),
-                ];
-            }
-            if (
-                definition.kind === "OperationDefinition" &&
-                definition.operation === "mutation" &&
-                definition.name
-            ) {
-                return [
-                    generateRegisterMutation(convertName(definition.name.value, config)),
-                    generateRegisterMutationError(convertName(definition.name.value, config)),
-                ];
-            }
-            return [];
-        });
-    })
-    .join("\n")}
+${generateFakeClient(
+    documents.flatMap((document) => {
+        const flatMap =
+            document.document?.definitions?.flatMap((definition) => {
+                if (
+                    definition.kind === "OperationDefinition" &&
+                    definition.operation === "query" &&
+                    definition.name
+                ) {
+                    return [
+                        {
+                            name: convertName(definition.name.value, config),
+                            type: "query",
+                        },
+                    ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
+                }
+                if (
+                    definition.kind === "OperationDefinition" &&
+                    definition.operation === "mutation" &&
+                    definition.name
+                ) {
+                    return [
+                        {
+                            name: convertName(definition.name.value, config),
+                            type: "mutation",
+                        },
+                    ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
+                }
+                return [];
+            }) ?? [];
+        return flatMap satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
+    }),
+)}
 `;
     },
 };
