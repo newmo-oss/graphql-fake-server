@@ -4,7 +4,7 @@
     "@tsconfig/node18/tsconfig.json"
   ],
   "include": [
-    "**/*",
+    "**/*"
   ],
   "compilerOptions": {
     "noEmit": true,
