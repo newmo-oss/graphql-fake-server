@@ -11,30 +11,10 @@ import type { GraphQLSchema } from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
+import type { RequiredFakeServerConfig } from "./config.js";
 import { type LogLevel, createLogger } from "./logger.js";
 
-export type CreateFakeServerOptions = {
-    schemaFilePath: string;
-    ports?: {
-        fakeServer: number;
-        apolloServer: number;
-    };
-    /**
-     * max query depth for complexity of query
-     * Default is 3
-     */
-    maxQueryDepth?: number;
-    /**
-     * maxFieldRecursionDepth for creating fake data
-     * Default is maxDepth + 1
-     */
-    maxFieldRecursionDepth?: number;
-    /**
-     * max number of registered sequences
-     * Default is 1000
-     * If the number of registered sequences exceeds this number, the oldest sequence is deleted.
-     */
-    maxRegisteredSequences?: number;
+export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
 };
 
@@ -339,11 +319,21 @@ const createRoutingServer = async ({
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
-    const logger = createLogger(options.logLevel);
-    const schema = buildSchema(await fs.readFile(options.schemaFilePath, "utf-8"));
+    const {
+        logLevel,
+        maxFieldRecursionDepth,
+        maxQueryDepth,
+        maxRegisteredSequences,
+        ports,
+        schemaFilePath,
+        defaultValues,
+    } = options;
+    const logger = createLogger(logLevel);
+    const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
     const mockResult = await createMock({
         schema,
-        maxFieldRecursionDepth: options.maxFieldRecursionDepth,
+        maxFieldRecursionDepth,
+        defaultValues,
     });
     if (!mockResult.ok) {
         logger.error("Failed to create mock data", mockResult);
@@ -353,13 +343,6 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
     }
     logger.debug("created mock code", mockResult.code);
     logger.debug("created mock data", mockResult.mock);
-    const ports = {
-        fakeServer: options.ports?.fakeServer ?? 4000,
-        apolloServer: options.ports?.apolloServer ?? 4001,
-    };
-    const maxQueryDepth = options.maxQueryDepth ?? 3;
-    const maxFieldRecursionDepth = options.maxFieldRecursionDepth ?? maxQueryDepth + 1;
-    const maxRegisteredSequences = options.maxRegisteredSequences ?? 1000;
     return createFakeServerInternal({
         ports,
         schema,
@@ -367,7 +350,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         maxQueryDepth,
         maxFieldRecursionDepth,
         maxRegisteredSequences,
-        logLevel: options.logLevel ?? "info",
+        logLevel: logLevel ?? "info",
     });
 };
 

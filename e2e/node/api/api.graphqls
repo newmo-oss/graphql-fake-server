@@ -118,6 +118,8 @@ It allows setting an error response and specifying the field name.
 """
 directive @error on FIELD_DEFINITION
 
+scalar DATE_YYYYMMDD
+
 """
 You Schema definition goes here
 """
@@ -157,6 +159,7 @@ type Dog implements Character {
 type User {
     id: ID!
     name: String
+    birthDate: DATE_YYYYMMDD
 }
 type UserSuspended {
     reason: String

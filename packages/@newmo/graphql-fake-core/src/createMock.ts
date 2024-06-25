@@ -1,14 +1,13 @@
 import vm from "node:vm";
 import type { GraphQLSchema } from "graphql/index.js";
 import { generateCode } from "./code-generator.js";
-import { normalizeConfig } from "./config.js";
+import { type RawConfig, normalizeConfig } from "./config.js";
 import { type TypeInfo, getTypeInfos } from "./schema-scanner.js";
 
 export type MockObject = Record<string, unknown>;
 export type CreateMockOptions = {
     schema: GraphQLSchema;
-    maxFieldRecursionDepth?: number | undefined;
-};
+} & Partial<RawConfig>;
 const cloneAsJSON = (obj: unknown) => {
     return JSON.parse(JSON.stringify(obj));
 };
@@ -29,10 +28,12 @@ export type CreateMockResult =
  * It supports @example directive
  */
 export const createMock = async (options: CreateMockOptions): Promise<CreateMockResult> => {
+    const { schema, ...rawConfig } = options;
     const normalizedConfig = normalizeConfig({
-        maxFieldRecursionDepth: options.maxFieldRecursionDepth ?? 3,
+        maxFieldRecursionDepth: rawConfig.maxFieldRecursionDepth ?? 3,
+        ...rawConfig,
     });
-    const typeInfos = getTypeInfos(normalizedConfig, options.schema);
+    const typeInfos = getTypeInfos(normalizedConfig, schema);
     const code = generateCode(
         {
             ...normalizedConfig,
@@ -40,6 +41,7 @@ export const createMock = async (options: CreateMockOptions): Promise<CreateMock
         },
         typeInfos,
     );
+
     try {
         // execute code in vm and get all exports
         const exports = {};

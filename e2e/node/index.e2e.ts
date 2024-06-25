@@ -1,22 +1,12 @@
 import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client/core";
 import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
 import { onError as apolloOnError } from "@apollo/client/link/error/index.js";
-import { createFakeServer } from "@newmo/graphql-fake-server";
+import { createFakeServer, normalizeFakeServerConfig } from "@newmo/graphql-fake-server";
 import { GraphQLClient } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-    registerCreateBookMutationResponse,
-    registerGetBookWithFragmentsQueryResponse,
-    registerGetBooksQueryErrorResponse,
-    registerGetBooksQueryResponse,
-    registerGetDogQueryErrorResponse,
-    registerGetDogQueryResponse,
-    registerGotUnionUserQueryResponse,
-    registerUseMutationErrorPatternMutationMutationResponse,
-} from "./generated/fake.js";
+import { createFakeClient } from "./generated/fake.js";
 import type { FragmentType } from "./generated/fragment-masking.js";
 import {
-    AbcErrorCode,
     type BookFragmentPartsFragment,
     CreateBookDocument,
     type CreateBookInput,
@@ -33,14 +23,28 @@ import {
 loadDevMessages();
 loadErrorMessages();
 
+const fakeClient = createFakeClient({
+    fakeServerEndpoint: "http://127.0.0.1:4000/fake",
+});
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
     let fakeServerUrl = "";
     beforeAll(async () => {
-        server = await createFakeServer({
-            schemaFilePath: "./api/api.graphqls",
-            logLevel: "debug",
-        });
+        server = await createFakeServer(
+            normalizeFakeServerConfig({
+                schemaFilePath: "./api/api.graphqls",
+                defaultValues: {
+                    CustomScalar: {
+                        DATE_YYYYMMDD: `"2022-01-01"`,
+                    },
+                },
+                ports: {
+                    fakeServer: 4000,
+                    apolloServer: 4002,
+                },
+                logLevel: "debug",
+            }),
+        );
         const { urls } = await server.start();
         fakeServerUrl = urls.fakeServer;
     });
@@ -87,6 +91,21 @@ describe("integration test", async () => {
                       "message": "string",
                     },
                   ],
+                },
+              }
+            `);
+        });
+        it("should return Custom Scalar Default Fake Value", async () => {
+            const sequenceId = crypto.randomUUID();
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`);
+            // get fake response
+            const response = await client.request(GotUnionUserDocument);
+            expect(response).toMatchInlineSnapshot(`
+              {
+                "unionUser": {
+                  "birthDate": "2022-01-01",
+                  "id": "xxxx-xxxx-xxxx-xxxx22",
+                  "name": "string",
                 },
               }
             `);
@@ -234,7 +253,7 @@ describe("integration test", async () => {
         it("register fake response for query", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for GetBooks query
-            const resRegister = await registerGetBooksQueryResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
                 books: [
                     {
                         id: "new id",
@@ -264,7 +283,7 @@ describe("integration test", async () => {
         });
         it("register fake response for query Dog which is implemented an interface", async () => {
             const sequenceId = crypto.randomUUID();
-            const resRegister = await registerGetDogQueryResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGetDogQueryResponse(sequenceId, {
                 dog: {
                     id: "dog id",
                     name: "dog name",
@@ -291,7 +310,7 @@ describe("integration test", async () => {
         it("register fake response for mutation", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for mutation
-            const resRegister = await registerCreateBookMutationResponse(sequenceId, {
+            const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, {
                 createBook: {
                     id: "new id",
                     title: "new title",
@@ -341,11 +360,12 @@ describe("integration test", async () => {
         });
         it("register fake data for union type", async () => {
             const sequenceId = crypto.randomUUID();
-            const resRegister = await registerGotUnionUserQueryResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGotUnionUserQueryResponse(sequenceId, {
                 unionUser: {
                     __typename: "User",
                     id: "student id",
                     name: "student name",
+                    birthDate: "2022-01-01",
                 },
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
@@ -358,24 +378,28 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GotUnionUserDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "unionUser": {
-              "__typename": "User",
-              "id": "student id",
-              "name": "student name",
-            },
-          }
-        `);
+              {
+                "unionUser": {
+                  "__typename": "User",
+                  "birthDate": "2022-01-01",
+                  "id": "student id",
+                  "name": "student name",
+                },
+              }
+            `);
         });
         it("register fake response which use Fragment", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for mutation
-            const resRegister = await registerGetBookWithFragmentsQueryResponse(sequenceId, {
-                book: {
-                    id: "new id",
-                    title: "new title",
-                } as FragmentType<BookFragmentPartsFragment>,
-            });
+            const resRegister = await fakeClient.registerGetBookWithFragmentsQueryResponse(
+                sequenceId,
+                {
+                    book: {
+                        id: "new id",
+                        title: "new title",
+                    } as FragmentType<BookFragmentPartsFragment>,
+                },
+            );
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
             // request to server
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
@@ -397,7 +421,7 @@ describe("integration test", async () => {
         it("register fake error response for query", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake error response for GetBooks query
-            const resRegister = await registerGetBooksQueryErrorResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGetBooksQueryErrorResponse(sequenceId, {
                 errors: [{ message: "fake error message" }],
                 responseStatusCode: 400,
             });
@@ -420,19 +444,20 @@ describe("integration test", async () => {
         it("register fake response for mutation errors pattern", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
-            const resRegister = await registerUseMutationErrorPatternMutationMutationResponse(
-                sequenceId,
-                {
-                    useMutationErrorPattern: {
-                        errors: [
-                            {
-                                __typename: "GeneralError",
-                                message: "error message",
-                            },
-                        ],
+            const resRegister =
+                await fakeClient.registerUseMutationErrorPatternMutationMutationResponse(
+                    sequenceId,
+                    {
+                        useMutationErrorPattern: {
+                            errors: [
+                                {
+                                    __typename: "GeneralError",
+                                    message: "error message",
+                                },
+                            ],
+                        },
                     },
-                },
-            );
+                );
             // request to server
             const client = new ApolloClient({
                 link: new HttpLink({
@@ -468,7 +493,7 @@ describe("integration test", async () => {
         it("apollo client catch global errors", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
-            const resRegister = await registerGetDogQueryErrorResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGetDogQueryErrorResponse(sequenceId, {
                 errors: [
                     {
                         message: "test error",
@@ -504,7 +529,7 @@ describe("integration test", async () => {
         it("should override first fake with second fake", async () => {
             const sequenceId = crypto.randomUUID();
             // 1. register error repose - this will be overridden
-            await registerGetDogQueryErrorResponse(sequenceId, {
+            await fakeClient.registerGetDogQueryErrorResponse(sequenceId, {
                 errors: [
                     {
                         message: "test error",
@@ -513,7 +538,7 @@ describe("integration test", async () => {
                 responseStatusCode: 400,
             });
             // 2. register success response
-            await registerGetDogQueryResponse(sequenceId, {
+            await fakeClient.registerGetDogQueryResponse(sequenceId, {
                 dog: {
                     id: "dog id",
                     name: "dog name",
