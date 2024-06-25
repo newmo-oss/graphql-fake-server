@@ -12,6 +12,54 @@ See <https://github.com/newmo-oss/graphql-fake-server>
 - Support `/fake` API
 - Support `/graphql` API
 
+## Config
+
+Please See [src/config.ts](src/config.ts)
+
+```ts
+/**
+ * Configuration for the fake server.
+ */
+export type FakeServerConfig = {
+    /**
+     * The path to the GraphQL schema file.
+     */
+    schemaFilePath: string;
+    ports?: {
+        /**
+         * Fake Server port.
+         * Default is 4000.
+         */
+        fakeServer?: number | undefined;
+        /**
+         * Apollo Server port.
+         * It provides the GraphQL Playground.
+         * Default is 4002.
+         */
+        apolloServer?: number | undefined;
+    } | undefined;
+    /**
+     * The maximum number of registered sequences.
+     * Default is 1000.
+     */
+    maxRegisteredSequences?: number | undefined;
+    /**
+     * The maximum number of depth of field recursion.
+     * Default is 3.
+     */
+    maxFieldRecursionDepth?: RawConfig["maxFieldRecursionDepth"] | undefined;
+    /**
+     * The maximum number of depth of complexity of query
+     * Default is 4
+     */
+    maxQueryDepth?: number | undefined;
+    /**
+     * Default values for scalar types.
+     */
+    defaultValues?: RawConfig["defaultValues"] | undefined;
+};
+```
+
 ## Tests
 
 ```sh

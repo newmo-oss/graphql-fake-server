@@ -43,6 +43,7 @@ const fakeConfig = (config?: Partial<Config>): Config => {
             Boolean: false,
             ID: "xxxx-xxxx-xxxx-xxxx",
             listLength: 3,
+            ...config?.defaultValues,
         },
         ...config,
     };
@@ -554,6 +555,45 @@ type RequiredDocument {
                   ],
                   "name": "Query",
                   "rawName": "Query",
+                  "type": "object",
+                },
+              ]
+            `);
+        });
+        it("support custom scalar", () => {
+            const schema = buildSchema(`
+            scalar Date
+            type Type {
+              field: Date!
+            }
+          `);
+            const config: Config = fakeConfig({
+                defaultValues: {
+                    ...fakeConfig().defaultValues,
+                    CustomScalar: {
+                        Date: "new Date()",
+                    },
+                },
+            });
+            expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+              [
+                {
+                  "name": "Date",
+                  "rawName": "Date",
+                  "type": "scalar",
+                },
+                {
+                  "fields": [
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": "test",
+                      },
+                      "name": "field",
+                    },
+                  ],
+                  "name": "Type",
+                  "rawName": "Type",
                   "type": "object",
                 },
               ]

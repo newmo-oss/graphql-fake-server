@@ -10,264 +10,271 @@ import type { CreateBookMutation } from './graphql.js';
 import type { CreateBookInlineMutation } from './graphql.js';
 import type { UseMutationErrorPatternMutationMutation } from './graphql.js';
 import type { CreateFooUrlMutation } from './graphql.js';
-export async function registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "GetBooks",
-            data: queryResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetBooksQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "GetBooks",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "GetBookWithFragments",
-            data: queryResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetBookWithFragmentsQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "GetBookWithFragments",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "GetDog",
-            data: queryResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetDogQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "GetDog",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "GotUnionUser",
-            data: queryResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGotUnionUserQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "GotUnionUser",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "GetUserNamesArrayExample",
-            data: queryResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerGetUserNamesArrayExampleQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "GetUserNamesArrayExample",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "CreateBook",
-            data: mutationResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerCreateBookMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "CreateBook",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "CreateBookInline",
-            data: mutationResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerCreateBookInlineMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "CreateBookInline",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "UseMutationErrorPatternMutation",
-            data: mutationResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerUseMutationErrorPatternMutationMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "UseMutationErrorPatternMutation",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "operation",
-            operationName: "CreateFooUrl",
-            data: mutationResponse
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-}
-export async function registerCreateFooUrlMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-    return await fetch('http://127.0.0.1:4000/fake', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "network-error",
-            operationName: "CreateFooUrl",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+export type CreateFakeClientOptions = {
+  fakeServerUrl: string;
+};
+export function createFakeClient(options: CreateFakeClientOptions) {
+  return {
+    async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetBooks",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetBooksQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "GetBooks",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetBookWithFragments",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetBookWithFragmentsQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "GetBookWithFragments",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetDog",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetDogQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "GetDog",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GotUnionUser",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGotUnionUserQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "GotUnionUser",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "GetUserNamesArrayExample",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerGetUserNamesArrayExampleQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "GetUserNamesArrayExample",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "CreateBook",
+                data: mutationResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateBookMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "CreateBook",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "CreateBookInline",
+                data: mutationResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateBookInlineMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "CreateBookInline",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "UseMutationErrorPatternMutation",
+                data: mutationResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerUseMutationErrorPatternMutationMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "UseMutationErrorPatternMutation",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "CreateFooUrl",
+                data: mutationResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateFooUrlMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "CreateFooUrl",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    }
+  };
 }

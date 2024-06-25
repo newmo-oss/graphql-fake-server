@@ -212,6 +212,28 @@ type RequiredDocument {
           }
         `);
     });
+    it("should support custom scalar", async () => {
+        const schema = buildSchema(`
+        scalar Date
+        type User {
+          id: ID!
+          name: String
+          createdAt: Date
+        }
+        type Query {
+            user: User
+        }
+    `);
+        const { mock }: MockObject = await createMock({
+            schema,
+            defaultValues: {
+                CustomScalar: {
+                    Date: "new Date().toISOString()",
+                },
+            },
+        });
+        expect(mock).toMatchInlineSnapshot("undefined");
+    });
     it("should extend interface type", async () => {
         // https://spec.graphql.org/October2021/#sec-Interface-Extensions
         const schema = buildSchema(`

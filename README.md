@@ -428,6 +428,35 @@ If you want to return a different type, you need to use Dynamic Fake via HTTP.
 
 - [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
 
+### Custom Scalar
+
+You can create a config file for `@newmo/graphql-fake-server` to define the default value of the custom scalar.
+
+```js
+/**
+ * @type {import("@newmo/graphql-fake-server").FakeServerConfig}
+ */
+const config = {
+  schemaFilePath: "graphql/schema.graphql",
+  // Define the default value of the custom scalar.
+  defaultValues: {
+    CustomScalar: {
+      Digit: "1",
+      DateYYYYMMDD: "'2022-02-03'",
+      ISODateTime: "new Date().toISOString()"
+    }
+  }
+};
+export default config;
+```
+
+Run the fake server with the config file.
+
+```bash
+$ npx @newmo/graphql-fake-server --config graphql/config.js
+```
+
+
 ### `operationName` is required
 
 `@newmo/graphql-fake-server` depended on `operationName` of GraphQL requests.

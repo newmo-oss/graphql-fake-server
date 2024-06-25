@@ -1,6 +1,5 @@
-import { convertFactory, transformComment } from "@graphql-codegen/visitor-plugin-common";
+import { transformComment } from "@graphql-codegen/visitor-plugin-common";
 import {
-    type ASTNode,
     type ConstValueNode,
     type EnumTypeDefinitionNode,
     type FieldDefinitionNode,
@@ -116,14 +115,14 @@ const typeToFunction = ({
     type,
     config,
     idFactory,
-    enumMap,
+    context,
 }: {
     convertedTypeName: string;
     fieldName: string;
     type: string;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
-    enumMap: EnumRawNameMap;
+    context: ScannerContext;
 }): string => {
     switch (type) {
         case "String":
@@ -140,12 +139,39 @@ const typeToFunction = ({
         }
         default: {
             // if enum type(name is equaled) is defined, reference to the enum
-            if (enumMap.has(type)) {
+            if (context.enumMap.has(type)) {
                 return `${generateEnumReferenceCode({
                     fieldName,
                     rawTypeName: type,
                     config: config,
                 })}`;
+            }
+            // if custom scalar type(name is equaled) is defined, return the default value
+            if (context.customScalarMap.has(type)) {
+                // If dose not have default value, throw an error
+                const USAGE = `
+  options: {
+    defaultValues: {
+      CustomScalar: {
+        ${type}: "fake default value"
+      }
+  }
+`;
+                if (!config.defaultValues.CustomScalar) {
+                    throw new Error(`Custom scalar option is not defined in config for ${type}
+
+${USAGE}
+`);
+                }
+
+                const fakeDefaultValue = config.defaultValues.CustomScalar[type];
+                if (!fakeDefaultValue) {
+                    throw new Error(`Custom scalar type ${type} must have default value in config
+
+${USAGE}
+`);
+                }
+                return fakeDefaultValue;
             }
             // reference to the object
             return `${generateCreateReferenceCode({
@@ -162,14 +188,14 @@ const typeToFunctionWithArray = ({
     type,
     config,
     idFactory,
-    enumMap,
+    context,
 }: {
     convertedTypeName: string;
     fieldName: string;
     type: string;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
-    enumMap: EnumRawNameMap;
+    context: ScannerContext;
 }): string => {
     // Avoid [null, null, null]
     // Mock server can't handle null values in the array
@@ -181,7 +207,7 @@ const typeToFunctionWithArray = ({
         type: type,
         config: config,
         idFactory: idFactory,
-        enumMap,
+        context,
     })}) : []`;
 };
 // NamedType/ListType handling
@@ -192,7 +218,7 @@ const nodeToExpression = ({
     isArray = false,
     config,
     idFactory,
-    enumMap,
+    context,
 }: {
     convertedTypeName: string;
     fieldName: string;
@@ -200,7 +226,7 @@ const nodeToExpression = ({
     config: Config;
     isArray?: boolean;
     idFactory: ReturnType<typeof createIDFactory>;
-    enumMap: EnumRawNameMap;
+    context: ScannerContext;
 }): ExampleDirectionExpression => {
     if (currentNode.kind === "NonNullType") {
         return nodeToExpression({
@@ -210,7 +236,7 @@ const nodeToExpression = ({
             isArray,
             config,
             idFactory,
-            enumMap,
+            context,
         });
     }
     if (currentNode.kind === "NamedType") {
@@ -222,7 +248,7 @@ const nodeToExpression = ({
                     type: currentNode.name.value,
                     config: config,
                     idFactory: idFactory,
-                    enumMap,
+                    context,
                 }),
             };
         }
@@ -233,7 +259,7 @@ const nodeToExpression = ({
                 type: currentNode.name.value,
                 config: config,
                 idFactory: idFactory,
-                enumMap,
+                context,
             }),
         };
     }
@@ -245,7 +271,7 @@ const nodeToExpression = ({
             isArray: true,
             config,
             idFactory,
-            enumMap,
+            context,
         });
     }
     throw new Error("Unknown node kind");
@@ -282,13 +308,13 @@ function parseFieldOrInputValueDefinition({
     convertedTypeName,
     config,
     idFactory,
-    enumMap,
+    context,
 }: {
     node: FieldDefinitionNode | InputValueDefinitionNode;
     convertedTypeName: string;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
-    enumMap: EnumRawNameMap;
+    context: ScannerContext;
 }): { comment?: string | undefined; example?: ExampleDirective | undefined } {
     const fieldName = node.name.value;
     const comment = node.description ? transformComment(node.description) : undefined;
@@ -313,7 +339,7 @@ function parseFieldOrInputValueDefinition({
                 currentNode: node.type,
                 config,
                 idFactory,
-                enumMap,
+                context,
             }),
         };
     }
@@ -463,12 +489,12 @@ function parseObjectTypeOrInputObjectTypeDefinition({
     node,
     config,
     idFactory,
-    enumMap,
+    context,
 }: {
     node: ObjectTypeDefinitionNode | InputObjectTypeDefinitionNode;
     config: Config;
     idFactory: ReturnType<typeof createIDFactory>;
-    enumMap: EnumRawNameMap;
+    context: ScannerContext;
 }): ObjectTypeInfo {
     const originalTypeName = node.name.value;
     const convertedTypeName = convertName(originalTypeName, config);
@@ -484,7 +510,7 @@ function parseObjectTypeOrInputObjectTypeDefinition({
                     convertedTypeName,
                     config,
                     idFactory,
-                    enumMap,
+                    context,
                 }),
             })),
         ],
@@ -507,6 +533,11 @@ export type EnumTypeInfo = {
     rawName: string;
     fields: FieldInfo[];
 };
+export type ScalarTypeInfo = {
+    type: "scalar";
+    name: string;
+    rawName: string;
+};
 export type InterfaceTypeInfo = {
     type: "interface";
     name: string;
@@ -524,16 +555,26 @@ export type UnionTypeInfo = {
     possibleRawTypeNames: string[];
     example?: ExampleDirective | undefined;
 };
-export type TypeInfo = ObjectTypeInfo | InterfaceTypeInfo | EnumTypeInfo | UnionTypeInfo;
-export type EnumRawNameMap = Map<string, TypeInfo>;
+export type TypeInfo =
+    | ObjectTypeInfo
+    | InterfaceTypeInfo
+    | EnumTypeInfo
+    | UnionTypeInfo
+    | ScalarTypeInfo;
+type EnumRawNameMap = Map<string, TypeInfo>;
+type CustomScalarMap = Map<string, TypeInfo>;
+type ScannerContext = {
+    enumMap: EnumRawNameMap;
+    customScalarMap: CustomScalarMap;
+};
 const createObjectTypeInfo = ({
     config,
     schema,
-    enumMap,
+    context,
 }: {
     config: Config;
     schema: GraphQLSchema;
-    enumMap: EnumRawNameMap;
+    context: ScannerContext;
 }): TypeInfo[] => {
     const types = Object.values(schema.getTypeMap());
     const idFactory = createIDFactory();
@@ -591,7 +632,7 @@ const createObjectTypeInfo = ({
                     node,
                     config,
                     idFactory,
-                    enumMap,
+                    context,
                 }) satisfies ObjectTypeInfo;
             }
             if (node?.kind === Kind.INTERFACE_TYPE_DEFINITION) {
@@ -656,9 +697,47 @@ const createEnumTypeInfo = ({
         };
     });
 };
+const createCustomScalarTypeInfo = ({
+    config,
+    schema,
+}: {
+    config: Config;
+    schema: GraphQLSchema;
+}): TypeInfo[] => {
+    const types = Object.values(schema.getTypeMap());
+    return (
+        types
+            .map((type) => type.astNode)
+            .filter((node): node is ObjectTypeDefinitionNode => {
+                if (!node) return false;
+                return node.kind === Kind.SCALAR_TYPE_DEFINITION;
+            })
+            .map((node) => {
+                return {
+                    type: "scalar",
+                    name: convertName(node.name.value, config),
+                    rawName: node.name.value,
+                };
+            }) ?? []
+    );
+};
 
 export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] {
     const enumTypeInfo = createEnumTypeInfo({ config: config, schema: schema });
     const enumMap = new Map(enumTypeInfo.map((info) => [info.rawName, info]));
-    return [...enumTypeInfo, ...createObjectTypeInfo({ config: config, schema: schema, enumMap })];
+    const customScalarTypeInfo = createCustomScalarTypeInfo({ config: config, schema: schema });
+    const customScalarMap = new Map(customScalarTypeInfo.map((info) => [info.rawName, info]));
+    const context: ScannerContext = {
+        enumMap: enumMap,
+        customScalarMap: customScalarMap,
+    };
+    return [
+        ...enumTypeInfo,
+        ...customScalarTypeInfo,
+        ...createObjectTypeInfo({
+            config,
+            schema,
+            context,
+        }),
+    ];
 }
