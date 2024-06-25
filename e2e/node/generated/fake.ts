@@ -11,12 +11,19 @@ import type { CreateBookInlineMutation } from './graphql.js';
 import type { UseMutationErrorPatternMutationMutation } from './graphql.js';
 import type { CreateFooUrlMutation } from './graphql.js';
 export type CreateFakeClientOptions = {
-  fakeServerUrl: string;
+  /** 
+   * The URL of the fake server
+   * @example 'http://localhost:4000/fake'
+   */
+  fakeServerEndpoint: string;
 };
 export function createFakeClient(options: CreateFakeClientOptions) {
+  if(!options.fakeServerEndpoint.endsWith('/fake')) {
+    throw new Error('fakeServerEndpoint must end with "/fake"');
+  }
   return {
     async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -30,7 +37,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetBooksQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -45,7 +52,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -59,7 +66,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetBookWithFragmentsQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -74,7 +81,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -88,7 +95,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetDogQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -103,7 +110,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -117,7 +124,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGotUnionUserQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -132,7 +139,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -146,7 +153,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerGetUserNamesArrayExampleQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -161,7 +168,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -175,7 +182,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerCreateBookMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -190,7 +197,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -204,7 +211,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerCreateBookInlineMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -219,7 +226,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -233,7 +240,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerUseMutationErrorPatternMutationMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -248,7 +255,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -262,7 +269,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async registerCreateFooUrlMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerUrl, {
+        return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -232,7 +232,22 @@ type RequiredDocument {
                 },
             },
         });
-        expect(mock).toMatchInlineSnapshot("undefined");
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "createdAt": "2024-06-25T14:33:13.272Z",
+                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "name": "string",
+              },
+            },
+            "User": {
+              "createdAt": "2024-06-25T14:33:13.272Z",
+              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "name": "string",
+            },
+          }
+        `);
     });
     it("should extend interface type", async () => {
         // https://spec.graphql.org/October2021/#sec-Interface-Extensions

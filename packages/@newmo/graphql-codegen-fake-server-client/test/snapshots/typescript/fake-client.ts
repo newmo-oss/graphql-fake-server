@@ -4,148 +4,127 @@ import type { ListDestinationCandidatesQuery } from './graphql';
 import type { ListRideHistoriesQuery } from './graphql';
 import type { CreateUrlRideHistoryMutation } from './graphql';
 import type { CreateFooUrlRideHistoryMutation } from './graphql';
-
 export type CreateFakeClientOptions = {
-    fakeServerUrl: string;
+  /** The URL of the fake server */
+  fakeServerUrl: string;
 };
-
 export function createFakeClient(options: CreateFakeClientOptions) {
-    return {
-        async registerListDestinationCandidatesQueryResponse(sequenceId: string, queryResponse: ListDestinationCandidatesQuery): Promise<{
-            ok: true
-        } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "ListDestinationCandidates",
-                    data: queryResponse
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerListDestinationCandidatesQueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: {
-            errors: Record<string, unknown>[];
-            responseStatusCode: number
-        }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "network-error",
-                    operationName: "ListDestinationCandidates",
-                    responseStatusCode,
-                    errors
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerListRideHistoriesQueryResponse(sequenceId: string, queryResponse: ListRideHistoriesQuery): Promise<{
-            ok: true
-        } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "ListRideHistories",
-                    data: queryResponse
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerListRideHistoriesQueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: {
-            errors: Record<string, unknown>[];
-            responseStatusCode: number
-        }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "network-error",
-                    operationName: "ListRideHistories",
-                    responseStatusCode,
-                    errors
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerCreateUrlRideHistoryMutationResponse(sequenceId: string, mutationResponse: CreateUrlRideHistoryMutation): Promise<{
-            ok: true
-        } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "CreateUrlRideHistory",
-                    data: mutationResponse
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: {
-            errors: Record<string, unknown>[];
-            responseStatusCode: number
-        }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "network-error",
-                    operationName: "CreateUrlRideHistory",
-                    responseStatusCode,
-                    errors
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerCreateFooUrlRideHistoryMutationResponse(sequenceId: string, mutationResponse: CreateFooUrlRideHistoryMutation): Promise<{
-            ok: true
-        } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "CreateFooUrlRideHistory",
-                    data: mutationResponse
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        },
-        async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: {
-            errors: Record<string, unknown>[];
-            responseStatusCode: number
-        }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-            return await fetch(options.fakeServerUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sequence-id': sequenceId
-                },
-                body: JSON.stringify({
-                    type: "network-error",
-                    operationName: "CreateFooUrlRideHistory",
-                    responseStatusCode,
-                    errors
-                }),
-            }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-        }
-    };
+  return {
+    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "ListDestinationCandidates",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListDestinationCandidatesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "ListDestinationCandidates",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "ListRideHistories",
+                data: queryResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListRideHistoriesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "ListRideHistories",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "CreateUrlRideHistory",
+                data: mutationResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "CreateUrlRideHistory",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "operation",
+                operationName: "CreateFooUrlRideHistory",
+                data: mutationResponse
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "network-error",
+                operationName: "CreateFooUrlRideHistory",
+                responseStatusCode,
+                errors
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    }
+  };
 }

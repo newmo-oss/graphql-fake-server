@@ -32,7 +32,8 @@
     "prepare": "npm run build",
     "build": "tsc",
     "lint": "tsc --noEmit",
-    "test": "npm run build && npm run codegen",
+    "test": "npm run build && npm run codegen && npm run typecheck",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "codegen": "graphql-codegen --config graphql-codegen.ts"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "@graphql-codegen/visitor-plugin-common": "^5.2.0"
   },
   "devDependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/typescript": "^4.0.1",
     "@tsconfig/node18": "^18.2.0",

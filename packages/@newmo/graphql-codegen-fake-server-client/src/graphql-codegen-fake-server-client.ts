@@ -26,9 +26,16 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
             const indent = "  ";
             return `\
 export type CreateFakeClientOptions = {
-  fakeServerUrl: string;
+  /** 
+   * The URL of the fake server
+   * @example 'http://localhost:4000/fake'
+   */
+  fakeServerEndpoint: string;
 };
 export function createFakeClient(options: CreateFakeClientOptions) {
+  if(!options.fakeServerEndpoint.endsWith('/fake')) {
+    throw new Error('fakeServerEndpoint must end with "/fake"');
+  }
   return {
 ${exportsFunctions
     .flatMap((fn) => {
@@ -36,11 +43,11 @@ ${exportsFunctions
             return [
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterOperationMethod(fn.name, "options.fakeServerUrl"),
+                    generateRegisterOperationMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterOperationErrorMethod(fn.name, "options.fakeServerUrl"),
+                    generateRegisterOperationErrorMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
             ];
         }
@@ -48,11 +55,11 @@ ${exportsFunctions
             return [
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterMutationMethod(fn.name, "options.fakeServerUrl"),
+                    generateRegisterMutationMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterMutationErrorMethod(fn.name, "options.fakeServerUrl"),
+                    generateRegisterMutationErrorMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
             ];
         }

@@ -587,7 +587,7 @@ type RequiredDocument {
                     {
                       "comment": undefined,
                       "example": {
-                        "expression": "test",
+                        "expression": "new Date()",
                       },
                       "name": "field",
                     },
