@@ -1,7 +1,7 @@
 import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client/core";
 import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
 import { onError as apolloOnError } from "@apollo/client/link/error/index.js";
-import { createFakeServer } from "@newmo/graphql-fake-server";
+import { createFakeServer, normalizeFakeServerConfig } from "@newmo/graphql-fake-server";
 import { GraphQLClient } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createFakeClient } from "./generated/fake.js";
@@ -30,14 +30,21 @@ describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
     let fakeServerUrl = "";
     beforeAll(async () => {
-        server = await createFakeServer({
-            schemaFilePath: "./api/api.graphqls",
-            ports: {
-                fakeServer: 4000,
-                apolloServer: 4002,
-            },
-            logLevel: "debug",
-        });
+        server = await createFakeServer(
+            normalizeFakeServerConfig({
+                schemaFilePath: "./api/api.graphqls",
+                defaultValues: {
+                    CustomScalar: {
+                        DATE_YYYYMMDD: `"2022-01-01"`,
+                    },
+                },
+                ports: {
+                    fakeServer: 4000,
+                    apolloServer: 4002,
+                },
+                logLevel: "debug",
+            }),
+        );
         const { urls } = await server.start();
         fakeServerUrl = urls.fakeServer;
     });
@@ -84,6 +91,21 @@ describe("integration test", async () => {
                       "message": "string",
                     },
                   ],
+                },
+              }
+            `);
+        });
+        it("should return Custom Scalar Default Fake Value", async () => {
+            const sequenceId = crypto.randomUUID();
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`);
+            // get fake response
+            const response = await client.request(GotUnionUserDocument);
+            expect(response).toMatchInlineSnapshot(`
+              {
+                "unionUser": {
+                  "birthDate": "2022-01-01",
+                  "id": "xxxx-xxxx-xxxx-xxxx22",
+                  "name": "string",
                 },
               }
             `);
@@ -343,6 +365,7 @@ describe("integration test", async () => {
                     __typename: "User",
                     id: "student id",
                     name: "student name",
+                    birthDate: "2022-01-01",
                 },
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
@@ -355,14 +378,15 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GotUnionUserDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "unionUser": {
-              "__typename": "User",
-              "id": "student id",
-              "name": "student name",
-            },
-          }
-        `);
+              {
+                "unionUser": {
+                  "__typename": "User",
+                  "birthDate": "2022-01-01",
+                  "id": "student id",
+                  "name": "student name",
+                },
+              }
+            `);
         });
         it("register fake response which use Fragment", async () => {
             const sequenceId = crypto.randomUUID();

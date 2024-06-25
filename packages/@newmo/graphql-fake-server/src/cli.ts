@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { loadConfig } from "./config.js";
+import { loadConfig, normalizeFakeServerConfig } from "./config.js";
 import { createFakeServer } from "./index.js";
 import { type LogLevel, createLogger } from "./logger.js";
 
@@ -57,8 +57,8 @@ export const run = async ({
         };
     }
     const logger = createLogger(logLevel);
-    const schemaPath = values.schema;
-    if (!schemaPath) {
+    const schemaFilePath = values.schema;
+    if (!schemaFilePath) {
         logger.info(HELP);
         return {
             stdout: "",
@@ -69,14 +69,12 @@ export const run = async ({
 
     const config = values.config
         ? await loadConfig(values.config)
-        : {
-              schemaFilePath: schemaPath,
-          };
+        : normalizeFakeServerConfig({
+              schemaFilePath,
+              logLevel,
+          });
     try {
-        const server = await createFakeServer({
-            ...config,
-            logLevel,
-        });
+        const server = await createFakeServer(config);
         const { urls } = await server.start();
         logger.info(`🚀 GraphQL Fake Server listening at: ${urls.fakeServer}`);
         return {

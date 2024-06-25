@@ -1,4 +1,5 @@
 import type { RawConfig } from "@newmo/graphql-fake-core";
+import type { LogLevel } from "./logger.js";
 
 /**
  * Configuration for the fake server.
@@ -42,6 +43,10 @@ export type FakeServerConfig = {
      * Default values for scalar types.
      */
     defaultValues?: RawConfig["defaultValues"] | undefined;
+    /**
+     * Log level.
+     */
+    logLevel?: LogLevel | undefined;
 };
 export type RequiredFakeServerConfig = {
     schemaFilePath: string;
@@ -53,6 +58,7 @@ export type RequiredFakeServerConfig = {
     maxFieldRecursionDepth: number;
     maxQueryDepth: number;
     defaultValues: RawConfig["defaultValues"];
+    logLevel: LogLevel;
 };
 export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFakeServerConfig => {
     return {
@@ -65,6 +71,7 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
         maxFieldRecursionDepth: config.maxFieldRecursionDepth ?? 3,
         maxQueryDepth: config.maxQueryDepth ?? 4,
         defaultValues: config.defaultValues ?? {},
+        logLevel: config.logLevel ?? "info",
     };
 };
 export const validateFakeServerConfig = (config: FakeServerConfig): void => {
@@ -98,6 +105,10 @@ export const validateFakeServerConfig = (config: FakeServerConfig): void => {
         if (typeof config.defaultValues !== "object") {
             throw new Error("The defaultValues must be an object.");
         }
+    }
+    // ["debug", "info", "warn", "error"].includes(logLevel)
+    if (config.logLevel && !["debug", "info", "warn", "error"].includes(config.logLevel)) {
+        throw new Error("The logLevel must be one of 'debug', 'info', 'warn', 'error'.");
     }
 };
 

@@ -12,30 +12,32 @@ export type RawConfig = {
     typesPrefix?: RawTypesConfig["typesPrefix"] | undefined;
     typesSuffix?: RawTypesConfig["typesSuffix"] | undefined;
     maxFieldRecursionDepth?: number | undefined;
-    defaultValues?: {
-        String?: string | undefined;
-        Int?: number | undefined;
-        Float?: number | undefined;
-        Boolean?: boolean | undefined;
-        ID?: string | undefined;
-        listLength?: number | undefined;
-        CustomScalar?: {
-            /**
-             * CustomScalar default expression
-             * The value must be an JavaScript expression.
-             * If you want to put a string value, you must put it in quotes
-             * @example
-             * ```js
-             * CustomScalar: {
-             *   Digit: "1",
-             *   DateYYYYMMDD: "'2022-02-03'",
-             *   ISODateTime: "new Date().toISOString()"
-             * }
-             * ```
-             */
-            [key: string]: string;
-        };
-    };
+    defaultValues?:
+        | {
+              String?: string | undefined;
+              Int?: number | undefined;
+              Float?: number | undefined;
+              Boolean?: boolean | undefined;
+              ID?: string | undefined;
+              listLength?: number | undefined;
+              CustomScalar?: {
+                  /**
+                   * CustomScalar default expression
+                   * The value must be an JavaScript expression.
+                   * If you want to put a string value, you must put it in quotes
+                   * @example
+                   * ```js
+                   * CustomScalar: {
+                   *   Digit: "1",
+                   *   DateYYYYMMDD: "'2022-02-03'",
+                   *   ISODateTime: "new Date().toISOString()"
+                   * }
+                   * ```
+                   */
+                  [key: string]: string;
+              };
+          }
+        | undefined;
 };
 
 export const DefaultValues = {

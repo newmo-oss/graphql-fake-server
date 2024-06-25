@@ -432,6 +432,7 @@ If you want to return a different type, you need to use Dynamic Fake via HTTP.
 
 You can create a config file for `@newmo/graphql-fake-server` to define the default value of the custom scalar.
 
+`fake-server.config.mjs`:
 ```js
 /**
  * @type {import("@newmo/graphql-fake-server").FakeServerConfig}
@@ -453,9 +454,8 @@ export default config;
 Run the fake server with the config file.
 
 ```bash
-$ npx @newmo/graphql-fake-server --config graphql/config.js
+$ npx @newmo/graphql-fake-server --config ./fake-server.config.mjs
 ```
-
 
 ### `operationName` is required
 
