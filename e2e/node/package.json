@@ -4,7 +4,7 @@
     "version": "0.10.0",
     "type": "module",
     "scripts": {
-        "start": "npm exec @newmo/graphql-fake-server -- --schema ./api/api.graphqls --logLevel=debug",
+        "start": "npm exec @newmo/graphql-fake-server -- --config=./graphql-fake.config.mjs",
         "codgen": "graphql-codegen --config graphql-codegen.ts",
         "lint": "tsc",
         "test": "vitest --run"

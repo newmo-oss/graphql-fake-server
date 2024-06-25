@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { loadConfig, normalizeFakeServerConfig } from "./config.js";
+import {
+    loadConfig,
+    loadFakeServerConfigFromCLI,
+    normalizeFakeServerConfig,
+    validateFakeServerConfig,
+} from "./config.js";
 import { createFakeServer } from "./index.js";
 import { type LogLevel, createLogger } from "./logger.js";
 
@@ -9,9 +14,10 @@ Usage: npx @newmo/graphql-fake-server --schema <path> [options]
 
 Options:
 
-    --schema <path>       Path to a schema file
     --config <path>       Path to a config file
+    --schema <path>       Path to a schema file
     --logLevel <logLevel> log level: debug, info, warn, error
+    --cwd <path>          Current working directory
 
 Examples:
 
@@ -25,6 +31,11 @@ Examples:
 export const cli = parseArgs({
     args: process.argv.slice(2),
     options: {
+        cwd: {
+            type: "string",
+            description: "Current working directory",
+            default: process.cwd(),
+        },
         schema: {
             type: "string",
             description: "Path to a schema file",
@@ -56,23 +67,16 @@ export const run = async ({
             exitCode: 1,
         };
     }
-    const logger = createLogger(logLevel);
     const schemaFilePath = values.schema;
-    if (!schemaFilePath) {
-        logger.info(HELP);
-        return {
-            stdout: "",
-            stderr: "--schema is required",
-            exitCode: 1,
-        };
-    }
-
+    // prefer config file over CLI options
     const config = values.config
-        ? await loadConfig(values.config)
-        : normalizeFakeServerConfig({
+        ? await loadConfig(values.cwd ?? process.cwd(), values.config)
+        : loadFakeServerConfigFromCLI({
               schemaFilePath,
               logLevel,
           });
+    const logger = createLogger(config.logLevel ?? logLevel);
+    logger.debug("[fake-server-cli] config", config);
     try {
         const server = await createFakeServer(config);
         const { urls } = await server.start();

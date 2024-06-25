@@ -1,4 +1,7 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import type { RawConfig } from "@newmo/graphql-fake-core";
+import { configDefaults } from "vitest/config";
 import type { LogLevel } from "./logger.js";
 
 /**
@@ -60,6 +63,7 @@ export type RequiredFakeServerConfig = {
     defaultValues: RawConfig["defaultValues"];
     logLevel: LogLevel;
 };
+
 export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFakeServerConfig => {
     return {
         schemaFilePath: config.schemaFilePath,
@@ -74,7 +78,7 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
         logLevel: config.logLevel ?? "info",
     };
 };
-export const validateFakeServerConfig = (config: FakeServerConfig): void => {
+export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerConfig => {
     if (!config.schemaFilePath) {
         throw new Error("The schemaFilePath is required.");
     }
@@ -110,11 +114,43 @@ export const validateFakeServerConfig = (config: FakeServerConfig): void => {
     if (config.logLevel && !["debug", "info", "warn", "error"].includes(config.logLevel)) {
         throw new Error("The logLevel must be one of 'debug', 'info', 'warn', 'error'.");
     }
+    return config;
 };
 
-export const loadConfig = async (configPath: string): Promise<RequiredFakeServerConfig> => {
-    const { default: config } = await import(configPath);
+/**
+ * Load the fake server configuration from the file.
+ * @param configPath
+ */
+export const loadConfig = async (
+    cwd: string,
+    configPath: string,
+): Promise<RequiredFakeServerConfig> => {
+    const fileUrl = pathToFileURL(path.resolve(cwd, configPath)).href;
+    const { default: config } = await import(fileUrl);
     const normalizedConfig = normalizeFakeServerConfig(config);
     validateFakeServerConfig(normalizedConfig);
-    return config;
+    return normalizedConfig;
+};
+/**
+ * Load the fake server configuration from the CLI flags.
+ * @param cliFlag
+ */
+export const loadFakeServerConfigFromCLI = ({
+    schemaFilePath,
+    logLevel,
+}: {
+    schemaFilePath?: string | undefined;
+    logLevel?: LogLevel | undefined;
+}): RequiredFakeServerConfig => {
+    if (!schemaFilePath) {
+        throw new Error(
+            "The --schema is required. or pass --config ./fake-server.config.js to load the config file.",
+        );
+    }
+    const normalizedConfig = normalizeFakeServerConfig({
+        schemaFilePath,
+        logLevel,
+    });
+    validateFakeServerConfig(normalizedConfig);
+    return normalizedConfig;
 };
