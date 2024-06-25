@@ -71,6 +71,34 @@ describe("createMock", () => {
           }
         `);
     });
+    it("should support @exampleInt directive for a mock object", async () => {
+        const schema = buildSchema(extendSchema("type Query { num: Int! @exampleInt(value: 12) }"));
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "num": 12,
+            },
+          }
+        `);
+    });
+    it("should support @exampleFloat directive for a mock object", async () => {
+        const schema = buildSchema(
+            extendSchema("type Query { num: Float! @exampleFloat(value: 12.34) }"),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "num": 12.34,
+            },
+          }
+        `);
+    });
     it("should support Enum for a mock object", async () => {
         const schema = buildSchema(
             extendSchema(`
@@ -256,7 +284,7 @@ type RequiredDocument {
         type User {
           id: ID!
           name: String
-          createdAt: Date @exampleString(value: "2024-06-25")
+          createdAt: Date @exampleFloat(value: "2024-06-25")
         }
         type Query {
             user: User
