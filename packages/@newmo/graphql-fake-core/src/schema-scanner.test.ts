@@ -578,6 +578,7 @@ type RequiredDocument {
             expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
               [
                 {
+                  "example": undefined,
                   "name": "Date",
                   "rawName": "Date",
                   "type": "scalar",
@@ -588,6 +589,41 @@ type RequiredDocument {
                       "comment": undefined,
                       "example": {
                         "expression": "new Date()",
+                      },
+                      "name": "field",
+                    },
+                  ],
+                  "name": "Type",
+                  "rawName": "Type",
+                  "type": "object",
+                },
+              ]
+            `);
+        });
+        it("support custom scalar with directive", () => {
+            const schema = buildSchema(`
+            scalar Date @exampleScalarString(value: "2024-06-25T14:52:42.074Z")
+            type Type {
+              field: Date!
+            }
+          `);
+            const config: Config = fakeConfig();
+            expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+              [
+                {
+                  "example": {
+                    "value": "2024-06-25T14:52:42.074Z",
+                  },
+                  "name": "Date",
+                  "rawName": "Date",
+                  "type": "scalar",
+                },
+                {
+                  "fields": [
+                    {
+                      "comment": undefined,
+                      "example": {
+                        "expression": ""2024-06-25T14:52:42.074Z"",
                       },
                       "name": "field",
                     },

@@ -240,7 +240,126 @@ type RequiredDocument {
           }
         `);
     });
-    it("should support custom scalar", async () => {
+    it("should support custom scalar with @exampleScalarString", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+        scalar Date @exampleScalarString(value: "2024-06-25T14:52:42.074Z")
+        type User {
+          id: ID!
+          name: String
+          createdAt: Date
+        }
+        type Query {
+            user: User
+        }
+    `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "createdAt": "2024-06-25T14:52:42.074Z",
+                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "name": "string",
+              },
+            },
+            "User": {
+              "createdAt": "2024-06-25T14:52:42.074Z",
+              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "name": "string",
+            },
+          }
+        `);
+    });
+    it("should support custom scalar with @exampleScalarInt", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+        scalar IntValue @exampleScalarInt(value: 123)
+        type User {
+            value: IntValue
+        }
+        type Query {
+            user: User
+        }
+    `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "value": 123,
+              },
+            },
+            "User": {
+              "value": 123,
+            },
+          }
+        `);
+    });
+    it("should support custom scalar with @exampleScalarFloat", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+        scalar FloatValue @exampleScalarFloat(value: 123.45)
+        type User {
+            value: FloatValue
+        }
+        type Query {
+            user: User
+        }
+    `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "value": 123.45,
+              },
+            },
+            "User": {
+              "value": 123.45,
+            },
+          }
+        `);
+    });
+
+    it("should support custom scalar with @exampleScalarBoolean", async () => {
+        const schema = buildSchema(
+            extendSchema(`
+        scalar BooleanValue @exampleScalarBoolean(value: true)
+        type User {
+            value: BooleanValue
+        }
+        type Query {
+            user: User
+        }
+    `),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
+          {
+            "Query": {
+              "user": {
+                "value": true,
+              },
+            },
+            "User": {
+              "value": true,
+            },
+          }
+        `);
+    });
+    it("should support custom scalar with config", async () => {
         const schema = buildSchema(`
         scalar Date
         type User {

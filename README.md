@@ -35,21 +35,30 @@ npm install @newmo/graphql-fake-server --save-dev
 ```
 
 2. Add example directives to the GraphQL schema.
-  - `@exampleID`: Specifies an example value for a ID field.
-  - `@exampleString`: Specifies an example value for a String field.
-  - `@exampleInt`: Specifies an example value for a Int field.
-  - `@exampleFloat`: Specifies an example value for a Float field.
-  - `@exampleBoolean`: Specifies an example value for a Boolean field.
-  - `@exampleArrayID`: Specifies an example value for a array of ID field.
-  - `@exampleArrayString`: Specifies an example value for a array of String field.
-  - `@exampleArrayInt`: Specifies an example value for a array of Int field.
-  - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
-  - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
-  - `@error`: Returns the error response as an empty array.
+  - Primitive types: `ID`, `String`, `Int`, `Float`, `Boolean`
+    - `@exampleID`: Specifies an example value for a ID field.
+    - `@exampleString`: Specifies an example value for a String field.
+    - `@exampleInt`: Specifies an example value for a Int field.
+    - `@exampleFloat`: Specifies an example value for a Float field.
+    - `@exampleBoolean`: Specifies an example value for a Boolean field.
+  - Array types: `[ID!]`, `[String!]`, `[Int!]`, `[Float!]`, `[Boolean!]`
+    - `@exampleArrayID`: Specifies an example value for a array of ID field.
+    - `@exampleArrayString`: Specifies an example value for a array of String field.
+    - `@exampleArrayInt`: Specifies an example value for a array of Int field.
+    - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
+    - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
+  - Custom scalar types:
+    - `@exampleScalarString`: Specifies an example value for a scalar field.
+    - `@exampleScalarInt`: Specifies an example value for a scalar field.
+    - `@exampleScalarFloat`: Specifies an example value for a scalar field.
+    - `@exampleScalarBoolean`: Specifies an example value for a scalar field.
+  - Special types:
+    - `@error`: Mark the fields as error fields. This fields make empty array by default.
 
 `graphql/schema.graphql`:
 
 ```graphql
+
 """
 @exampleID directive specifies an example value for a ID field.
 This example value is used in the fake data.
@@ -164,10 +173,55 @@ directive @exampleArrayBoolean(
   values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
+@exampleScalarString directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarString(
+  """
+  The value of the scalar field.
+  scalar CustomString @exampleScalar(value: "example")
+  """
+  value: String!
+) on SCALAR
+"""
+@exampleScalarInt directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarInt(
+  """
+  The value of the scalar field.
+  scalar CustomValue @exampleScalar(value: 1)
+  """
+  value: Int!
+) on SCALAR
+"""
+@exampleScalarFloat directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarFloat(
+  """
+  The value of the scalar field.
+  scalar CustomValue @exampleScalar(value: 1.0)
+  """
+  value: Float!
+) on SCALAR
+"""
+@exampleScalarBoolean directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarBoolean(
+  """
+  The value of the scalar field.
+  scalar CustomValue @exampleScalar(value: true)
+  """
+  value: Boolean!
+) on SCALAR
+"""
 @error directive specifies a field as an error response field.
 It allows setting an error response and specifying the field name.
 """
 directive @error on FIELD_DEFINITION
+
 
 # Your schema
 type Book {
@@ -430,7 +484,16 @@ If you want to return a different type, you need to use Dynamic Fake via HTTP.
 
 ### Custom Scalar
 
-You can create a config file for `@newmo/graphql-fake-server` to define the default value of the custom scalar.
+You can use `@exampleScalar*` directive to define the default value of the custom scalar.
+
+```graphql
+scalar CustomScalar @exampleScalarString(value: "example")
+type Query {
+  customScalar: CustomScalar
+}
+```
+
+Or, You can create a config file for `@newmo/graphql-fake-server` to define the default value of the custom scalar.
 
 `fake-server.config.mjs`:
 ```js

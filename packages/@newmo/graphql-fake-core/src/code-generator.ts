@@ -11,7 +11,7 @@ import type {
 export type ConfigWithOutput = {
     outputType: "typescript" | "javascript" | "commonjs";
 } & Config;
-const handleExample = (exampleDirective: ExampleDirective): string => {
+export const generateExampleDirectiveCode = (exampleDirective: ExampleDirective): string => {
     if ("value" in exampleDirective) {
         return JSON.stringify(exampleDirective.value);
     }
@@ -61,7 +61,7 @@ function generateEnumFactoryCode(config: ConfigWithOutput, typeInfo: EnumTypeInf
 const ${rawName} = {
 ${typeInfo.fields
     .map((value) => {
-        const example = value.example ? handleExample(value.example) : "undefined";
+        const example = value.example ? generateExampleDirectiveCode(value.example) : "undefined";
         return `${indent}${value.name}: ${example},`;
     })
     .join("\n")}
@@ -77,7 +77,7 @@ function generateFactoryCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo)
 ${indent}return {
 ${typeInfo.fields
     .map((field) => {
-        const example = field.example ? handleExample(field.example) : "undefined";
+        const example = field.example ? generateExampleDirectiveCode(field.example) : "undefined";
         return `${indent}${indent}${field.name}: ${example},`;
     })
     .join("\n")}
