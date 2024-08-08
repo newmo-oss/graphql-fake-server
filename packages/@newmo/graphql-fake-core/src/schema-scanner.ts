@@ -15,7 +15,11 @@ import {
     type TypeNode,
     type UnionTypeDefinitionNode,
 } from "graphql";
-import { generateCreateReferenceCode, generateEnumReferenceCode } from "./code-generator.js";
+import {
+    generateCreateReferenceCode,
+    generateEnumReferenceCode,
+    generateExampleDirectiveCode,
+} from "./code-generator.js";
 import type { Config } from "./config.js";
 import { convertName } from "./convertName.js";
 
@@ -147,7 +151,13 @@ const typeToFunction = ({
                 })}`;
             }
             // if custom scalar type(name is equaled) is defined, return the default value
-            if (context.customScalarMap.has(type)) {
+            const scalarInfo = context.customScalarMap.get(type);
+            if (scalarInfo) {
+                // if the type has an example directive, return the value
+                if (scalarInfo.example) {
+                    return generateExampleDirectiveCode(scalarInfo.example);
+                }
+
                 // If dose not have default value, throw an error
                 const USAGE = `
   options: {
@@ -289,6 +299,11 @@ const SUPPORTED_EXAMPLE_DIRECTIVES = [
     "exampleArrayInt",
     "exampleArrayFloat",
     "exampleArrayBoolean",
+    // scalar
+    "exampleScalarString",
+    "exampleScalarInt",
+    "exampleScalarFloat",
+    "exampleScalarBoolean",
 ];
 const isIdType = (node: NonNullTypeNode | NamedTypeNode | ListTypeNode): boolean => {
     if (node.kind === "NonNullType") {
@@ -537,6 +552,7 @@ export type ScalarTypeInfo = {
     type: "scalar";
     name: string;
     rawName: string;
+    example?: ExampleDirectiveValue | undefined;
 };
 export type InterfaceTypeInfo = {
     type: "interface";
@@ -562,7 +578,7 @@ export type TypeInfo =
     | UnionTypeInfo
     | ScalarTypeInfo;
 type EnumRawNameMap = Map<string, TypeInfo>;
-type CustomScalarMap = Map<string, TypeInfo>;
+type CustomScalarMap = Map<string, ScalarTypeInfo>;
 type ScannerContext = {
     enumMap: EnumRawNameMap;
     customScalarMap: CustomScalarMap;
@@ -697,13 +713,45 @@ const createEnumTypeInfo = ({
         };
     });
 };
+
+const parseCustomScalarExampleDirective = ({
+    node,
+}: {
+    node: ObjectTypeDefinitionNode;
+}): ExampleDirectiveValue | undefined => {
+    // scalar CustomScalar @exampleScalarString(value: "string")
+    // -> { value: "string" }
+    const exampleDirective = node.directives?.find((d) => {
+        return SUPPORTED_EXAMPLE_DIRECTIVES.includes(d.name.value);
+    });
+    if (!exampleDirective) {
+        return undefined;
+    }
+    if (!exampleDirective.arguments) {
+        throw new Error(
+            `@${exampleDirective.name.value} directive must have arguments. @${exampleDirective.name.value}(value: ...)`,
+        );
+    }
+    const exampleDirectiveValue = exampleDirective.arguments.find((a) => a.name.value === "value");
+    if (!exampleDirectiveValue) {
+        throw new Error(
+            `@${exampleDirective.name.value} directive must have value argument. @${exampleDirective.name.value}(value: ...)`,
+        );
+    }
+    return { value: valueOfNode(exampleDirectiveValue.value) };
+};
+/**
+ * Collect custom scalar type info
+ * @param config
+ * @param schema
+ */
 const createCustomScalarTypeInfo = ({
     config,
     schema,
 }: {
     config: Config;
     schema: GraphQLSchema;
-}): TypeInfo[] => {
+}): ScalarTypeInfo[] => {
     const types = Object.values(schema.getTypeMap());
     return (
         types
@@ -717,7 +765,8 @@ const createCustomScalarTypeInfo = ({
                     type: "scalar",
                     name: convertName(node.name.value, config),
                     rawName: node.name.value,
-                };
+                    example: parseCustomScalarExampleDirective({ node }),
+                } satisfies ScalarTypeInfo;
             }) ?? []
     );
 };

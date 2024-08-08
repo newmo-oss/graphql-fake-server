@@ -104,6 +104,7 @@ describe("integration test", async () => {
               {
                 "unionUser": {
                   "birthDate": "2022-01-01",
+                  "birthYYYYMM": "2022-01",
                   "id": "xxxx-xxxx-xxxx-xxxx22",
                   "name": "string",
                 },

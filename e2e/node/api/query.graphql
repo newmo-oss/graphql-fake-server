@@ -27,6 +27,7 @@ query GotUnionUser {
             id
             name
             birthDate
+            birthYYYYMM
         }
         ... on UserIsBlocked {
             message

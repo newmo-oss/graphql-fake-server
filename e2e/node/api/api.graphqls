@@ -1,3 +1,4 @@
+
 """
 @exampleID directive specifies an example value for a ID field.
 This example value is used in the fake data.
@@ -22,7 +23,7 @@ directive @exampleString(
     value: String!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
-@exampleInt directive specifies an example value for a Inf field.
+@exampleInt directive specifies an example value for a Int field.
 This example value is used in the fake data.
 """
 directive @exampleInt(
@@ -111,14 +112,60 @@ directive @exampleArrayBoolean(
     """
     values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-
+"""
+@exampleScalarString directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarString(
+    """
+    The value of the scalar field.
+    scalar CustomString @exampleScalar(value: "example")
+    """
+    value: String!
+) on SCALAR
+"""
+@exampleScalarInt directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarInt(
+    """
+    The value of the scalar field.
+    scalar CustomValue @exampleScalar(value: 1)
+    """
+    value: Int!
+) on SCALAR
+"""
+@exampleScalarFloat directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarFloat(
+    """
+    The value of the scalar field.
+    scalar CustomValue @exampleScalar(value: 1.0)
+    """
+    value: Float!
+) on SCALAR
+"""
+@exampleScalarBoolean directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarBoolean(
+    """
+    The value of the scalar field.
+    scalar CustomValue @exampleScalar(value: true)
+    """
+    value: Boolean!
+) on SCALAR
 """
 @error directive specifies a field as an error response field.
 It allows setting an error response and specifying the field name.
 """
 directive @error on FIELD_DEFINITION
 
+# This scalar example value is defined in graphql-fake.config.mjs
 scalar DATE_YYYYMMDD
+# This scalar example value is defined by @exampleScalarString directive
+scalar DATE_YYYMM @exampleScalarString(value: "2022-01")
 
 """
 You Schema definition goes here
@@ -160,6 +207,7 @@ type User {
     id: ID!
     name: String
     birthDate: DATE_YYYYMMDD
+    birthYYYYMM: DATE_YYYMM
 }
 type UserSuspended {
     reason: String

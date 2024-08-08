@@ -113,6 +113,50 @@ directive @exampleArrayBoolean(
     values: [Boolean!]!
 ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 """
+@exampleScalarString directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarString(
+    """
+    The value of the scalar field.
+    scalar CustomString @exampleScalar(value: "example")
+    """
+    value: String!
+) on SCALAR
+"""
+@exampleScalarInt directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarInt(
+    """
+    The value of the scalar field.
+    scalar CustomValue @exampleScalar(value: 1)
+    """
+    value: Int!
+) on SCALAR
+"""
+@exampleScalarFloat directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarFloat(
+    """
+    The value of the scalar field.
+    scalar CustomValue @exampleScalar(value: 1.0)
+    """
+    value: Float!
+) on SCALAR
+"""
+@exampleScalarBoolean directive specifies an example value for a scalar field.
+This example value is used in the fake data.
+"""
+directive @exampleScalarBoolean(
+    """
+    The value of the scalar field.
+    scalar CustomValue @exampleScalar(value: true)
+    """
+    value: Boolean!
+) on SCALAR
+"""
 @error directive specifies a field as an error response field.
 It allows setting an error response and specifying the field name.
 """
