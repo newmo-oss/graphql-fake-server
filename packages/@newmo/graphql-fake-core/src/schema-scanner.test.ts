@@ -578,6 +578,7 @@ type RequiredDocument {
             expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
               [
                 {
+                  "example": undefined,
                   "name": "Date",
                   "rawName": "Date",
                   "type": "scalar",
