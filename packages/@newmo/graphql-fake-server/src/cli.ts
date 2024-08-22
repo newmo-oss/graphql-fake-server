@@ -18,6 +18,7 @@ Options:
     --schema <path>       Path to a schema file
     --logLevel <logLevel> log level: debug, info, warn, error
     --cwd <path>          Current working directory
+    --help                Show help
 
 Examples:
 
