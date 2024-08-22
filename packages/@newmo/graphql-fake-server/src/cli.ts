@@ -49,6 +49,10 @@ export const cli = parseArgs({
             description: "log level: debug, info, warn, error",
             default: "info",
         },
+        help: {
+            type: "boolean",
+            description: "Show help",
+        },
     },
 });
 export const run = async ({
@@ -59,6 +63,13 @@ export const run = async ({
     exitCode: number;
     doNotExit?: boolean;
 }> => {
+    if (values.help) {
+        return {
+            stdout: HELP,
+            stderr: "",
+            exitCode: 0,
+        };
+    }
     const logLevel = values.logLevel as LogLevel | undefined;
     if (!logLevel || !["debug", "info", "warn", "error"].includes(logLevel)) {
         return {
