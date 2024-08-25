@@ -325,6 +325,8 @@ $ npx graphql-fake-server
 
 2. Register Fake Data via HTTP.
 
+`/fake` is fake data registration endpoint.
+
 ```ts
 const sequenceId = "unique-sequence-id-1";
 fetch('http://127.0.0.1:4000/fake', {
@@ -352,6 +354,8 @@ fetch('http://127.0.0.1:4000/fake', {
 ```
 
 3. Request and get Fake Data via HTTP.
+
+`/query` and `/graphql` is the GraphQL query endpoint.
 
 ```ts
 const sequenceId = "unique-sequence-id-1";
