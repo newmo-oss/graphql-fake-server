@@ -248,7 +248,7 @@ $ npx graphql-fake-server --schema graphql/schema.graphql
 
 5. The fake server will be launched at `http://localhost:4000`.
 
-For example, send the following query:
+For example, send the following query to `http://localhost:4000/query`.
 
 ```graphql
 query {
