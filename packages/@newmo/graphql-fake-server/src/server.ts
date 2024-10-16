@@ -187,7 +187,7 @@ const createRoutingServer = async ({
         });
         // log response with pipe
         if (rep.status === 101) return rep;
-        const responseBody = (await rep.json()) as Record<string, unknown>;
+        const responseBody = (await rep.clone().json()) as Record<string, unknown>;
         // save request and response for /called api
         if (sequenceId && typeof operationName === "string") {
             const cacheKey = createMapKey({
@@ -210,8 +210,7 @@ const createRoutingServer = async ({
                 },
             ]);
         }
-        // @ts-expect-error - responseBody is mismatch types
-        return new Response(responseBody, rep);
+        return new Response(rep.body, rep);
     };
     // sequenceId x operationName -> FakeResponse
     const sequenceFakeResponseLruMap = new LRUMap<string, RegisterSequenceOptions>({
