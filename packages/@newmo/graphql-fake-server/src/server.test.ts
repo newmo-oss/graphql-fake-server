@@ -3,7 +3,6 @@ import { createMock, extendSchema } from "@newmo/graphql-fake-core";
 import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
 import {
-    CalledResult,
     type CalledResultResponse,
     type RegisterSequenceNetworkError,
     createFakeServerInternal,
