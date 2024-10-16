@@ -1,7 +1,13 @@
+import assert from "node:assert";
 import { createMock, extendSchema } from "@newmo/graphql-fake-core";
 import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
-import { type RegisterSequenceNetworkError, createFakeServerInternal } from "./server.js";
+import {
+    CalledResult,
+    type CalledResultResponse,
+    type RegisterSequenceNetworkError,
+    createFakeServerInternal,
+} from "./server.js";
 
 let portCounter = 0;
 const getPorts = () => {
@@ -791,17 +797,102 @@ describe("graphql-fake-server", () => {
                     operationName: "GetAuthors",
                 }),
             });
-            const calledResult = await calledResponse.json();
-            expect(calledResult).toMatchInlineSnapshot(`
+            const calledResult = (await calledResponse.json()) as CalledResultResponse;
+            expect(calledResult.ok).toBeTruthy();
+            expect(calledResult.data.length).toBe(1);
+            assert(calledResult.data[0]);
+            expect(calledResult.data[0].requestTimestamp).toBeGreaterThan(0);
+            expect(calledResult.data[0].request.body).toMatchInlineSnapshot(`
               {
-                "errors": [
-                  {
-                    "extensions": {
-                      "code": "BAD_REQUEST",
+                "operationName": "GetAuthors",
+                "query": "
+                                  query GetAuthors {
+                                    authors {
+                                      id
+                                      name
+                                      age
+                                      books {
+                                        id
+                                        title
+                                        genre
+                                      }
+                                    }
+                                  }
+                              ",
+              }
+            `);
+            expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
+              {
+                "data": {
+                  "authors": [
+                    {
+                      "age": 33,
+                      "books": [
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id24",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id25",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id26",
+                          "title": "The Great Gatsby",
+                        },
+                      ],
+                      "id": "author-id11",
+                      "name": "F. Scott Fitzgerald",
                     },
-                    "message": "GraphQL operations must contain a non-empty \`query\` or a \`persistedQuery\` extension.",
-                  },
-                ],
+                    {
+                      "age": 33,
+                      "books": [
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id27",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id28",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id29",
+                          "title": "The Great Gatsby",
+                        },
+                      ],
+                      "id": "author-id12",
+                      "name": "F. Scott Fitzgerald",
+                    },
+                    {
+                      "age": 33,
+                      "books": [
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id210",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id211",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id212",
+                          "title": "The Great Gatsby",
+                        },
+                      ],
+                      "id": "author-id13",
+                      "name": "F. Scott Fitzgerald",
+                    },
+                  ],
+                },
               }
             `);
         });
@@ -873,19 +964,135 @@ describe("graphql-fake-server", () => {
                     operationName: "CreateBook",
                 }),
             });
-            const calledResult = await calledResponse.json();
-            expect(calledResult).toMatchInlineSnapshot(`
+            const calledResult = (await calledResponse.json()) as CalledResultResponse;
+            expect(calledResult.ok).toBeTruthy();
+            expect(calledResult.data.length).toBe(1);
+            assert(calledResult.data[0]);
+            expect(calledResult.data[0].requestTimestamp).toBeGreaterThan(0);
+            expect(calledResult.data[0].request.body).toMatchInlineSnapshot(`
               {
-                "errors": [
-                  {
-                    "extensions": {
-                      "code": "BAD_REQUEST",
-                    },
-                    "message": "GraphQL operations must contain a non-empty \`query\` or a \`persistedQuery\` extension.",
-                  },
-                ],
+                "operationName": "CreateBook",
+                "query": "
+                                  mutation CreateBook($title: String!) {
+                                    createBook(title: $title) {
+                                      id
+                                      title
+                                    }
+                                  }
+                              ",
+                "variables": {
+                  "title": "The Great Gatsby",
+                },
               }
             `);
+            expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
+              {
+                "data": {
+                  "createBook": {
+                    "id": "new-id",
+                    "title": "new BOOK",
+                  },
+                },
+              }
+            `);
+        });
+        it("support multiple called operations", async () => {
+            const schema = `
+            type Book {
+                id: ID! @exampleID(value: "book-id")
+                title: String! @exampleString(value: "The Great Gatsby")
+            }
+            type Query {
+                books: [Book!]!
+            }
+            
+            type Mutation {
+                createBook(title: String!): Book!
+            }
+        `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({ schemaString: schema, ports });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+            // register seed
+            await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "CreateBook",
+                    data: {
+                        createBook: {
+                            id: "new-id",
+                            title: "new BOOK",
+                        },
+                    },
+                }),
+            });
+            // 1. first request
+            await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    operationName: "CreateBook",
+                    query: `
+                    mutation CreateBook($title: String!) {
+                      createBook(title: $title) {
+                        id
+                        title
+                      }
+                    }
+                `,
+                    variables: {
+                        title: "1111",
+                    },
+                }),
+            });
+            // 2. second request
+            await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    operationName: "CreateBook",
+                    query: `
+                    mutation CreateBook($title: String!) {
+                      createBook(title: $title) {
+                        id
+                        title
+                      }
+                    }
+                `,
+                    variables: {
+                        title: "2222",
+                    },
+                }),
+            });
+            const calledResponse = await fetch(`${urls.fakeServer}/fake/called`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    operationName: "CreateBook",
+                }),
+            });
+            const calledResult = (await calledResponse.json()) as CalledResultResponse;
+            expect(calledResult.ok).toBeTruthy();
+            expect(calledResult.data.length).toBe(2);
+            assert(calledResult.data[0]);
+            assert(calledResult.data[1]);
+            expect(calledResult.data[0].request.body.variables).toEqual({ title: "1111" });
+            expect(calledResult.data[1].request.body.variables).toEqual({ title: "2222" });
         });
     });
 });
