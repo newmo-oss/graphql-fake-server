@@ -172,7 +172,12 @@ const createRoutingServer = async ({
         if (c.req.query()) url = `${url}?${new URLSearchParams(c.req.query())}`;
         const sequenceId = c.req.header("sequence-id");
         const requestBody = await c.req.raw.clone().json();
-        const operationName = requestBody?.operationName;
+        const operationName =
+            typeof requestBody === "object" &&
+            requestBody !== null &&
+            "operationName" in requestBody
+                ? requestBody.operationName
+                : undefined;
         // request
         const rep = await fetch(url, {
             method: c.req.method,
@@ -183,7 +188,8 @@ const createRoutingServer = async ({
         // log response with pipe
         if (rep.status === 101) return rep;
         const responseBody = (await rep.json()) as Record<string, unknown>;
-        if (sequenceId && operationName) {
+        // save request and response for /called api
+        if (sequenceId && typeof operationName === "string") {
             const cacheKey = createMapKey({
                 sequenceId,
                 operationName,
@@ -204,6 +210,7 @@ const createRoutingServer = async ({
                 },
             ]);
         }
+        // @ts-expect-error - responseBody is mismatch types
         return new Response(responseBody, rep);
     };
     // sequenceId x operationName -> FakeResponse
