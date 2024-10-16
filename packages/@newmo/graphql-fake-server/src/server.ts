@@ -187,9 +187,9 @@ const createRoutingServer = async ({
         });
         // log response with pipe
         if (rep.status === 101) return rep;
-        const responseBody = (await rep.clone().json()) as Record<string, unknown>;
         // save request and response for /called api
         if (sequenceId && typeof operationName === "string") {
+            const responseBody = (await rep.clone().json()) as Record<string, unknown>;
             const cacheKey = createMapKey({
                 sequenceId,
                 operationName,
