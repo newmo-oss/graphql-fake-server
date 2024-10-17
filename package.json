@@ -30,12 +30,11 @@
     "prepare": "git config --local core.hooksPath .githooks"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.7.1",
-    "@lerna-lite/cli": "^3.3.3",
-    "@lerna-lite/publish": "^3.3.3",
-    "@lerna-lite/version": "^3.3.3",
-    "eslint": "^8.47.0",
-    "lint-staged": "^15.2.2"
+    "@biomejs/biome": "^1.9.3",
+    "@lerna-lite/cli": "^3.10.0",
+    "@lerna-lite/publish": "^3.10.0",
+    "@lerna-lite/version": "^3.10.0",
+    "lint-staged": "^15.2.10"
   },
   "engines": {
     "node": ">=18.0.0"
