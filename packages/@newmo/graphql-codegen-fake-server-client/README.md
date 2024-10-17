@@ -41,12 +41,15 @@ You can use `./generated/fake-client.ts` to register the fake to the fake server
 
 ```ts
 import { it, expect } from "vitest";
-import { registerFake } from "./generated/fake-client";
+import { createFakeClient } from "./generated/fake-client";
 
+const fakeClient = createFakeClient({
+  fakeServerEndpoint: "http://localhost:4000"
+})
 it("register fake response for query", async () => {
     const sequenceId = crypto.randomUUID();
     // register fake response for GetBooks query
-    const resRegister = await registerGetBooksQueryResponse(sequenceId, {
+    const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
         books: [
             {
                 id: "new id",
@@ -74,7 +77,7 @@ it("register fake response for query", async () => {
           }
         `);
     // Get actual request and response for testing
-    const calledResults = await calledGetBooksDocumentQuery(sequenceId);
+    const calledResults = await fakeClient.calledGetBooksDocumentQuery(sequenceId);
     console.log(calledResults[0].request);
     console.log(calledResults[0].response);
 });
