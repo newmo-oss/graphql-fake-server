@@ -73,6 +73,10 @@ it("register fake response for query", async () => {
             ],
           }
         `);
+    // Get actual request and response for testing
+    const calledResults = await calledGetBooksDocumentQuery(sequenceId);
+    console.log(calledResults[0].request);
+    console.log(calledResults[0].response);
 });
 ```
 

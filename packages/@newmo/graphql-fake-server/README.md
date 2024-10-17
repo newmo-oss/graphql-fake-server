@@ -10,7 +10,81 @@ See <https://github.com/newmo-oss/graphql-fake-server>
 
 - Integrate Apollo Server
 - Support `/fake` API
+- Support `/fake/called` API
 - Support `/graphql` API
+
+## HTTP APIs
+
+### `/graphql` and `/query`
+
+GraphQL Endpoint.
+
+You need to set `sequence-id` header to identify the sequence with the request.
+
+```js
+await fetch(`${urls.fakeServer}/graphql`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "sequence-id": sequenceId,
+    },
+    body: JSON.stringify({
+        operationName: "CreateBook",
+        query: `
+        mutation CreateBook($title: String!) {
+          createBook(title: $title) {
+            id
+            title
+          }
+        }
+    `,
+        variables: {
+            title: "The Great Gatsby",
+        },
+    }),
+});
+```
+
+### `/fake`
+
+Register the fake data for `sequence-id` and `operationName`.
+
+```js
+await fetch(`${urls.fakeServer}/fake`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "sequence-id": sequenceId,
+    },
+    body: JSON.stringify({
+        type: "operation",
+        operationName: "CreateBook",
+        data: {
+            createBook: {
+                id: "new-id",
+                title: "new BOOK",
+            },
+        },
+    }),
+});
+```
+
+### `/fake/called`
+
+Return request and response for the request with `sequence-id` and `operationName`.
+
+```js
+const calledResponse = await fetch(`${urls.fakeServer}/fake/called`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "sequence-id": sequenceId,
+    },
+    body: JSON.stringify({
+        operationName: "CreateBook",
+    }),
+});
+````
 
 ## Config
 
