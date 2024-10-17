@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client/core";
 import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
 import { onError as apolloOnError } from "@apollo/client/link/error/index.js";
@@ -251,7 +252,7 @@ describe("integration test", async () => {
         });
     });
     describe("/fake", () => {
-        it("register fake response for query", async () => {
+        it("register fake response for query and get called request body", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for GetBooks query
             const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
@@ -281,6 +282,35 @@ describe("integration test", async () => {
             ],
           }
         `);
+            // get request body
+            const calledResult = await fakeClient.calledGetBooksQuery(sequenceId);
+            expect(calledResult.ok).toBeTruthy();
+            expect(calledResult.data).toHaveLength(1);
+            assert(calledResult.data[0]);
+            expect(calledResult.data[0].requestTimestamp).toBeGreaterThan(0);
+            expect(calledResult.data[0].request.body).toMatchInlineSnapshot(`
+              {
+                "operationName": "GetBooks",
+                "query": "query GetBooks {
+                books {
+                  id
+                  title
+                }
+              }",
+              }
+            `);
+            expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
+              {
+                "data": {
+                  "books": [
+                    {
+                      "id": "new id",
+                      "title": "new title",
+                    },
+                  ],
+                },
+              }
+            `);
         });
         it("register fake response for query Dog which is implemented an interface", async () => {
             const sequenceId = crypto.randomUUID();
@@ -308,7 +338,7 @@ describe("integration test", async () => {
           }
         `);
         });
-        it("register fake response for mutation", async () => {
+        it("register fake response for mutation and get called request body", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for mutation
             const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, {
@@ -319,21 +349,6 @@ describe("integration test", async () => {
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
             // request to server
-            // const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-            //     headers: {
-            //         "sequence-id": sequenceId,
-            //     },
-            // });
-            // get fake response
-            // const mutation = gql`
-            //     mutation  CreateBook {
-            //         createBook(input: { title: "new title" }) {
-            //             id
-            //             title
-            //         }
-            //     }
-            // `;
-
             const client = new ApolloClient({
                 link: new HttpLink({
                     uri: `${fakeServerUrl}/graphql`,
@@ -344,6 +359,7 @@ describe("integration test", async () => {
                 }),
                 cache: new InMemoryCache(),
             });
+            // get fake response
             const response = await client.mutate<CreateBookInput>({
                 mutation: CreateBookDocument,
                 variables: {
@@ -358,6 +374,39 @@ describe("integration test", async () => {
             },
           }
         `);
+            // get request body
+            const calledResult = await fakeClient.calledCreateBookMutation(sequenceId);
+            expect(calledResult.ok).toBeTruthy();
+            expect(calledResult.data).toHaveLength(1);
+            assert(calledResult.data[0]);
+            expect(calledResult.data[0].request.body.variables.title).toBe("new title");
+            expect(calledResult.data[0].requestTimestamp).toBeGreaterThan(0);
+            expect(calledResult.data[0].request.body).toMatchInlineSnapshot(`
+              {
+                "operationName": "CreateBook",
+                "query": "mutation CreateBook($title: String!) {
+                createBook(input: {title: $title}) {
+                  id
+                  title
+                  __typename
+                }
+              }",
+                "variables": {
+                  "title": "new title",
+                },
+              }
+            `);
+            // get response body
+            expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
+              {
+                "data": {
+                  "createBook": {
+                    "id": "new id",
+                    "title": "new title",
+                  },
+                },
+              }
+            `);
         });
         it("register fake data for union type", async () => {
             const sequenceId = crypto.randomUUID();

@@ -14,7 +14,8 @@ GraphQL Fake Server and Toolkits for Declarative and Dynamic Fake.
   - It is Static Fake, so you can easily understand the fake data.
 - Dynamic Fake
   - Support Framework-Agnostic fake for testing via HTTP
-  - Fake server allow to register fake data via HTTP request
+  - Fake server allow to register fake data via HTTP request `/fake` endpoint.
+  - Fake server allow to get actual request data to any GraphQL operation via HTTP request `/fake/called` endpoint.
   - It is useful for integration testing GraphQL API with dynamic fake data.
 
 The purpose is to be able to develop while keeping maintainable Fake by using these differently depending on the application.

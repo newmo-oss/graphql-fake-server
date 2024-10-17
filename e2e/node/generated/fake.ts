@@ -6,10 +6,10 @@ import type { GetBookWithFragmentsQuery } from './graphql.js';
 import type { GetDogQuery } from './graphql.js';
 import type { GotUnionUserQuery } from './graphql.js';
 import type { GetUserNamesArrayExampleQuery } from './graphql.js';
-import type { CreateBookMutation } from './graphql.js';
-import type { CreateBookInlineMutation } from './graphql.js';
-import type { UseMutationErrorPatternMutationMutation } from './graphql.js';
-import type { CreateFooUrlMutation } from './graphql.js';
+import type { CreateBookMutation, CreateBookMutationVariables } from './graphql.js';
+import type { CreateBookInlineMutation, CreateBookInlineMutationVariables } from './graphql.js';
+import type { UseMutationErrorPatternMutationMutation, UseMutationErrorPatternMutationMutationVariables } from './graphql.js';
+import type { CreateFooUrlMutation, CreateFooUrlMutationVariables } from './graphql.js';
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -51,6 +51,52 @@ export function createFakeClient(options: CreateFakeClientOptions) {
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
+    async calledGetBooksQuery(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetBooksQuery;
+        };
+      }[]            
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "GetBooks"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetBooksQuery;
+        };
+      }[];
+    };
+    },
     async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -79,6 +125,52 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 errors
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async calledGetBookWithFragmentsQuery(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetBookWithFragmentsQuery;
+        };
+      }[]            
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "GetBookWithFragments"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetBookWithFragmentsQuery;
+        };
+      }[];
+    };
     },
     async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
@@ -109,6 +201,52 @@ export function createFakeClient(options: CreateFakeClientOptions) {
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
+    async calledGetDogQuery(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetDogQuery;
+        };
+      }[]            
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "GetDog"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetDogQuery;
+        };
+      }[];
+    };
+    },
     async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -137,6 +275,52 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 errors
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async calledGotUnionUserQuery(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GotUnionUserQuery;
+        };
+      }[]            
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "GotUnionUser"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GotUnionUserQuery;
+        };
+      }[];
+    };
     },
     async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
@@ -167,6 +351,52 @@ export function createFakeClient(options: CreateFakeClientOptions) {
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
+    async calledGetUserNamesArrayExampleQuery(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetUserNamesArrayExampleQuery;
+        };
+      }[]            
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "GetUserNamesArrayExample"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: GetUserNamesArrayExampleQuery;
+        };
+      }[];
+    };
+    },
     async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -195,6 +425,54 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 errors
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async calledCreateBookMutation(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: CreateBookMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: CreateBookMutation;
+        };
+      }[];
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "CreateBook"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: CreateBookMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: CreateBookMutation;
+        };
+      }[];
+    }
     },
     async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
@@ -225,6 +503,54 @@ export function createFakeClient(options: CreateFakeClientOptions) {
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
+    async calledCreateBookInlineMutation(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: CreateBookInlineMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: CreateBookInlineMutation;
+        };
+      }[];
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "CreateBookInline"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: CreateBookInlineMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: CreateBookInlineMutation;
+        };
+      }[];
+    }
+    },
     async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -254,6 +580,54 @@ export function createFakeClient(options: CreateFakeClientOptions) {
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
+    async calledUseMutationErrorPatternMutationMutation(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: UseMutationErrorPatternMutationMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: UseMutationErrorPatternMutationMutation;
+        };
+      }[];
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "UseMutationErrorPatternMutation"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: UseMutationErrorPatternMutationMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: UseMutationErrorPatternMutationMutation;
+        };
+      }[];
+    }
+    },
     async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -282,6 +656,54 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 errors
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async calledCreateFooUrlMutation(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: CreateFooUrlMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: CreateFooUrlMutation;
+        };
+      }[];
+    }> {
+        return await fetch(options.fakeServerEndpoint + "/called", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                operationName: "CreateFooUrl"
+            }),
+        }).then((res) => res.json()) as {
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: CreateFooUrlMutationVariables;
+          };
+        };
+        response: {
+            statusCode: number;
+            headers: Record<string, unknown>;
+            body: CreateFooUrlMutation;
+        };
+      }[];
+    }
     }
   };
 }

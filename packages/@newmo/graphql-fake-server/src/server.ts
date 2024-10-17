@@ -58,6 +58,22 @@ export type RegisterSequenceOperation = {
     data: Record<string, unknown>;
 };
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
+export type CalledResult = {
+    requestTimestamp: number;
+    request: {
+        headers: Record<string, unknown>;
+        body: Record<string, unknown>;
+    };
+    response: {
+        status: number;
+        headers: Record<string, unknown>;
+        body: Record<string, unknown>;
+    };
+};
+export type CalledResultResponse = {
+    ok: true;
+    data: CalledResult[];
+};
 export type RegisterOperationResponse =
     | {
           ok: true;
@@ -154,6 +170,14 @@ const createRoutingServer = async ({
         let url = `http://127.0.0.1:${ports.apolloServer}${path}`;
         // add params to URL
         if (c.req.query()) url = `${url}?${new URLSearchParams(c.req.query())}`;
+        const sequenceId = c.req.header("sequence-id");
+        const requestBody = await c.req.raw.clone().json();
+        const operationName =
+            typeof requestBody === "object" &&
+            requestBody !== null &&
+            "operationName" in requestBody
+                ? requestBody.operationName
+                : undefined;
         // request
         const rep = await fetch(url, {
             method: c.req.method,
@@ -163,9 +187,38 @@ const createRoutingServer = async ({
         });
         // log response with pipe
         if (rep.status === 101) return rep;
+        // save request and response for /called api
+        if (sequenceId && typeof operationName === "string") {
+            const responseBody = (await rep.clone().json()) as Record<string, unknown>;
+            const cacheKey = createMapKey({
+                sequenceId,
+                operationName,
+            });
+            sequenceCalledResultLruMap.set(cacheKey, [
+                ...(sequenceCalledResultLruMap.get(cacheKey) ?? []),
+                {
+                    requestTimestamp: Date.now(),
+                    request: {
+                        headers: Object.fromEntries(c.req.raw.headers),
+                        body: requestBody as Record<string, unknown>,
+                    },
+                    response: {
+                        status: rep.status,
+                        headers: Object.fromEntries(rep.headers),
+                        body: responseBody,
+                    },
+                },
+            ]);
+        }
         return new Response(rep.body, rep);
     };
-    const sequenceLruMap = new LRUMap<string, RegisterSequenceOptions>({
+    // sequenceId x operationName -> FakeResponse
+    const sequenceFakeResponseLruMap = new LRUMap<string, RegisterSequenceOptions>({
+        maxSize: maxRegisteredSequences,
+    });
+    // sequenceId x operationName -> Called Result
+    // CalledResult is first request is index 0, second request is index 1 and so on
+    const sequenceCalledResultLruMap = new LRUMap<string, CalledResult[]>({
         maxSize: maxRegisteredSequences,
     });
     const app = new Hono();
@@ -198,7 +251,7 @@ const createRoutingServer = async ({
             sequenceId,
             type: body.type,
         });
-        sequenceLruMap.set(
+        sequenceFakeResponseLruMap.set(
             createMapKey({
                 sequenceId,
                 operationName,
@@ -209,7 +262,51 @@ const createRoutingServer = async ({
             status: 200,
         });
     });
+    app.use("/fake/called", async (c) => {
+        // sequenceId x operationName にマッチする CalledResult を返す
+        const sequenceId = c.req.header("sequence-id");
+        if (!sequenceId) {
+            return Response.json(
+                JSON.stringify({ ok: false, errors: ["sequence-id is required"] }),
+                {
+                    status: 400,
+                },
+            );
+        }
+        // req.bodyからoperationNameを取得
+        const body = await c.req.json();
+        const operationName = body.operationName;
+        if (!operationName) {
+            return Response.json(
+                JSON.stringify({ ok: false, errors: ["operationName is required"] }),
+                {
+                    status: 400,
+                },
+            );
+        }
+        const key = createMapKey({
+            sequenceId,
+            operationName,
+        });
+        // if not found, return empty array
+        const result = sequenceCalledResultLruMap.get(key);
+        if (!result) {
+            return Response.json(
+                { ok: true, data: [] },
+                {
+                    status: 200,
+                },
+            );
+        }
+        return Response.json(
+            { ok: true, data: result },
+            {
+                status: 200,
+            },
+        );
+    });
     const fakeGraphQLQuery = async (c: Context) => {
+        const requestTimestamp = Date.now();
         /**
          * Steps:
          * 1. Receive a request for a GraphQL query
@@ -236,7 +333,7 @@ const createRoutingServer = async ({
         // 2. Does it contain a sequence id?
         if (!sequenceId) return passToApollo(c);
         if (!requestOperationName) return passToApollo(c);
-        const sequence = sequenceLruMap.get(
+        const sequence = sequenceFakeResponseLruMap.get(
             createMapKey({
                 sequenceId,
                 operationName: requestOperationName,
@@ -303,6 +400,27 @@ const createRoutingServer = async ({
             ...responseBody.data,
             ...data,
         };
+        const cacheKey = createMapKey({
+            sequenceId,
+            operationName: requestOperationName,
+        });
+        sequenceCalledResultLruMap.set(cacheKey, [
+            ...(sequenceCalledResultLruMap.get(cacheKey) ?? []),
+            {
+                requestTimestamp: Date.now(),
+                request: {
+                    headers: Object.fromEntries(c.req.raw.headers),
+                    body: requestBody as Record<string, unknown>,
+                },
+                response: {
+                    status: rep.status,
+                    headers: Object.fromEntries(rep.headers),
+                    body: {
+                        data: merged,
+                    },
+                },
+            },
+        ]);
         return Response.json(
             {
                 data: merged,
