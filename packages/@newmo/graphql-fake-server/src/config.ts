@@ -1,7 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { RawConfig } from "@newmo/graphql-fake-core";
-import { configDefaults } from "vitest/config";
 import type { LogLevel } from "./logger.js";
 
 /**
@@ -9,9 +8,12 @@ import type { LogLevel } from "./logger.js";
  */
 export type FakeServerConfig = {
     /**
-     * The path to the GraphQL schema file.
+     * The path to the GraphQL schema file from cwd.
      */
     schemaFilePath: string;
+    /**
+     * The ports for the fake server and Apollo Server.
+     */
     ports?:
         | {
               /**
@@ -34,12 +36,13 @@ export type FakeServerConfig = {
     maxRegisteredSequences?: number | undefined;
     /**
      * The maximum number of depth of field recursion.
-     * Default is 3.
+     * Default is 9.
      */
     maxFieldRecursionDepth?: RawConfig["maxFieldRecursionDepth"] | undefined;
     /**
      * The maximum number of depth of complexity of query
-     * Default is 4
+     * this value should be maxFieldRecursionDepth + 1
+     * Default is 10
      */
     maxQueryDepth?: number | undefined;
     /**
@@ -47,7 +50,9 @@ export type FakeServerConfig = {
      */
     defaultValues?: RawConfig["defaultValues"] | undefined;
     /**
-     * Log level.
+     * Log level: "debug", "info", "warn", "error"
+     * If you want to see the debug logs, set the logLevel to "debug".
+     * Default is "info".
      */
     logLevel?: LogLevel | undefined;
 };
@@ -72,8 +77,8 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
             apolloServer: config.ports?.apolloServer ?? 4002,
         },
         maxRegisteredSequences: config.maxRegisteredSequences ?? 1000,
-        maxFieldRecursionDepth: config.maxFieldRecursionDepth ?? 3,
-        maxQueryDepth: config.maxQueryDepth ?? 4,
+        maxFieldRecursionDepth: config.maxFieldRecursionDepth ?? 9,
+        maxQueryDepth: config.maxQueryDepth ?? 10,
         defaultValues: config.defaultValues ?? {},
         logLevel: config.logLevel ?? "info",
     };
