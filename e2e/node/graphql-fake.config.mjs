@@ -4,6 +4,9 @@
 const config = {
     logLevel: "debug",
     schemaFilePath: "api/api.graphqls",
+    // restrict depth
+    maxFieldRecursionDepth: 3,
+    maxQueryDepth: 4,
     // Define the default value of the custom scalar.
     defaultValues: {
         CustomScalar: {
