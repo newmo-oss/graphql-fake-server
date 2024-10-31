@@ -112,13 +112,13 @@ const calledResponse = await fetch(`${urls.fakeServer}/fake/called`, {
 You can customize the configuration by `--config` option.
 
 ```
-npx @newmo/graphql-fake-server --config graphql-fake-server.config.js
+npx @newmo/graphql-fake-server --config graphql-fake-server.config.mjs
 ```
 
-Example of the config file.
+Example of the config file: `graphql-fake-server.config.mjs`
 
 ```js
-module.exports = {
+export default {
     schemaFilePath: "./api/api.graphql",
     ports: {
         fakeServer: 4000,
