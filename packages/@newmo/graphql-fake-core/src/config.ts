@@ -133,7 +133,7 @@ export function normalizeConfig(rawConfig: RawConfig): Config {
         typesPrefix: rawConfig.typesPrefix ?? "",
         typesSuffix: rawConfig.typesSuffix ?? "",
         namingConvention: rawConfig.namingConvention ?? "",
-        maxFieldRecursionDepth: rawConfig.maxFieldRecursionDepth ?? 3,
+        maxFieldRecursionDepth: rawConfig.maxFieldRecursionDepth ?? 9,
         defaultValues: {
             String: rawConfig.defaultValues?.String ?? DefaultValues.String,
             Int: rawConfig.defaultValues?.Int ?? DefaultValues.Int,

@@ -525,6 +525,8 @@ Run the fake server with the config file.
 $ npx @newmo/graphql-fake-server --config ./fake-server.config.mjs
 ```
 
+If you want to know more about the CLI, please see [packages/@newmo/graphql-fake-server](packages/@newmo/graphql-fake-server/README.md)
+
 ### `operationName` is required
 
 `@newmo/graphql-fake-server` depended on `operationName` of GraphQL requests.

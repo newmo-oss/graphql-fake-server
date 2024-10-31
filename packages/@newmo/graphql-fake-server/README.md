@@ -13,6 +13,27 @@ See <https://github.com/newmo-oss/graphql-fake-server>
 - Support `/fake/called` API
 - Support `/graphql` API
 
+## Usage
+
+```
+Usage: npx @newmo/graphql-fake-server --schema <path> [options]
+
+Options:
+
+    --config <path>       Path to a config file
+    --schema <path>       Path to a schema file
+    --logLevel <logLevel> log level: debug, info, warn, error
+    --cwd <path>          Current working directory
+    --help                Show help
+
+Examples:
+
+    # Provide a schema file - use default config
+    npx @newmo/graphql-fake-server --schema api.graphql
+    # Use a config file
+    npx @newmo/graphql-fake-server --config graphql-fake-server.config.js
+```
+
 ## HTTP APIs
 
 ### `/graphql` and `/query`
@@ -88,6 +109,34 @@ const calledResponse = await fetch(`${urls.fakeServer}/fake/called`, {
 
 ## Config
 
+You can customize the configuration by `--config` option.
+
+```
+npx @newmo/graphql-fake-server --config graphql-fake-server.config.mjs
+```
+
+Example of the config file: `graphql-fake-server.config.mjs`
+
+```js
+export default {
+    schemaFilePath: "./api/api.graphql",
+    ports: {
+        fakeServer: 4000,
+        apolloServer: 4002,
+    },
+    maxRegisteredSequences: 1000,
+    maxFieldRecursionDepth: 9,
+    maxQueryDepth: 10,
+    defaultValues: {
+        String: "string",
+        Int: 1,
+        Float: 1.1,
+        Boolean: true,
+    },
+};
+```
+
+
 Please See [src/config.ts](src/config.ts)
 
 ```ts
@@ -96,10 +145,14 @@ Please See [src/config.ts](src/config.ts)
  */
 export type FakeServerConfig = {
     /**
-     * The path to the GraphQL schema file.
+     * The path to the GraphQL schema file from cwd.
      */
     schemaFilePath: string;
-    ports?: {
+    /**
+     * The ports for the fake server and Apollo Server.
+     */
+    ports?:
+        | {
         /**
          * Fake Server port.
          * Default is 4000.
@@ -111,7 +164,8 @@ export type FakeServerConfig = {
          * Default is 4002.
          */
         apolloServer?: number | undefined;
-    } | undefined;
+    }
+        | undefined;
     /**
      * The maximum number of registered sequences.
      * Default is 1000.
@@ -119,18 +173,25 @@ export type FakeServerConfig = {
     maxRegisteredSequences?: number | undefined;
     /**
      * The maximum number of depth of field recursion.
-     * Default is 3.
+     * Default is 9.
      */
     maxFieldRecursionDepth?: RawConfig["maxFieldRecursionDepth"] | undefined;
     /**
      * The maximum number of depth of complexity of query
-     * Default is 4
+     * this value should be maxFieldRecursionDepth + 1
+     * Default is 10
      */
     maxQueryDepth?: number | undefined;
     /**
      * Default values for scalar types.
      */
     defaultValues?: RawConfig["defaultValues"] | undefined;
+    /**
+     * Log level: "debug", "info", "warn", "error"
+     * If you want to see the debug logs, set the logLevel to "debug".
+     * Default is "info".
+     */
+    logLevel?: LogLevel | undefined;
 };
 ```
 

@@ -83,7 +83,7 @@ describe("generateCode", () => {
               }
               export function createMutation({ defaultFields, depth = 0 } = {}) {
               return {
-                  addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
+                  addMessage: (depth < 9 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
                 };
               }
 
@@ -122,7 +122,7 @@ describe("generateCode", () => {
               }
               export function createSubscription({ defaultFields, depth = 0 } = {}) {
               return {
-                  messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
+                  messageAdded: (depth < 9 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
                 };
               }
 
@@ -242,7 +242,7 @@ describe("generateCode", () => {
               function createAnimal({ defaultFields, depth = 0 } = {}) {
               return {
                   __typename: "Cat",
-                  ...(depth < 3 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
+                  ...(depth < 9 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
               };
               }
               export function createCat({ defaultFields, depth = 0 } = {}) {
@@ -303,7 +303,7 @@ describe("generateCode", () => {
               export const NewUserInput = createNewUserInput();
               export function createMutation({ defaultFields, depth = 0 } = {}) {
               return {
-                  createUser: (depth < 3 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
+                  createUser: (depth < 9 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
                 };
               }
 
@@ -412,7 +412,7 @@ type Book {
                       }
                       export function createMutation({ defaultFields, depth = 0 } = {}) {
                       return {
-                          addMessage: (depth < 3 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
+                          addMessage: (depth < 9 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
                         };
                       }
 
@@ -451,7 +451,7 @@ type Book {
                       }
                       export function createSubscription({ defaultFields, depth = 0 } = {}) {
                       return {
-                          messageAdded: (depth < 3 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
+                          messageAdded: (depth < 9 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
                         };
                       }
 
@@ -538,7 +538,7 @@ type Book {
                       function createAnimal({ defaultFields, depth = 0 } = {}) {
                       return {
                           __typename: "Cat",
-                          ...(depth < 3 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
+                          ...(depth < 9 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
                       };
                       }
                       export function createCat({ defaultFields, depth = 0 } = {}) {
@@ -599,7 +599,7 @@ type Book {
                       export const NewUserInput = createNewUserInput();
                       export function createMutation({ defaultFields, depth = 0 } = {}) {
                       return {
-                          createUser: (depth < 3 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
+                          createUser: (depth < 9 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
                         };
                       }
 
@@ -639,7 +639,7 @@ type Book {
               }
               export function createQuery({ defaultFields, depth = 0 } = {}) {
               return {
-                  books: (depth < 3) ? Array.from({ length: 3 }).map(() => (depth < 3 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)) : [],
+                  books: (depth < 9) ? Array.from({ length: 3 }).map(() => (depth < 9 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)) : [],
                 };
               }
 
@@ -681,7 +681,7 @@ type Book {
               return {
                   id: __id({ name: "1234", key:"Category.id.1234", depth }),
                   name: "Electronics",
-                  subCategory: (depth < 3 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1 }) : undefined),
+                  subCategory: (depth < 9 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1 }) : undefined),
                 };
               }
 
@@ -690,7 +690,7 @@ type Book {
               return {
                   id: __id({ name: "5678", key:"SubCategory.id.5678", depth }),
                   name: "Computers",
-                  parent: (depth < 3 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1 }) : undefined),
+                  parent: (depth < 9 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1 }) : undefined),
                 };
               }
 
