@@ -20,6 +20,7 @@ export type CreateFakeServerOptions = RequiredFakeServerConfig & {
 
 type FakeServerInternal = {
     mockObject: MockObject;
+    schema: GraphQLSchema;
     ports: {
         fakeServer: number;
         apolloServer: number;
