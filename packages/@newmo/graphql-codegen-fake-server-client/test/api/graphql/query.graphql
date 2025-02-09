@@ -16,14 +16,14 @@ query ListRideHistories {
 }
 
 mutation CreateURLRideHistory($desinationName: String!) {
-    createURLRideHistory(input: { name: $desinationName }){
+    createURLRideHistory(input: { name: $desinationName }) {
         id
         name
     }
 }
 
 mutation CreateFooURLRideHistory($desinationName: String!) {
-    createURLRideHistory(input: { name: $desinationName }){
+    createURLRideHistory(input: { name: $desinationName }) {
         id
         name
     }
