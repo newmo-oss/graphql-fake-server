@@ -5,7 +5,7 @@ import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { serve } from "@hono/node-server";
 import { type MockObject, createMock } from "@newmo/graphql-fake-core";
-//@ts-expect-error
+// @ts-expect-error -- no types
 import depthLimit from "graphql-depth-limit";
 import type { GraphQLSchema } from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
