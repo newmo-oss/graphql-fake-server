@@ -149,7 +149,10 @@ const privateIPRanges = [
     /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // 10.0.0.0/8
     /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
 ];
-// Add this helper function before createRoutingServer
+/**
+ * Check if the origin is a local address
+ * @param origin
+ */
 const isLocalRequest = (origin: string | null): boolean => {
     if (!origin) return false;
     try {
