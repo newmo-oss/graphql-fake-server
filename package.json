@@ -18,7 +18,7 @@
     "build": "pnpm -r run build",
     "lint": "npm exec @biomejs/biome -- check packages/ e2e/",
     "lint:fix": "npm exec @biomejs/biome -- check --apply-unsafe packages/ e2e/",
-    "format": "npm exec @biomejs/biome -- format --write packages/",
+    "format": "npm exec @biomejs/biome -- format --write packages/ e2e/",
     "test": "pnpm -r run --if-present build && pnpm -r run --if-present test",
     "updateSnapshot": "pnpm run build && pnpm -r run updateSnapshot",
     "versionup": "lerna version",
