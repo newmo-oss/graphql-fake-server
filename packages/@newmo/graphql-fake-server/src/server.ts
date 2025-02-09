@@ -19,7 +19,6 @@ export type CreateFakeServerOptions = RequiredFakeServerConfig & {
 };
 
 type FakeServerInternal = {
-    schema: GraphQLSchema;
     mockObject: MockObject;
     ports: {
         fakeServer: number;
@@ -143,6 +142,29 @@ const createMapKey = ({
     return `${sequenceId}.${operationName}`;
 };
 
+// Private IP address ranges defined in RFC 1918
+// See: https://www.rfc-editor.org/rfc/rfc1918
+const privateIPRanges = [
+    /^192\.168\.\d{1,3}\.\d{1,3}$/, // 192.168.0.0/16
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // 10.0.0.0/8
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
+];
+// Add this helper function before createRoutingServer
+const isLocalRequest = (origin: string | null): boolean => {
+    if (!origin) return false;
+    try {
+        const url = new URL(origin);
+        const hostname = url.hostname;
+        // localhost and 127.0.0.1 are standard local addresses
+        if (hostname === "localhost" || hostname === "127.0.0.1") {
+            return true;
+        }
+        return privateIPRanges.some((range) => range.test(hostname));
+    } catch {
+        return false;
+    }
+};
+
 const createRoutingServer = async ({
     logLevel,
     ports,
@@ -230,7 +252,10 @@ const createRoutingServer = async ({
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
             return Response.json(
-                JSON.stringify({ ok: false, errors: ["sequence-id is required"] }),
+                JSON.stringify({
+                    ok: false,
+                    errors: ["sequence-id is required"],
+                }),
                 {
                     status: 400,
                 },
@@ -267,7 +292,10 @@ const createRoutingServer = async ({
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
             return Response.json(
-                JSON.stringify({ ok: false, errors: ["sequence-id is required"] }),
+                JSON.stringify({
+                    ok: false,
+                    errors: ["sequence-id is required"],
+                }),
                 {
                     status: 400,
                 },
@@ -278,7 +306,10 @@ const createRoutingServer = async ({
         const operationName = body.operationName;
         if (!operationName) {
             return Response.json(
-                JSON.stringify({ ok: false, errors: ["operationName is required"] }),
+                JSON.stringify({
+                    ok: false,
+                    errors: ["operationName is required"],
+                }),
                 {
                     status: 400,
                 },
@@ -429,8 +460,28 @@ const createRoutingServer = async ({
         );
     };
     // graphql api is for browser and need to support CORS
-    app.use("/graphql", cors());
-    app.use("/query", cors());
+    app.use(
+        "/graphql",
+        cors({
+            origin: (origin) => {
+                if (isLocalRequest(origin)) {
+                    return origin;
+                }
+                return null;
+            },
+        }),
+    );
+    app.use(
+        "/query",
+        cors({
+            origin: (origin) => {
+                if (isLocalRequest(origin)) {
+                    return origin;
+                }
+                return null;
+            },
+        }),
+    );
     app.use("/graphql", fakeGraphQLQuery);
     app.use("/query", fakeGraphQLQuery);
     app.all("*", passToApollo);
