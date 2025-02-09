@@ -487,7 +487,7 @@ describe("integration test", async () => {
                 await client.request(GetBooksDocument);
             } catch (e) {
                 expect(e).toMatchInlineSnapshot(
-                    `[Error: GraphQL Error (Code: 400): {"response":{"error":"{\\"errors\\":[{\\"message\\":\\"fake error message\\"}]}","status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
+                    `[Error: GraphQL Error (Code: 400): {"response":{"status":400,"headers":{}},"request":{"query":"query GetBooks {\\n  books {\\n    id\\n    title\\n  }\\n}"}}]`,
                 );
             }
         });

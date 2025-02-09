@@ -11,8 +11,12 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * 3. It does not support dead code elimination, so it will add unused operations.
  *
  * Therefore it is highly recommended to use the babel or swc plugin for production.
+ * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
-const documents = {
+type Documents = {
+    "query ListDestinationCandidates($text: String!) {\n  destinationCandidates(text: $text) {\n    id\n    name\n  }\n}\n\nquery ListRideHistories {\n  rideHistories {\n    id\n    destination {\n      id\n      name\n    }\n  }\n}\n\nmutation CreateURLRideHistory($desinationName: String!) {\n  createURLRideHistory(input: {name: $desinationName}) {\n    id\n    name\n  }\n}\n\nmutation CreateFooURLRideHistory($desinationName: String!) {\n  createURLRideHistory(input: {name: $desinationName}) {\n    id\n    name\n  }\n}": typeof types.ListDestinationCandidatesDocument,
+};
+const documents: Documents = {
     "query ListDestinationCandidates($text: String!) {\n  destinationCandidates(text: $text) {\n    id\n    name\n  }\n}\n\nquery ListRideHistories {\n  rideHistories {\n    id\n    destination {\n      id\n      name\n    }\n  }\n}\n\nmutation CreateURLRideHistory($desinationName: String!) {\n  createURLRideHistory(input: {name: $desinationName}) {\n    id\n    name\n  }\n}\n\nmutation CreateFooURLRideHistory($desinationName: String!) {\n  createURLRideHistory(input: {name: $desinationName}) {\n    id\n    name\n  }\n}": types.ListDestinationCandidatesDocument,
 };
 
