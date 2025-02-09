@@ -594,7 +594,7 @@ describe("graphql-fake-server", () => {
           }
         `);
         });
-        it("should support CORS request", async () => {
+        it("should support CORS request from localhost", async () => {
             const schema = `
             type Book {
                 id: ID! @exampleID(value: "book-id")
@@ -633,6 +633,7 @@ describe("graphql-fake-server", () => {
                 headers: {
                     "Content-Type": "application/json",
                     "sequence-id": sequenceId,
+                    Origin: "http://localhost:4000",
                 },
                 body: JSON.stringify({
                     operationName: "GetBooks",
@@ -647,7 +648,123 @@ describe("graphql-fake-server", () => {
                 }),
             });
             // response header should have Access-Control-Allow-Origin
-            expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
+            expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+                "http://localhost:4000",
+            );
+        });
+        it("should support CORS request from local ip", async () => {
+            const schema = `
+            type Book {
+                id: ID! @exampleID(value: "book-id")
+                title: String! @exampleString(value: "The Great Gatsby")
+            }
+            type Query {
+                books: [Book!]!
+            }
+        `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({ schemaString: schema, ports });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+            // register network-error operation
+            const regiRes = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "GetBooks",
+                    errors: [
+                        {
+                            message: "Network Error",
+                        },
+                    ],
+                    responseStatusCode: 400,
+                } as RegisterSequenceNetworkError),
+            });
+            expect(regiRes.status).toBe(200);
+            // request with sequence-id
+            const response = await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                    Origin: "http://192.168.0.1:4000",
+                },
+                body: JSON.stringify({
+                    operationName: "GetBooks",
+                    query: `
+                    query GetBooks {
+                      books {
+                        id
+                        title
+                      }
+                    }
+                `,
+                }),
+            });
+            // response header should have Access-Control-Allow-Origin
+            expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+                "http://192.168.0.1:4000",
+            );
+        });
+        it("should not support external CORS request", async () => {
+            const schema = `
+            type Book {
+                id: ID! @exampleID(value: "book-id")
+                title: String! @exampleString(value: "The Great Gatsby")
+            }
+            type Query {
+                books: [Book!]!
+            }
+        `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({ schemaString: schema, ports });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+            // register network-error operation
+            const regiRes = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "GetBooks",
+                    errors: [
+                        {
+                            message: "Network Error",
+                        },
+                    ],
+                    responseStatusCode: 400,
+                } as RegisterSequenceNetworkError),
+            });
+            expect(regiRes.status).toBe(200);
+            // request with sequence-id
+            const response = await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                    Origin: "http://example.com",
+                },
+                body: JSON.stringify({
+                    operationName: "GetBooks",
+                    query: `
+                    query GetBooks {
+                      books {
+                        id
+                        title
+                      }
+                    }
+                `,
+                }),
+            });
+            // response header should not have Access-Control-Allow-Origin
+            expect(response.headers.get("Access-Control-Allow-Origin")).toBe(null);
         });
         it("should return namingConvention response", async () => {
             const schema = `
