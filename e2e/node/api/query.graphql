@@ -39,7 +39,7 @@ query GotUnionUser {
     }
 }
 
-query GetUserNamesArrayExample{
+query GetUserNamesArrayExample {
     userNamesArray {
         names
     }
@@ -59,12 +59,9 @@ mutation CreateBookInline($title: String!) {
     }
 }
 
-
 # errors pattern
 mutation UseMutationErrorPatternMutation {
-    useMutationErrorPattern(input: {
-        id: "x"
-    }) {
+    useMutationErrorPattern(input: { id: "x" }) {
         errors {
             ... on GeneralError {
                 message
@@ -86,11 +83,11 @@ mutation UseMutationErrorPatternMutation {
 }
 
 # mutation createFooURL
-mutation CreateFooURL ($input: FooURLInput!) {
+mutation CreateFooURL($input: FooURLInput!) {
     createFooURL(input: $input) {
         URL
         errors {
-            ... on CreateFooURLErrorDetail{
+            ... on CreateFooURLErrorDetail {
                 code
                 message
             }

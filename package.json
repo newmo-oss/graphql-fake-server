@@ -18,7 +18,7 @@
     "build": "pnpm -r run build",
     "lint": "npm exec @biomejs/biome -- check packages/ e2e/",
     "lint:fix": "npm exec @biomejs/biome -- check --apply-unsafe packages/ e2e/",
-    "format": "npm exec @biomejs/biome -- format --write packages/",
+    "format": "npm exec @biomejs/biome -- format --write packages/ e2e/",
     "test": "pnpm -r run --if-present build && pnpm -r run --if-present test",
     "updateSnapshot": "pnpm run build && pnpm -r run updateSnapshot",
     "versionup": "lerna version",
@@ -30,12 +30,11 @@
     "prepare": "git config --local core.hooksPath .githooks"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.7.1",
-    "@lerna-lite/cli": "^3.3.3",
-    "@lerna-lite/publish": "^3.3.3",
-    "@lerna-lite/version": "^3.3.3",
-    "eslint": "^8.47.0",
-    "lint-staged": "^15.2.2"
+    "@biomejs/biome": "^1.9.4",
+    "@lerna-lite/cli": "^3.12.0",
+    "@lerna-lite/publish": "^3.12.0",
+    "@lerna-lite/version": "^3.12.0",
+    "lint-staged": "^15.4.3"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -44,7 +43,7 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "packageManager": "pnpm@9.0.5",
+  "packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
   "lint-staged": {
     "*.{js,jsx,ts,tsx,css}": [
       "npm exec @biomejs/biome -- check --apply-unsafe"
