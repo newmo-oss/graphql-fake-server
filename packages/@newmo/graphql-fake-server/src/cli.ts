@@ -93,6 +93,7 @@ export const run = async ({
         const server = await createFakeServer(config);
         const { urls } = await server.start();
         logger.info(`🚀 GraphQL Fake Server listening at: ${urls.fakeServer}`);
+        logger.info(`🎨 GraphQL Playground is available at ${urls.apolloServer}`);
         return {
             stdout: "",
             stderr: "",
