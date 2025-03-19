@@ -256,8 +256,10 @@ describe("integration test", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for GetBooks query
             const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+                __typename: "Query",
                 books: [
                     {
+                        __typename: "Book",
                         id: "new id",
                         title: "new title",
                     },
@@ -273,15 +275,17 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GetBooksDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "books": [
-              {
-                "id": "new id",
-                "title": "new title",
-              },
-            ],
-          }
-        `);
+        {
+          "__typename": "Query",
+          "books": [
+            {
+              "__typename": "Book",
+              "id": "new id",
+              "title": "new title",
+            },
+          ],
+        }
+      `);
             // get request body
             const calledResult = await fakeClient.calledGetBooksQuery(sequenceId);
             expect(calledResult.ok).toBeTruthy();
@@ -300,22 +304,26 @@ describe("integration test", async () => {
               }
             `);
             expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
+        {
+          "data": {
+            "__typename": "Query",
+            "books": [
               {
-                "data": {
-                  "books": [
-                    {
-                      "id": "new id",
-                      "title": "new title",
-                    },
-                  ],
-                },
-              }
-            `);
+                "__typename": "Book",
+                "id": "new id",
+                "title": "new title",
+              },
+            ],
+          },
+        }
+      `);
         });
         it("register fake response for query Dog which is implemented an interface", async () => {
             const sequenceId = crypto.randomUUID();
             const resRegister = await fakeClient.registerGetDogQueryResponse(sequenceId, {
+                __typename: "Query",
                 dog: {
+                    __typename: "Dog",
                     id: "dog id",
                     name: "dog name",
                 },
@@ -330,19 +338,23 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GetDogDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "dog": {
-              "id": "dog id",
-              "name": "dog name",
-            },
-          }
-        `);
+        {
+          "__typename": "Query",
+          "dog": {
+            "__typename": "Dog",
+            "id": "dog id",
+            "name": "dog name",
+          },
+        }
+      `);
         });
         it("register fake response for mutation and get called request body", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for mutation
             const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, {
+                __typename: "Mutation",
                 createBook: {
+                    __typename: "Book",
                     id: "new id",
                     title: "new title",
                 },
@@ -367,13 +379,15 @@ describe("integration test", async () => {
                 },
             });
             expect(response.data).toMatchInlineSnapshot(`
-          {
-            "createBook": {
-              "id": "new id",
-              "title": "new title",
-            },
-          }
-        `);
+        {
+          "__typename": "Mutation",
+          "createBook": {
+            "__typename": "Book",
+            "id": "new id",
+            "title": "new title",
+          },
+        }
+      `);
             // get request body
             const calledResult = await fakeClient.calledCreateBookMutation(sequenceId);
             expect(calledResult.ok).toBeTruthy();
@@ -398,24 +412,28 @@ describe("integration test", async () => {
             `);
             // get response body
             expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
-              {
-                "data": {
-                  "createBook": {
-                    "id": "new id",
-                    "title": "new title",
-                  },
-                },
-              }
-            `);
+        {
+          "data": {
+            "__typename": "Mutation",
+            "createBook": {
+              "__typename": "Book",
+              "id": "new id",
+              "title": "new title",
+            },
+          },
+        }
+      `);
         });
         it("register fake data for union type", async () => {
             const sequenceId = crypto.randomUUID();
             const resRegister = await fakeClient.registerGotUnionUserQueryResponse(sequenceId, {
+                __typename: "Query",
                 unionUser: {
                     __typename: "User",
                     id: "student id",
                     name: "student name",
                     birthDate: "2022-01-01",
+                    birthYYYYMM: "2022-01",
                 },
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
@@ -428,15 +446,17 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GotUnionUserDocument);
             expect(response).toMatchInlineSnapshot(`
-              {
-                "unionUser": {
-                  "__typename": "User",
-                  "birthDate": "2022-01-01",
-                  "id": "student id",
-                  "name": "student name",
-                },
-              }
-            `);
+        {
+          "__typename": "Query",
+          "unionUser": {
+            "__typename": "User",
+            "birthDate": "2022-01-01",
+            "birthYYYYMM": "2022-01",
+            "id": "student id",
+            "name": "student name",
+          },
+        }
+      `);
         });
         it("register fake response which use Fragment", async () => {
             const sequenceId = crypto.randomUUID();
@@ -444,7 +464,9 @@ describe("integration test", async () => {
             const resRegister = await fakeClient.registerGetBookWithFragmentsQueryResponse(
                 sequenceId,
                 {
+                    __typename: "Query",
                     book: {
+                        __typename: "Book",
                         id: "new id",
                         title: "new title",
                     } as FragmentType<BookFragmentPartsFragment>,
@@ -459,13 +481,15 @@ describe("integration test", async () => {
             });
             const response = await client.request(GetBookWithFragmentsDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "book": {
-              "id": "new id",
-              "title": "new title",
-            },
-          }
-        `);
+        {
+          "__typename": "Query",
+          "book": {
+            "__typename": "Book",
+            "id": "new id",
+            "title": "new title",
+          },
+        }
+      `);
         });
 
         it("register fake error response for query", async () => {
@@ -498,7 +522,9 @@ describe("integration test", async () => {
                 await fakeClient.registerUseMutationErrorPatternMutationMutationResponse(
                     sequenceId,
                     {
+                        __typename: "Mutation",
                         useMutationErrorPattern: {
+                            __typename: "UseMutationErrorPatternPayload",
                             errors: [
                                 {
                                     __typename: "GeneralError",
@@ -526,19 +552,21 @@ describe("integration test", async () => {
             const isError = errors.length > 0;
             expect(isError).toBe(true);
             expect(response).toMatchInlineSnapshot(`
-              {
-                "data": {
-                  "useMutationErrorPattern": {
-                    "errors": [
-                      {
-                        "__typename": "GeneralError",
-                        "message": "error message",
-                      },
-                    ],
-                  },
+        {
+          "data": {
+            "__typename": "Mutation",
+            "useMutationErrorPattern": {
+              "__typename": "UseMutationErrorPatternPayload",
+              "errors": [
+                {
+                  "__typename": "GeneralError",
+                  "message": "error message",
                 },
-              }
-            `);
+              ],
+            },
+          },
+        }
+      `);
         });
         it("apollo client catch global errors", async () => {
             const sequenceId = crypto.randomUUID();
@@ -589,7 +617,9 @@ describe("integration test", async () => {
             });
             // 2. register success response
             await fakeClient.registerGetDogQueryResponse(sequenceId, {
+                __typename: "Query",
                 dog: {
+                    __typename: "Dog",
                     id: "dog id",
                     name: "dog name",
                 },
@@ -613,13 +643,14 @@ describe("integration test", async () => {
                 query: GetDogDocument,
             });
             expect(response.data).toMatchInlineSnapshot(`
-              {
-                "dog": {
-                  "id": "dog id",
-                  "name": "dog name",
-                },
-              }
-            `);
+        {
+          "dog": {
+            "__typename": "Dog",
+            "id": "dog id",
+            "name": "dog name",
+          },
+        }
+      `);
         });
     });
     describe("@error", () => {
