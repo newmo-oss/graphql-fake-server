@@ -5,9 +5,10 @@
     "type": "module",
     "scripts": {
         "start": "npm exec @newmo/graphql-fake-server -- --config=./graphql-fake.config.mjs",
-        "codgen": "graphql-codegen --config graphql-codegen.ts",
+        "codegen": "graphql-codegen --config graphql-codegen.ts",
         "lint": "tsc",
-        "test": "vitest --run"
+        "test": "vitest run",
+        "updateSnapshot": "vitest run -u"
     },
     "engines": {
         "node": ">=18.0.0"

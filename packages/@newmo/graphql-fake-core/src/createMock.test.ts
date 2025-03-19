@@ -34,21 +34,21 @@ describe("createMock", () => {
         expect(mock).toMatchInlineSnapshot(`
           {
             "Book": {
-              "id": "id03",
+              "id": "id_g3_d0_c3",
               "title": "title",
             },
             "Query": {
               "books": [
                 {
-                  "id": "id10",
+                  "id": "id_g0_d1_c0",
                   "title": "title",
                 },
                 {
-                  "id": "id11",
+                  "id": "id_g1_d1_c1",
                   "title": "title",
                 },
                 {
-                  "id": "id12",
+                  "id": "id_g2_d1_c2",
                   "title": "title",
                 },
               ],
@@ -147,12 +147,12 @@ type RequiredDocument {
             "Query": {
               "node": {
                 "__typename": "User",
-                "id": "xxxx-xxxx-xxxx-xxxx21",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d2_c1",
                 "name": "string",
               },
             },
             "User": {
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -182,12 +182,12 @@ type RequiredDocument {
           {
             "Query": {
               "user": {
-                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d1_c1",
                 "name": "string",
               },
             },
             "User": {
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -218,7 +218,7 @@ type RequiredDocument {
           {
             "IsBlocked": {
               "blockedByUser": {
-                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d1_c1",
                 "name": "string",
               },
               "message": "string",
@@ -226,7 +226,7 @@ type RequiredDocument {
             "Query": {
               "user": {
                 "__typename": "User",
-                "id": "xxxx-xxxx-xxxx-xxxx22",
+                "id": "xxxx-xxxx-xxxx-xxxx_g2_d2_c2",
                 "name": "string",
               },
             },
@@ -234,7 +234,7 @@ type RequiredDocument {
               "reason": "string",
             },
             "User": {
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -262,13 +262,13 @@ type RequiredDocument {
             "Query": {
               "user": {
                 "createdAt": "2024-06-25T14:52:42.074Z",
-                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d1_c1",
                 "name": "string",
               },
             },
             "User": {
               "createdAt": "2024-06-25T14:52:42.074Z",
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -384,13 +384,13 @@ type RequiredDocument {
             "Query": {
               "user": {
                 "createdAt": "2024-06-25T14:52:42.074Z",
-                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d1_c1",
                 "name": "string",
               },
             },
             "User": {
               "createdAt": "2024-06-25T14:52:42.074Z",
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -418,13 +418,13 @@ type RequiredDocument {
             "Query": {
               "user": {
                 "createdAt": "2024-06-25",
-                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d1_c1",
                 "name": "string",
               },
             },
             "User": {
               "createdAt": "2024-06-25",
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -455,12 +455,12 @@ type RequiredDocument {
           {
             "Query": {
               "user": {
-                "id": "xxxx-xxxx-xxxx-xxxx11",
+                "id": "xxxx-xxxx-xxxx-xxxx_g1_d1_c1",
                 "name": "string",
               },
             },
             "User": {
-              "id": "xxxx-xxxx-xxxx-xxxx00",
+              "id": "xxxx-xxxx-xxxx-xxxx_g0_d0_c0",
               "name": "string",
             },
           }
@@ -493,7 +493,7 @@ type RequiredDocument {
           {
             "IsBlocked": {
               "blockedByUser": {
-                "id": "id11",
+                "id": "id_g1_d1_c1",
                 "name": "john",
               },
               "message": "blocked",
@@ -501,7 +501,7 @@ type RequiredDocument {
             "Query": {
               "user": {
                 "__typename": "User",
-                "id": "id22",
+                "id": "id_g2_d2_c2",
                 "name": "john",
               },
             },
@@ -509,7 +509,7 @@ type RequiredDocument {
               "reason": "error reason",
             },
             "User": {
-              "id": "id00",
+              "id": "id_g0_d0_c0",
               "name": "john",
             },
           }
@@ -642,8 +642,8 @@ type RequiredDocument {
           {
             "Query": {
               "values": [
-                "id100",
-                "id200",
+                "id1_g0_d0_c0",
+                "id2_g1_d0_c0",
               ],
             },
           }
@@ -780,7 +780,7 @@ type RequiredDocument {
               "message": "string",
             },
             "FooBar": {
-              "id": "xxxx-xxxx-xxxx-xxxx01",
+              "id": "xxxx-xxxx-xxxx-xxxx_g1_d0_c1",
               "name": "string",
             },
             "GeneralError": {
@@ -803,7 +803,7 @@ type RequiredDocument {
                   },
                 ],
                 "fooBar": {
-                  "id": "xxxx-xxxx-xxxx-xxxx20",
+                  "id": "xxxx-xxxx-xxxx-xxxx_g0_d2_c0",
                   "name": "string",
                 },
               },
@@ -827,7 +827,7 @@ type RequiredDocument {
                 },
               ],
               "fooBar": {
-                "id": "xxxx-xxxx-xxxx-xxxx12",
+                "id": "xxxx-xxxx-xxxx-xxxx_g2_d1_c2",
                 "name": "string",
               },
             },
@@ -861,13 +861,13 @@ type RequiredDocument {
             "Query": {
               "user": {
                 "errors": [],
-                "id": "xxxx-xxxx-xxxx-xxxx10",
+                "id": "xxxx-xxxx-xxxx-xxxx_g0_d1_c0",
                 "name": "string",
               },
             },
             "User": {
               "errors": [],
-              "id": "xxxx-xxxx-xxxx-xxxx01",
+              "id": "xxxx-xxxx-xxxx-xxxx_g1_d0_c1",
               "name": "string",
             },
             "UserError": {

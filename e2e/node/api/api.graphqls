@@ -165,7 +165,7 @@ directive @error on FIELD_DEFINITION
 # This scalar example value is defined in graphql-fake.config.mjs
 scalar DATE_YYYYMMDD
 # This scalar example value is defined by @exampleScalarString directive
-scalar DATE_YYYMM @exampleScalarString(value: "2022-01")
+scalar DATE_YYYYMM @exampleScalarString(value: "2022-01")
 
 """
 You Schema definition goes here
@@ -207,7 +207,7 @@ type User {
     id: ID!
     name: String
     birthDate: DATE_YYYYMMDD
-    birthYYYYMM: DATE_YYYMM
+    birthYYYYMM: DATE_YYYYMM
 }
 type UserSuspended {
     reason: String

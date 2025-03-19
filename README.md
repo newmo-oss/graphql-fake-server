@@ -294,6 +294,19 @@ Return the following response:
 }
 ```
 
+:memo: The default value of the `@exampleID` directive is `${name}_g${global_id}_d${depth}_c${count}`.
+
+```
+${name}_g${global_id}_d${depth}_c${count}
+   |      ^^^^^^^^^^    ^^^^^^     ^^^^^
+   |        |              |          |
+   |        |              |          |__ c: name context count - starts from 0
+   |        |              |__ d: depth of field- starts from 0
+   |        |__ g: global id - starts from 0
+   |
+   |__ name: field name
+```
+
 #### Examples of `@example*` directive
 
 ```graphql
