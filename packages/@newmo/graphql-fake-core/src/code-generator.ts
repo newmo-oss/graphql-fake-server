@@ -123,7 +123,7 @@ ${joinedTypeNames}
 }
 
 function idGeneratorCode(config: ConfigWithOutput): string {
-    // __id("name);
+    // __id("name");
     const isTypescript = config.outputType === "typescript";
     // ${name}_g${__idGlobalId}_d${depth}_c${count}
     // g: global id - starts from 0
@@ -136,7 +136,7 @@ function __id({ name, key, depth }${
         isTypescript ? ": { name: string; key: string; depth: number; }" : ""
     })${isTypescript ? ": string" : ""} {
     const count = __idContextCountMap.get(key) ?? 0;
-    const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+    const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
     __idGlobalId += 1;
     __idContextCountMap.set(key, count + 1);
     return id;
