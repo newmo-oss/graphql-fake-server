@@ -95,79 +95,79 @@ describe("graphql-fake-server", () => {
             });
             const result = await response.json();
             expect(result).toMatchInlineSnapshot(`
-          {
-            "data": {
-              "authors": [
-                {
-                  "age": 33,
-                  "books": [
+              {
+                "data": {
+                  "authors": [
                     {
-                      "genre": "FICTION",
-                      "id": "book-id24",
-                      "title": "The Great Gatsby",
+                      "age": 33,
+                      "books": [
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g6_d2_c4",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g7_d2_c5",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g8_d2_c6",
+                          "title": "The Great Gatsby",
+                        },
+                      ],
+                      "id": "author-id_g5_d1_c1",
+                      "name": "F. Scott Fitzgerald",
                     },
                     {
-                      "genre": "FICTION",
-                      "id": "book-id25",
-                      "title": "The Great Gatsby",
+                      "age": 33,
+                      "books": [
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g10_d2_c7",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g11_d2_c8",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g12_d2_c9",
+                          "title": "The Great Gatsby",
+                        },
+                      ],
+                      "id": "author-id_g9_d1_c2",
+                      "name": "F. Scott Fitzgerald",
                     },
                     {
-                      "genre": "FICTION",
-                      "id": "book-id26",
-                      "title": "The Great Gatsby",
+                      "age": 33,
+                      "books": [
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g14_d2_c10",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g15_d2_c11",
+                          "title": "The Great Gatsby",
+                        },
+                        {
+                          "genre": "FICTION",
+                          "id": "book-id_g16_d2_c12",
+                          "title": "The Great Gatsby",
+                        },
+                      ],
+                      "id": "author-id_g13_d1_c3",
+                      "name": "F. Scott Fitzgerald",
                     },
                   ],
-                  "id": "author-id11",
-                  "name": "F. Scott Fitzgerald",
                 },
-                {
-                  "age": 33,
-                  "books": [
-                    {
-                      "genre": "FICTION",
-                      "id": "book-id27",
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "genre": "FICTION",
-                      "id": "book-id28",
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "genre": "FICTION",
-                      "id": "book-id29",
-                      "title": "The Great Gatsby",
-                    },
-                  ],
-                  "id": "author-id12",
-                  "name": "F. Scott Fitzgerald",
-                },
-                {
-                  "age": 33,
-                  "books": [
-                    {
-                      "genre": "FICTION",
-                      "id": "book-id210",
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "genre": "FICTION",
-                      "id": "book-id211",
-                      "title": "The Great Gatsby",
-                    },
-                    {
-                      "genre": "FICTION",
-                      "id": "book-id212",
-                      "title": "The Great Gatsby",
-                    },
-                  ],
-                  "id": "author-id13",
-                  "name": "F. Scott Fitzgerald",
-                },
-              ],
-            },
-          }
-        `);
+              }
+            `);
         });
         it("should return second registered fake response when registered twice", async () => {
             const schema = `
@@ -946,21 +946,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id24",
+                          "id": "book-id_g6_d2_c4",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id25",
+                          "id": "book-id_g7_d2_c5",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id26",
+                          "id": "book-id_g8_d2_c6",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id11",
+                      "id": "author-id_g5_d1_c1",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -968,21 +968,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id27",
+                          "id": "book-id_g10_d2_c7",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id28",
+                          "id": "book-id_g11_d2_c8",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id29",
+                          "id": "book-id_g12_d2_c9",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id12",
+                      "id": "author-id_g9_d1_c2",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -990,21 +990,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id210",
+                          "id": "book-id_g14_d2_c10",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id211",
+                          "id": "book-id_g15_d2_c11",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id212",
+                          "id": "book-id_g16_d2_c12",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id13",
+                      "id": "author-id_g13_d1_c3",
                       "name": "F. Scott Fitzgerald",
                     },
                   ],

@@ -44,11 +44,14 @@ describe("generateCode", () => {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               export function createQuery({ defaultFields, depth = 0 } = {}) {
               return {
@@ -75,11 +78,14 @@ describe("generateCode", () => {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               export function createMutation({ defaultFields, depth = 0 } = {}) {
               return {
@@ -114,11 +120,14 @@ describe("generateCode", () => {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               export function createSubscription({ defaultFields, depth = 0 } = {}) {
               return {
@@ -154,11 +163,14 @@ describe("generateCode", () => {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               const Status = {
                 ACTIVE: "ACTIVE",
@@ -194,20 +206,23 @@ describe("generateCode", () => {
                     },
                 }),
             ).toMatchInlineSnapshot(`
-                  "const __idCountMap = new Map()
-                  function __id({ name, key, depth }) {
-                      const count = __idCountMap.get(key) ?? 0;
-                      __idCountMap.set(key, count + 1);
-                      return name + String(depth) + String(count);
-                  }
-                  export function createQuery({ defaultFields, depth = 0 } = {}) {
-                  return {
-                      today: new Date().toISOString(),
-                    };
-                  }
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
+              function __id({ name, key, depth }) {
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
+              }
+              export function createQuery({ defaultFields, depth = 0 } = {}) {
+              return {
+                  today: new Date().toISOString(),
+                };
+              }
 
-                  export const Query = createQuery();"
-                `);
+              export const Query = createQuery();"
+            `);
         });
         it("generates code for an interface", () => {
             expect(
@@ -232,11 +247,14 @@ describe("generateCode", () => {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
 
               function createAnimal({ defaultFields, depth = 0 } = {}) {
@@ -287,11 +305,14 @@ describe("generateCode", () => {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
               return {
@@ -373,11 +394,14 @@ type Book {
     `,
                         }),
                     ).toMatchInlineSnapshot(`
-                      "const __idCountMap = new Map()
+                      "let __idGlobalId = 0; // global id
+                      const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
-                          const count = __idCountMap.get(key) ?? 0;
-                          __idCountMap.set(key, count + 1);
-                          return name + String(depth) + String(count);
+                          const count = __idContextCountMap.get(key) ?? 0;
+                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          __idGlobalId += 1;
+                          __idContextCountMap.set(key, count + 1);
+                          return id;
                       }
                       export function createQuery({ defaultFields, depth = 0 } = {}) {
                       return {
@@ -404,11 +428,14 @@ type Book {
     `,
                         }),
                     ).toMatchInlineSnapshot(`
-                      "const __idCountMap = new Map()
+                      "let __idGlobalId = 0; // global id
+                      const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
-                          const count = __idCountMap.get(key) ?? 0;
-                          __idCountMap.set(key, count + 1);
-                          return name + String(depth) + String(count);
+                          const count = __idContextCountMap.get(key) ?? 0;
+                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          __idGlobalId += 1;
+                          __idContextCountMap.set(key, count + 1);
+                          return id;
                       }
                       export function createMutation({ defaultFields, depth = 0 } = {}) {
                       return {
@@ -443,11 +470,14 @@ type Book {
     `,
                         }),
                     ).toMatchInlineSnapshot(`
-                      "const __idCountMap = new Map()
+                      "let __idGlobalId = 0; // global id
+                      const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
-                          const count = __idCountMap.get(key) ?? 0;
-                          __idCountMap.set(key, count + 1);
-                          return name + String(depth) + String(count);
+                          const count = __idContextCountMap.get(key) ?? 0;
+                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          __idGlobalId += 1;
+                          __idContextCountMap.set(key, count + 1);
+                          return id;
                       }
                       export function createSubscription({ defaultFields, depth = 0 } = {}) {
                       return {
@@ -483,11 +513,14 @@ type Book {
     `,
                         }),
                     ).toMatchInlineSnapshot(`
-                      "const __idCountMap = new Map()
+                      "let __idGlobalId = 0; // global id
+                      const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
-                          const count = __idCountMap.get(key) ?? 0;
-                          __idCountMap.set(key, count + 1);
-                          return name + String(depth) + String(count);
+                          const count = __idContextCountMap.get(key) ?? 0;
+                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          __idGlobalId += 1;
+                          __idContextCountMap.set(key, count + 1);
+                          return id;
                       }
                       const Status = {
                         ACTIVE: "ACTIVE",
@@ -528,11 +561,14 @@ type Book {
     `,
                         }),
                     ).toMatchInlineSnapshot(`
-                      "const __idCountMap = new Map()
+                      "let __idGlobalId = 0; // global id
+                      const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
-                          const count = __idCountMap.get(key) ?? 0;
-                          __idCountMap.set(key, count + 1);
-                          return name + String(depth) + String(count);
+                          const count = __idContextCountMap.get(key) ?? 0;
+                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          __idGlobalId += 1;
+                          __idContextCountMap.set(key, count + 1);
+                          return id;
                       }
 
                       function createAnimal({ defaultFields, depth = 0 } = {}) {
@@ -583,11 +619,14 @@ type Book {
     `,
                         }),
                     ).toMatchInlineSnapshot(`
-                      "const __idCountMap = new Map()
+                      "let __idGlobalId = 0; // global id
+                      const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
-                          const count = __idCountMap.get(key) ?? 0;
-                          __idCountMap.set(key, count + 1);
-                          return name + String(depth) + String(count);
+                          const count = __idContextCountMap.get(key) ?? 0;
+                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          __idGlobalId += 1;
+                          __idContextCountMap.set(key, count + 1);
+                          return id;
                       }
                       export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
                       return {
@@ -631,11 +670,14 @@ type Book {
                 `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               export function createQuery({ defaultFields, depth = 0 } = {}) {
               return {
@@ -671,11 +713,14 @@ type Book {
     `,
                 }),
             ).toMatchInlineSnapshot(`
-              "const __idCountMap = new Map()
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
-                  const count = __idCountMap.get(key) ?? 0;
-                  __idCountMap.set(key, count + 1);
-                  return name + String(depth) + String(count);
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
               }
               export function createCategory({ defaultFields, depth = 0 } = {}) {
               return {
@@ -709,11 +754,14 @@ type Book {
                 outputType: "commonjs",
             }),
         ).toMatchInlineSnapshot(`
-          "const __idCountMap = new Map()
+          "let __idGlobalId = 0; // global id
+          const __idContextCountMap = new Map() // context count
           function __id({ name, key, depth }) {
-              const count = __idCountMap.get(key) ?? 0;
-              __idCountMap.set(key, count + 1);
-              return name + String(depth) + String(count);
+              const count = __idContextCountMap.get(key) ?? 0;
+              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              __idGlobalId += 1;
+              __idContextCountMap.set(key, count + 1);
+              return id;
           }
           function createQuery({ defaultFields, depth = 0 } = {}) {
           return {
@@ -740,11 +788,14 @@ type Book {
             Query
           } from './type.ts';
 
-          const __idCountMap = new Map<string, number>()
+          let __idGlobalId = 0; // global id
+          const __idContextCountMap = new Map<string, number>() // context count
           function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
-              const count = __idCountMap.get(key) ?? 0;
-              __idCountMap.set(key, count + 1);
-              return name + String(depth) + String(count);
+              const count = __idContextCountMap.get(key) ?? 0;
+              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              __idGlobalId += 1;
+              __idContextCountMap.set(key, count + 1);
+              return id;
           }
           export function createQuery({ defaultFields, depth = 0 }: { defaultFields?: Partial<Query>, depth?: number } = {}): Query {
           return {
@@ -776,11 +827,14 @@ type Book {
             User
           } from './type.ts';
 
-          const __idCountMap = new Map<string, number>()
+          let __idGlobalId = 0; // global id
+          const __idContextCountMap = new Map<string, number>() // context count
           function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
-              const count = __idCountMap.get(key) ?? 0;
-              __idCountMap.set(key, count + 1);
-              return name + String(depth) + String(count);
+              const count = __idContextCountMap.get(key) ?? 0;
+              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              __idGlobalId += 1;
+              __idContextCountMap.set(key, count + 1);
+              return id;
           }
           const Status = {
             ACTIVE: "ACTIVE",
@@ -813,11 +867,14 @@ type Book {
         `,
             }),
         ).toMatchInlineSnapshot(`
-          "const __idCountMap = new Map()
+          "let __idGlobalId = 0; // global id
+          const __idContextCountMap = new Map() // context count
           function __id({ name, key, depth }) {
-              const count = __idCountMap.get(key) ?? 0;
-              __idCountMap.set(key, count + 1);
-              return name + String(depth) + String(count);
+              const count = __idContextCountMap.get(key) ?? 0;
+              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              __idGlobalId += 1;
+              __idContextCountMap.set(key, count + 1);
+              return id;
           }
           const Status = {
             ACTIVE: "ACTIVE",

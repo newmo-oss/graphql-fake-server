@@ -125,14 +125,21 @@ ${joinedTypeNames}
 function idGeneratorCode(config: ConfigWithOutput): string {
     // __id("name);
     const isTypescript = config.outputType === "typescript";
+    // ${name}_g${__idGlobalId}_d${depth}_c${count}
+    // g: global id - starts from 0
+    // d: depth - starts from 0
+    // c: name context count - starts from 0
     return `
-const __idCountMap = new Map${isTypescript ? "<string, number>" : ""}()
+let __idGlobalId = 0; // global id
+const __idContextCountMap = new Map${isTypescript ? "<string, number>" : ""}() // context count
 function __id({ name, key, depth }${
         isTypescript ? ": { name: string; key: string; depth: number; }" : ""
     })${isTypescript ? ": string" : ""} {
-    const count = __idCountMap.get(key) ?? 0;
-    __idCountMap.set(key, count + 1);
-    return name + String(depth) + String(count);
+    const count = __idContextCountMap.get(key) ?? 0;
+    const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+    __idGlobalId += 1;
+    __idContextCountMap.set(key, count + 1);
+    return id;
 }`;
 }
 

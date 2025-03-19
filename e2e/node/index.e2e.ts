@@ -106,7 +106,7 @@ describe("integration test", async () => {
                 "unionUser": {
                   "birthDate": "2022-01-01",
                   "birthYYYYMM": "2022-01",
-                  "id": "xxxx-xxxx-xxxx-xxxx22",
+                  "id": "xxxx-xxxx-xxxx-xxxx_g2341_d2_c2",
                   "name": "string",
                 },
               }
@@ -166,27 +166,27 @@ describe("integration test", async () => {
                       "books": [
                         {
                           "author": {
-                            "id": "author-id3364",
+                            "id": "author-id_g975_d3_c364",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id3404",
+                            "id": "author-id_g1055_d3_c404",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id3444",
+                            "id": "author-id_g1135_d3_c444",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id1363",
+                      "id": "author-id_g973_d1_c363",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -194,27 +194,27 @@ describe("integration test", async () => {
                       "books": [
                         {
                           "author": {
-                            "id": "author-id3485",
+                            "id": "author-id_g1216_d3_c485",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id3525",
+                            "id": "author-id_g1296_d3_c525",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id3565",
+                            "id": "author-id_g1376_d3_c565",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id1484",
+                      "id": "author-id_g1214_d1_c484",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -222,27 +222,27 @@ describe("integration test", async () => {
                       "books": [
                         {
                           "author": {
-                            "id": "author-id3606",
+                            "id": "author-id_g1457_d3_c606",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id3646",
+                            "id": "author-id_g1537_d3_c646",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id3686",
+                            "id": "author-id_g1617_d3_c686",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id1605",
+                      "id": "author-id_g1455_d1_c605",
                       "name": "F. Scott Fitzgerald",
                     },
                   ],
@@ -256,8 +256,10 @@ describe("integration test", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for GetBooks query
             const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+                __typename: "Query",
                 books: [
                     {
+                        __typename: "Book",
                         id: "new id",
                         title: "new title",
                     },
@@ -273,15 +275,17 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GetBooksDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "books": [
-              {
-                "id": "new id",
-                "title": "new title",
-              },
-            ],
-          }
-        `);
+        {
+          "__typename": "Query",
+          "books": [
+            {
+              "__typename": "Book",
+              "id": "new id",
+              "title": "new title",
+            },
+          ],
+        }
+      `);
             // get request body
             const calledResult = await fakeClient.calledGetBooksQuery(sequenceId);
             expect(calledResult.ok).toBeTruthy();
@@ -300,22 +304,26 @@ describe("integration test", async () => {
               }
             `);
             expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
+        {
+          "data": {
+            "__typename": "Query",
+            "books": [
               {
-                "data": {
-                  "books": [
-                    {
-                      "id": "new id",
-                      "title": "new title",
-                    },
-                  ],
-                },
-              }
-            `);
+                "__typename": "Book",
+                "id": "new id",
+                "title": "new title",
+              },
+            ],
+          },
+        }
+      `);
         });
         it("register fake response for query Dog which is implemented an interface", async () => {
             const sequenceId = crypto.randomUUID();
             const resRegister = await fakeClient.registerGetDogQueryResponse(sequenceId, {
+                __typename: "Query",
                 dog: {
+                    __typename: "Dog",
                     id: "dog id",
                     name: "dog name",
                 },
@@ -330,19 +338,23 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GetDogDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "dog": {
-              "id": "dog id",
-              "name": "dog name",
-            },
-          }
-        `);
+        {
+          "__typename": "Query",
+          "dog": {
+            "__typename": "Dog",
+            "id": "dog id",
+            "name": "dog name",
+          },
+        }
+      `);
         });
         it("register fake response for mutation and get called request body", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for mutation
             const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, {
+                __typename: "Mutation",
                 createBook: {
+                    __typename: "Book",
                     id: "new id",
                     title: "new title",
                 },
@@ -367,13 +379,15 @@ describe("integration test", async () => {
                 },
             });
             expect(response.data).toMatchInlineSnapshot(`
-          {
-            "createBook": {
-              "id": "new id",
-              "title": "new title",
-            },
-          }
-        `);
+        {
+          "__typename": "Mutation",
+          "createBook": {
+            "__typename": "Book",
+            "id": "new id",
+            "title": "new title",
+          },
+        }
+      `);
             // get request body
             const calledResult = await fakeClient.calledCreateBookMutation(sequenceId);
             expect(calledResult.ok).toBeTruthy();
@@ -398,24 +412,28 @@ describe("integration test", async () => {
             `);
             // get response body
             expect(calledResult.data[0].response.body).toMatchInlineSnapshot(`
-              {
-                "data": {
-                  "createBook": {
-                    "id": "new id",
-                    "title": "new title",
-                  },
-                },
-              }
-            `);
+        {
+          "data": {
+            "__typename": "Mutation",
+            "createBook": {
+              "__typename": "Book",
+              "id": "new id",
+              "title": "new title",
+            },
+          },
+        }
+      `);
         });
         it("register fake data for union type", async () => {
             const sequenceId = crypto.randomUUID();
             const resRegister = await fakeClient.registerGotUnionUserQueryResponse(sequenceId, {
+                __typename: "Query",
                 unionUser: {
                     __typename: "User",
                     id: "student id",
                     name: "student name",
                     birthDate: "2022-01-01",
+                    birthYYYYMM: "2022-01",
                 },
             });
             expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
@@ -428,15 +446,17 @@ describe("integration test", async () => {
             // get fake response
             const response = await client.request(GotUnionUserDocument);
             expect(response).toMatchInlineSnapshot(`
-              {
-                "unionUser": {
-                  "__typename": "User",
-                  "birthDate": "2022-01-01",
-                  "id": "student id",
-                  "name": "student name",
-                },
-              }
-            `);
+        {
+          "__typename": "Query",
+          "unionUser": {
+            "__typename": "User",
+            "birthDate": "2022-01-01",
+            "birthYYYYMM": "2022-01",
+            "id": "student id",
+            "name": "student name",
+          },
+        }
+      `);
         });
         it("register fake response which use Fragment", async () => {
             const sequenceId = crypto.randomUUID();
@@ -444,7 +464,9 @@ describe("integration test", async () => {
             const resRegister = await fakeClient.registerGetBookWithFragmentsQueryResponse(
                 sequenceId,
                 {
+                    __typename: "Query",
                     book: {
+                        __typename: "Book",
                         id: "new id",
                         title: "new title",
                     } as FragmentType<BookFragmentPartsFragment>,
@@ -459,13 +481,15 @@ describe("integration test", async () => {
             });
             const response = await client.request(GetBookWithFragmentsDocument);
             expect(response).toMatchInlineSnapshot(`
-          {
-            "book": {
-              "id": "new id",
-              "title": "new title",
-            },
-          }
-        `);
+        {
+          "__typename": "Query",
+          "book": {
+            "__typename": "Book",
+            "id": "new id",
+            "title": "new title",
+          },
+        }
+      `);
         });
 
         it("register fake error response for query", async () => {
@@ -498,7 +522,9 @@ describe("integration test", async () => {
                 await fakeClient.registerUseMutationErrorPatternMutationMutationResponse(
                     sequenceId,
                     {
+                        __typename: "Mutation",
                         useMutationErrorPattern: {
+                            __typename: "UseMutationErrorPatternPayload",
                             errors: [
                                 {
                                     __typename: "GeneralError",
@@ -526,19 +552,21 @@ describe("integration test", async () => {
             const isError = errors.length > 0;
             expect(isError).toBe(true);
             expect(response).toMatchInlineSnapshot(`
-              {
-                "data": {
-                  "useMutationErrorPattern": {
-                    "errors": [
-                      {
-                        "__typename": "GeneralError",
-                        "message": "error message",
-                      },
-                    ],
-                  },
+        {
+          "data": {
+            "__typename": "Mutation",
+            "useMutationErrorPattern": {
+              "__typename": "UseMutationErrorPatternPayload",
+              "errors": [
+                {
+                  "__typename": "GeneralError",
+                  "message": "error message",
                 },
-              }
-            `);
+              ],
+            },
+          },
+        }
+      `);
         });
         it("apollo client catch global errors", async () => {
             const sequenceId = crypto.randomUUID();
@@ -589,7 +617,9 @@ describe("integration test", async () => {
             });
             // 2. register success response
             await fakeClient.registerGetDogQueryResponse(sequenceId, {
+                __typename: "Query",
                 dog: {
+                    __typename: "Dog",
                     id: "dog id",
                     name: "dog name",
                 },
@@ -613,13 +643,14 @@ describe("integration test", async () => {
                 query: GetDogDocument,
             });
             expect(response.data).toMatchInlineSnapshot(`
-              {
-                "dog": {
-                  "id": "dog id",
-                  "name": "dog name",
-                },
-              }
-            `);
+        {
+          "dog": {
+            "__typename": "Dog",
+            "id": "dog id",
+            "name": "dog name",
+          },
+        }
+      `);
         });
     });
     describe("@error", () => {
@@ -642,10 +673,11 @@ describe("integration test", async () => {
               }
             `;
             const response = await client.request(query);
-            expect(response).toMatchInlineSnapshot(`{
+            expect(response).toMatchInlineSnapshot(`
+              {
                 "userWithErrors": {
                   "errors": [],
-                  "id": "xxxx-xxxx-xxxx-xxxx11",
+                  "id": "xxxx-xxxx-xxxx-xxxx_g2342_d1_c1",
                   "name": "string",
                 },
               }
