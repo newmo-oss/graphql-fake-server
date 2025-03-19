@@ -37,7 +37,7 @@ npm install @newmo/graphql-fake-server --save-dev
 
 2. Add example directives to the GraphQL schema.
   - Primitive types: `ID`, `String`, `Int`, `Float`, `Boolean`
-    - `@exampleID`: Specifies an example value for a ID field.
+    - `@exampleID`: Specifies an example value for a ID or String field and the value will be unique between all ID fake data.
     - `@exampleString`: Specifies an example value for a String field.
     - `@exampleInt`: Specifies an example value for a Int field.
     - `@exampleFloat`: Specifies an example value for a Float field.
@@ -301,11 +301,13 @@ ${name}_g${global_id}_d${depth}_c${count}
    |      ^^^^^^^^^^    ^^^^^^     ^^^^^
    |        |              |          |
    |        |              |          |__ c: name context count - starts from 0
-   |        |              |__ d: depth of field- starts from 0
+   |        |              |__ d: depth of field - starts from 0
    |        |__ g: global id - starts from 0
    |
    |__ name: field name
 ```
+
+`@exampleID(value: "book_id")` will generate `book_id_g0_d0_c0`, `book_id_g1_d1_c1`, `book_id_g0_d1_c2`, ...
 
 #### Examples of `@example*` directive
 
