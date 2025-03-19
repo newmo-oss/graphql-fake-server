@@ -48,7 +48,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -82,7 +82,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -124,7 +124,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -167,7 +167,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -210,7 +210,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -251,7 +251,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -309,7 +309,7 @@ describe("generateCode", () => {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -398,7 +398,7 @@ type Book {
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -432,7 +432,7 @@ type Book {
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -474,7 +474,7 @@ type Book {
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -517,7 +517,7 @@ type Book {
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -565,7 +565,7 @@ type Book {
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -623,7 +623,7 @@ type Book {
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -674,7 +674,7 @@ type Book {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -717,7 +717,7 @@ type Book {
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -758,7 +758,7 @@ type Book {
           const __idContextCountMap = new Map() // context count
           function __id({ name, key, depth }) {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
@@ -792,7 +792,7 @@ type Book {
           const __idContextCountMap = new Map<string, number>() // context count
           function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
@@ -831,7 +831,7 @@ type Book {
           const __idContextCountMap = new Map<string, number>() // context count
           function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
@@ -871,7 +871,7 @@ type Book {
           const __idContextCountMap = new Map() // context count
           function __id({ name, key, depth }) {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + __idGlobalId + "_d" + depth + "_c" + count;
+              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
