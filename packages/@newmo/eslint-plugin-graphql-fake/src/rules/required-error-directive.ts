@@ -4,7 +4,7 @@ export const requiredErrorDirectiveRule: GraphQLESLintRule = {
     meta: {
         type: "problem",
         docs: {
-            category: "Best Practices",
+            category: "Operations",
             description: "Require @error directive on fields named errors",
             url: "https://github.com/newmo-oss/graphql-fake-server", // TODO: Add specific URL for the rule
             recommended: true,

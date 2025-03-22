@@ -36,30 +36,30 @@ npm install @newmo/graphql-fake-server --save-dev
 ```
 
 2. Add example directives to the GraphQL schema.
-  - Primitive types: `ID`, `String`, `Int`, `Float`, `Boolean`
-    - `@exampleID`: Specifies an example value for a ID or String field and the value will be unique between all ID fake data.
-    - `@exampleString`: Specifies an example value for a String field.
-    - `@exampleInt`: Specifies an example value for a Int field.
-    - `@exampleFloat`: Specifies an example value for a Float field.
-    - `@exampleBoolean`: Specifies an example value for a Boolean field.
-  - Array types: `[ID!]`, `[String!]`, `[Int!]`, `[Float!]`, `[Boolean!]`
-    - `@exampleArrayID`: Specifies an example value for a array of ID field.
-    - `@exampleArrayString`: Specifies an example value for a array of String field.
-    - `@exampleArrayInt`: Specifies an example value for a array of Int field.
-    - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
-    - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
-  - Custom scalar types:
-    - `@exampleScalarString`: Specifies an example value for a scalar field.
-    - `@exampleScalarInt`: Specifies an example value for a scalar field.
-    - `@exampleScalarFloat`: Specifies an example value for a scalar field.
-    - `@exampleScalarBoolean`: Specifies an example value for a scalar field.
-  - Special types:
-    - `@error`: Mark the fields as error fields. This fields make empty array by default.
+
+- Primitive types: `ID`, `String`, `Int`, `Float`, `Boolean`
+  - `@exampleID`: Specifies an example value for a ID or String field and the value will be unique between all ID fake data.
+  - `@exampleString`: Specifies an example value for a String field.
+  - `@exampleInt`: Specifies an example value for a Int field.
+  - `@exampleFloat`: Specifies an example value for a Float field.
+  - `@exampleBoolean`: Specifies an example value for a Boolean field.
+- Array types: `[ID!]`, `[String!]`, `[Int!]`, `[Float!]`, `[Boolean!]`
+  - `@exampleArrayID`: Specifies an example value for a array of ID field.
+  - `@exampleArrayString`: Specifies an example value for a array of String field.
+  - `@exampleArrayInt`: Specifies an example value for a array of Int field.
+  - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
+  - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
+- Custom scalar types:
+  - `@exampleScalarString`: Specifies an example value for a scalar field.
+  - `@exampleScalarInt`: Specifies an example value for a scalar field.
+  - `@exampleScalarFloat`: Specifies an example value for a scalar field.
+  - `@exampleScalarBoolean`: Specifies an example value for a scalar field.
+- Special types:
+  - `@error`: Mark the fields as error fields. This fields make empty array by default.
 
 `graphql/schema.graphql`:
 
 ```graphql
-
 """
 @exampleID directive specifies an example value for a ID field.
 This example value is used in the fake data.
@@ -223,21 +223,20 @@ It allows setting an error response and specifying the field name.
 """
 directive @error on FIELD_DEFINITION
 
-
 # Your schema
 type Book {
-    id: ID! @exampleID(value: "book-id")
-    title: String! @exampleString(value: "The Great Gatsby")
-    author: Author!
-    errors: [Error!]! @error
+  id: ID! @exampleID(value: "book-id")
+  title: String! @exampleString(value: "The Great Gatsby")
+  author: Author!
+  errors: [Error!]! @error
 }
 type Author {
-    id: ID! @exampleID(value: "author-id")
-    name: String! @exampleString(value: "F. Scott Fitzgerald")
-    age: Int! @exampleInt(value: 33)
+  id: ID! @exampleID(value: "author-id")
+  name: String! @exampleString(value: "F. Scott Fitzgerald")
+  age: Int! @exampleInt(value: 33)
 }
 type Query {
-    books: [Book!]!
+  books: [Book!]!
 }
 ```
 
@@ -316,16 +315,16 @@ ${name}_g${global_id}_d${depth}_c${count}
 All example directives are used to define fake data.
 """
 type TestThings {
-    id: ID! @exampleID(value: "id")
-    name: String! @exampleString(value: "example")
-    age: Int! @exampleInt(value: 1)
-    height: Float! @exampleFloat(value: 1.0)
-    isBool: Boolean! @exampleBoolean(value: true)
-    ids: [ID!]! @exampleArrayID(values: ["id1", "id2"])
-    names: [String!]! @exampleArrayString(values: ["example1", "example2"])
-    ages: [Int!]! @exampleArrayInt(values: [1, 2])
-    heights: [Float!]! @exampleArrayFloat(values: [1.0, 2.0])
-    isBools: [Boolean!]! @exampleArrayBoolean(values: [true, false])
+  id: ID! @exampleID(value: "id")
+  name: String! @exampleString(value: "example")
+  age: Int! @exampleInt(value: 1)
+  height: Float! @exampleFloat(value: 1.0)
+  isBool: Boolean! @exampleBoolean(value: true)
+  ids: [ID!]! @exampleArrayID(values: ["id1", "id2"])
+  names: [String!]! @exampleArrayString(values: ["example1", "example2"])
+  ages: [Int!]! @exampleArrayInt(values: [1, 2])
+  heights: [Float!]! @exampleArrayFloat(values: [1.0, 2.0])
+  isBools: [Boolean!]! @exampleArrayBoolean(values: [true, false])
 }
 ```
 
@@ -345,28 +344,28 @@ $ npx graphql-fake-server
 
 ```ts
 const sequenceId = "unique-sequence-id-1";
-fetch('http://127.0.0.1:4000/fake', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        // sequence-id is the unique identifier of the fake data.
-        'sequence-id': sequenceId
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    // sequence-id is the unique identifier of the fake data.
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    // operationName is the name of the operation in the GraphQL schema.
+    operationName: "GetBooks",
+    // data is the fake data to be returned.
+    data: {
+      books: [
+        {
+          id: "book-id00",
+          title: "The Great Gatsby",
+        },
+      ],
     },
-    body: JSON.stringify({
-        type: "operation",
-        // operationName is the name of the operation in the GraphQL schema.
-        operationName: "GetBooks",
-        // data is the fake data to be returned.
-        data: {
-            books: [
-                {
-                    id: "book-id00",
-                    title: "The Great Gatsby",
-                }
-              ]
-        }
-    }),
-})
+  }),
+});
 ```
 
 3. Request and get Fake Data via HTTP.
@@ -375,22 +374,22 @@ fetch('http://127.0.0.1:4000/fake', {
 
 ```ts
 const sequenceId = "unique-sequence-id-1";
-const response = await fetch('http://127.0.0.1:4000/query', {
-   method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'sequence-id': sequenceId
-    },
-    body: JSON.stringify({
-        query: `
+const response = await fetch("http://127.0.0.1:4000/query", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    query: `
             query GetBooks {
                 books {
                     id
                     title
                 }
             }
-        `
-    }),
+        `,
+  }),
 });
 const json = await response.json();
 console.log(json);
@@ -410,6 +409,12 @@ console.log(json);
 
 > [!NOTE]
 > If you use TypeScript, you can use [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client) to generate a client for the Fake Server.
+
+## ESLint Plugin
+
+[`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake) provides ESLint rules for GraphQL Fake Server. The plugin helps to enforce best practices when using GraphQL Fake Server.
+
+- [`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake)
 
 ## Examples
 
@@ -516,6 +521,7 @@ type Query {
 Or, You can create a config file for `@newmo/graphql-fake-server` to define the default value of the custom scalar.
 
 `fake-server.config.mjs`:
+
 ```js
 /**
  * @type {import("@newmo/graphql-fake-server").FakeServerConfig}
@@ -527,9 +533,9 @@ const config = {
     CustomScalar: {
       Digit: "1",
       DateYYYYMMDD: "'2022-02-03'",
-      ISODateTime: "new Date().toISOString()"
-    }
-  }
+      ISODateTime: "new Date().toISOString()",
+    },
+  },
 };
 export default config;
 ```
@@ -552,14 +558,14 @@ As a result, the graphql request body should includes `operationName` value.
 ```js
 const sequenceId = crypto.randomUUID();
 const response = await fetch(`${urls.fakeServer}/graphql`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "sequence-id": sequenceId,
-    },
-    body: JSON.stringify({
-        operationName: "GetDog", // <= required
-        query: `
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    operationName: "GetDog", // <= required
+    query: `
             query GetDog {
                 dog {
                     id
@@ -567,7 +573,7 @@ const response = await fetch(`${urls.fakeServer}/graphql`, {
                 }
             }
         `,
-    }),
+  }),
 });
 ```
 
@@ -600,7 +606,7 @@ input CreateDocumentInput {
 
 ## License
 
-MIT 
+MIT
 
 ## Credits
 
