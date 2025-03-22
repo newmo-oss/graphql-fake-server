@@ -9,6 +9,7 @@ const ruleTester = new VitestESLintRuleTester({
         parserOptions: {
             graphQLConfig: {
                 schema: /* GraphQL */ `
+          # @error directive
           directive @error on FIELD_DEFINITION
 
           type SendCustomEventError {

@@ -49,7 +49,7 @@ type UpdateUserResult {
 ## Error Message
 
 ```
-@error: Mark the fields as error fields. This fields make empty array by default. Without @error directive, the errors field will have default fake values, which may cause unexpected error responses.
+should have `@error` directive for `errors` field.
 ```
 
 ## Technical Details
