@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "nodenext",
+    "module": "NodeNext",
+    "outDir": "dist/esm",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "rootDirs": ["src"],
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*"]
+}
