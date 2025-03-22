@@ -1,0 +1,71 @@
+{
+  "name": "@newmo/eslint-plugin-graphql-fake",
+  "version": "0.1.0",
+  "private": false,
+  "description": "ESLint plugin for GraphQL fake",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "graphql",
+    "fake",
+    "testing",
+    "mock"
+  ],
+  "repository": "https://github.com/newmo-oss/graphql-fake-server.git",
+  "license": "MIT",
+  "author": "newmo, Inc.",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    }
+  },
+  "main": "./dist/esm/index.js",
+  "files": [
+    "src/",
+    "!src/test",
+    "!src/**/*.test.ts",
+    "!src/**/__snapshots__",
+    "dist/"
+  ],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "run-s -c build:*",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "lint": "run-s -c lint:*",
+    "lint:tsc": "tsc",
+    "test": "vitest run",
+    "updateSnapshot": "vitest run -u"
+  },
+  "dependencies": {
+    "@graphql-eslint/eslint-plugin": "^4.3.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.0",
+    "@tsconfig/strictest": "^2.0.1",
+    "@types/eslint": "^9.6.1",
+    "@types/node": "^22.13.1",
+    "eslint": "^9.23.0",
+    "graphql": "^16.10.0",
+    "npm-run-all2": "^7.0.2",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9",
+    "vitest-github-actions-reporter": "^0.11.1"
+  },
+  "peerDependencies": {
+    "eslint": ">=9.0.0",
+    "graphql": "^16.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
