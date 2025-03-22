@@ -9,10 +9,11 @@ const ruleTester = new VitestESLintRuleTester({
         parserOptions: {
             graphQLConfig: {
                 schema: /* GraphQL */ `
-          # Optionally, your schema, your rule could have access to it
-        `,
-                documents: /* GraphQL */ `
-          # Optionally, your operations, your rule could have access to them
+          directive @error on FIELD_DEFINITION
+
+          type SendCustomEventError {
+            message: String!
+          }
         `,
             },
         },
@@ -25,31 +26,31 @@ describe("required-error-directive", () => {
         valid: [
             // 1. Valid case: errors field has @error directive
             {
-                code: `
-        type SendCustomEventPayload {
-          customEventId: String
-          errors: [SendCustomEventError!]! @error
-        }
+                code: /* GraphQL */ `
+          type SendCustomEventPayload {
+            customEventId: String
+            errors: [SendCustomEventError!]! @error
+          }
         `,
             },
             // 2. Valid case: no errors field
             {
-                code: `
-        type UserType {
-          id: ID!
-          name: String!
-        }
+                code: /* GraphQL */ `
+          type UserType {
+            id: ID!
+            name: String!
+          }
         `,
             },
         ],
         invalid: [
             // Invalid case: missing @error directive on errors field
             {
-                code: `
-        type SendCustomEventPayload {
-          customEventId: String
-          errors: [SendCustomEventError!]!
-        }
+                code: /* GraphQL */ `
+          type SendCustomEventPayload {
+            customEventId: String
+            errors: [SendCustomEventError!]!
+          }
         `,
                 errors: [
                     {
