@@ -1,4 +1,8 @@
 {
+  "extends": [
+    "@tsconfig/strictest/tsconfig.json",
+    "@tsconfig/node18/tsconfig.json"
+  ],
   "compilerOptions": {
     "moduleResolution": "nodenext",
     "module": "NodeNext",
@@ -7,8 +11,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "rootDirs": ["src"],
-    "lib": ["ES2022"],
-    "types": ["node"]
+    "lib": ["ES2022"]
   },
   "include": ["src/**/*"]
 }

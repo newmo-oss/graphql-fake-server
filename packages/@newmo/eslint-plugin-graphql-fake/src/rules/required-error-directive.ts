@@ -5,13 +5,12 @@ export const requiredErrorDirectiveRule: GraphQLESLintRule = {
         type: "problem",
         docs: {
             category: "Operations",
-            description: "Require @error directive on fields named errors",
-            url: "https://github.com/newmo-oss/graphql-fake-server", // TODO: Add specific URL for the rule
-            recommended: true,
+            // description: "Require @error directive on fields named errors",
+            // url: "https://github.com/newmo-oss/graphql-fake-server", // TODO: Add specific URL for the rule
+            // recommended: true,
         },
         messages: {
-            missingErrorDirective:
-                "@error: Mark the fields as error fields. This fields make empty array by default. Without @error directive, the errors field will have default fake values, which may cause unexpected error responses.",
+            missingErrorDirective: "should have `@error` directive for `errors` field.",
         },
         schema: [], // no options
     },
