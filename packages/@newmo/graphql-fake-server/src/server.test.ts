@@ -19,7 +19,12 @@ const getPorts = () => {
 const startTestFakeServer = async ({
     schemaString,
     ports,
-}: { schemaString: string; ports: ReturnType<typeof getPorts> }) => {
+    allowedCORSOrigins,
+}: {
+    schemaString: string;
+    ports: ReturnType<typeof getPorts>;
+    allowedCORSOrigins?: string[];
+}) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
     const mockResult = await createMock({
@@ -40,6 +45,7 @@ const startTestFakeServer = async ({
         maxQueryDepth: 3,
         maxFieldRecursionDepth: 4,
         maxRegisteredSequences: 100,
+        allowedCORSOrigins: allowedCORSOrigins ?? [],
     });
 };
 describe("graphql-fake-server", () => {
@@ -70,6 +76,66 @@ describe("graphql-fake-server", () => {
             });
             expect(await response.text()).includes("Not allowed by CORS");
             expect(response.status).toBe(500);
+        });
+    });
+    describe("CORS", () => {
+        it("should not deny CORS request from outer by default", async () => {
+            const schema = `
+              type Query {
+                  hello: String!
+              }
+          `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({ schemaString: schema, ports });
+            const { urls } = await server.start();
+            const response = await fetch(`${urls.apolloServer}/query`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Origin: "https://example.com",
+                },
+                body: JSON.stringify({
+                    operationName: "Hello",
+                    query: `
+                      query Hello {
+                          hello
+                      }
+                  `,
+                }),
+            });
+            expect(await response.text()).includes("Not allowed by CORS");
+            expect(response.status).toBe(500);
+        });
+        it("should allow CORS request from outer when allowed", async () => {
+            const schema = `
+              type Query {
+                  hello: String!
+              }
+          `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+                allowedCORSOrigins: ["https://example.test"],
+            });
+            const { urls } = await server.start();
+            const response = await fetch(`${urls.apolloServer}/query`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Origin: "https://example.test",
+                },
+                body: JSON.stringify({
+                    operationName: "Hello",
+                    query: `
+                      query Hello {
+                          hello
+                      }
+                  `,
+                }),
+            });
+            expect(await response.text()).not.toMatch("Not allowed by CORS");
+            expect(response.status).toBe(200);
         });
     });
     describe("/fake", () => {

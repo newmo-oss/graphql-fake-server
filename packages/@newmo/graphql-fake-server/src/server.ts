@@ -20,6 +20,7 @@ import { type LogLevel, createLogger } from "./logger.js";
 
 export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
+    allowedCORSOrigins: string[];
 };
 
 type FakeServerInternal = {
@@ -33,17 +34,19 @@ type FakeServerInternal = {
     maxFieldRecursionDepth: number;
     maxRegisteredSequences: number;
     logLevel: LogLevel;
+    allowedCORSOrigins: string[];
 };
 
 /**
  * Custom startStandaloneServer with CORS configuration
- * This restricts CORS to only allow localhost and internal network connections
+ * This restricts CORS to only allow localhost, internal network connections, and specified allowed origins
  */
 const startStandaloneServerWithCORS = async (
     server: ApolloServer,
     options: {
         listen: { port: number };
     },
+    allowedCORSOrigins: string[] = [],
 ) => {
     // Create Express app with custom CORS configuration
     const app = express();
@@ -63,8 +66,13 @@ const startStandaloneServerWithCORS = async (
                 // Allow requests with no origin (like mobile apps, curl, etc)
                 if (!origin) return callback(null, true);
 
-                // Allow localhost and loopback addresses
+                // Allow localhost, loopback addresses, and explicitly allowed origins
                 if (isLocalRequest(origin)) {
+                    return callback(null, true);
+                }
+
+                // Allow explicitly allowed origins from configuration
+                if (allowedCORSOrigins.includes(origin)) {
                     return callback(null, true);
                 }
 
@@ -232,6 +240,7 @@ const createRoutingServer = async ({
     logLevel,
     ports,
     maxRegisteredSequences,
+    allowedCORSOrigins,
 }: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
@@ -239,6 +248,7 @@ const createRoutingServer = async ({
         fakeServer: number;
         apolloServer: number;
     };
+    allowedCORSOrigins: string[];
 }) => {
     const logger = createLogger(logLevel);
     // pass through to apollo server
@@ -530,6 +540,9 @@ const createRoutingServer = async ({
                 if (isLocalRequest(origin)) {
                     return origin;
                 }
+                if (origin && allowedCORSOrigins.includes(origin)) {
+                    return origin;
+                }
                 return null;
             },
         }),
@@ -539,6 +552,9 @@ const createRoutingServer = async ({
         cors({
             origin: (origin) => {
                 if (isLocalRequest(origin)) {
+                    return origin;
+                }
+                if (origin && allowedCORSOrigins.includes(origin)) {
                     return origin;
                 }
                 return null;
@@ -559,6 +575,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         ports,
         schemaFilePath,
         defaultValues,
+        allowedCORSOrigins,
     } = options;
     const logger = createLogger(logLevel);
     const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
@@ -583,6 +600,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         maxFieldRecursionDepth,
         maxRegisteredSequences,
         logLevel: logLevel ?? "info",
+        allowedCORSOrigins,
     });
 };
 
@@ -592,14 +610,19 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
         logLevel: options.logLevel,
         ports: options.ports,
         maxRegisteredSequences: options.maxRegisteredSequences,
+        allowedCORSOrigins: options.allowedCORSOrigins,
     });
     let routerServer: ReturnType<typeof serve> | null = null;
     return {
         start: async () => {
             // Replace startStandaloneServer with our custom implementation
-            const { url } = await startStandaloneServerWithCORS(apolloServer, {
-                listen: { port: options.ports.apolloServer },
-            });
+            const { url } = await startStandaloneServerWithCORS(
+                apolloServer,
+                {
+                    listen: { port: options.ports.apolloServer },
+                },
+                options.allowedCORSOrigins,
+            );
             routerServer = serve({
                 fetch: routingServer.fetch,
                 port: options.ports.fakeServer,
