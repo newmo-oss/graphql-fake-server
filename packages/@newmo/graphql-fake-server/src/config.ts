@@ -55,6 +55,12 @@ export type FakeServerConfig = {
      * Default is "info".
      */
     logLevel?: LogLevel | undefined;
+    /**
+     * Additional origins to allow for CORS requests.
+     * By default, only localhost and private IP ranges are allowed.
+     * This option allows you to specify additional origins to accept.
+     */
+    allowedCORSOrigins?: string[] | undefined;
 };
 export type RequiredFakeServerConfig = {
     schemaFilePath: string;
@@ -67,6 +73,7 @@ export type RequiredFakeServerConfig = {
     maxQueryDepth: number;
     defaultValues: RawConfig["defaultValues"];
     logLevel: LogLevel;
+    allowedCORSOrigins: string[];
 };
 
 export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFakeServerConfig => {
@@ -81,6 +88,7 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
         maxQueryDepth: config.maxQueryDepth ?? 10,
         defaultValues: config.defaultValues ?? {},
         logLevel: config.logLevel ?? "info",
+        allowedCORSOrigins: config.allowedCORSOrigins ?? [],
     };
 };
 export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerConfig => {
@@ -118,6 +126,16 @@ export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerCo
     // ["debug", "info", "warn", "error"].includes(logLevel)
     if (config.logLevel && !["debug", "info", "warn", "error"].includes(config.logLevel)) {
         throw new Error("The logLevel must be one of 'debug', 'info', 'warn', 'error'.");
+    }
+    if (config.allowedCORSOrigins) {
+        if (!Array.isArray(config.allowedCORSOrigins)) {
+            throw new Error("The allowedCORSOrigins must be an array.");
+        }
+        for (const origin of config.allowedCORSOrigins) {
+            if (typeof origin !== "string") {
+                throw new Error("Each allowedCORSOrigin must be a string.");
+            }
+        }
     }
     return config;
 };

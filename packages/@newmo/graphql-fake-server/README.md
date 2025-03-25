@@ -133,6 +133,7 @@ export default {
         Float: 1.1,
         Boolean: true,
     },
+    allowedCORSOrigins: ["http://eample.localhost:3000"]
 };
 ```
 
@@ -192,6 +193,12 @@ export type FakeServerConfig = {
      * Default is "info".
      */
     logLevel?: LogLevel | undefined;
+    /**
+    * Additional origins to allow for CORS requests.
+    * By default, only localhost and private IP ranges are allowed.
+    * This option allows you to specify additional origins to accept.
+    */
+    allowedCORSOrigins?: string[] | undefined;
 };
 ```
 
