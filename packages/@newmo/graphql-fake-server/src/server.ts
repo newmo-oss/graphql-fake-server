@@ -1,10 +1,14 @@
 import fs from "node:fs/promises";
+import http from "node:http";
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { serve } from "@hono/node-server";
 import { type MockObject, createMock } from "@newmo/graphql-fake-core";
+import corsExpress from "cors";
+import express from "express";
 // @ts-expect-error -- no types
 import depthLimit from "graphql-depth-limit";
 import type { GraphQLSchema } from "graphql/index.js";
@@ -30,6 +34,61 @@ type FakeServerInternal = {
     maxRegisteredSequences: number;
     logLevel: LogLevel;
 };
+
+/**
+ * Custom startStandaloneServer with CORS configuration
+ * This restricts CORS to only allow localhost and internal network connections
+ */
+const startStandaloneServerWithCORS = async (
+    server: ApolloServer,
+    options: {
+        listen: { port: number };
+    },
+) => {
+    // Create Express app with custom CORS configuration
+    const app = express();
+    const httpServer = http.createServer(app);
+
+    // Add drain plugin for graceful shutdown
+    server.addPlugin(ApolloServerPluginDrainHttpServer({ httpServer }));
+
+    // Ensure server is started
+    await server.start();
+
+    // Set up Express middleware with strict CORS that only allows localhost
+    app.use(
+        "/",
+        corsExpress({
+            origin: (origin, callback) => {
+                // Allow requests with no origin (like mobile apps, curl, etc)
+                if (!origin) return callback(null, true);
+
+                // Allow localhost and loopback addresses
+                if (isLocalRequest(origin)) {
+                    return callback(null, true);
+                }
+
+                // Deny all other origins
+                return callback(new Error("Not allowed by CORS"), false);
+            },
+            methods: ["POST", "GET", "OPTIONS"],
+            credentials: false,
+        }),
+        express.json({ limit: "50mb" }),
+        // @ts-expect-error -- express 5 types are not compatible with apollo-server
+        expressMiddleware(server, options),
+    );
+
+    // Start the server
+    const port = options.listen.port ?? 4000;
+    await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
+
+    return {
+        url: `http://127.0.0.1:${port}/`,
+        httpServer,
+    };
+};
+
 const creteApolloServer = async (options: FakeServerInternal) => {
     const mocks = Object.fromEntries(
         Object.entries(options.mockObject).map(([key, value]) => {
@@ -537,7 +596,8 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
     let routerServer: ReturnType<typeof serve> | null = null;
     return {
         start: async () => {
-            const { url } = await startStandaloneServer(apolloServer, {
+            // Replace startStandaloneServer with our custom implementation
+            const { url } = await startStandaloneServerWithCORS(apolloServer, {
                 listen: { port: options.ports.apolloServer },
             });
             routerServer = serve({
