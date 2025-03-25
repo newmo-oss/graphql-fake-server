@@ -84,7 +84,7 @@ const startStandaloneServerWithCORS = async (
     await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
 
     return {
-        url: `http://localhost:${port}/`,
+        url: `http://127.0.0.1:${port}/`,
         httpServer,
     };
 };
