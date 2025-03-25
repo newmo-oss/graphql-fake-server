@@ -43,6 +43,35 @@ const startTestFakeServer = async ({
     });
 };
 describe("graphql-fake-server", () => {
+    describe("ApolloServer", () => {
+        it("should not deny CORS request from outer", async () => {
+            const schema = `
+              type Query {
+                  hello: String!
+              }
+          `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({ schemaString: schema, ports });
+            const { urls } = await server.start();
+            const response = await fetch(`${urls.apolloServer}/query`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Origin: "https://example.com",
+                },
+                body: JSON.stringify({
+                    operationName: "Hello",
+                    query: `
+                      query Hello {
+                          hello
+                      }
+                  `,
+                }),
+            });
+            expect(await response.text()).includes("Not allowed by CORS");
+            expect(response.status).toBe(500);
+        });
+    });
     describe("/fake", () => {
         it("should fake response from graphql server", async () => {
             const schema = `
