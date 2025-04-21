@@ -18,6 +18,7 @@ import { cors } from "hono/cors";
 import type { RequiredFakeServerConfig } from "./config.js";
 import { type LogLevel, createLogger } from "./logger.js";
 
+// @ts-expect-error -- biome error
 const ENV_HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
 export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
