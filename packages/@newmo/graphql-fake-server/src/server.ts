@@ -18,6 +18,7 @@ import { cors } from "hono/cors";
 import type { RequiredFakeServerConfig } from "./config.js";
 import { type LogLevel, createLogger } from "./logger.js";
 
+const ENV_HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
 export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
     allowedCORSOrigins: string[];
@@ -92,7 +93,7 @@ const startStandaloneServerWithCORS = async (
     await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
 
     return {
-        url: `http://127.0.0.1:${port}/`,
+        url: `http://${ENV_HOSTNAME}:${port}/`,
         httpServer,
     };
 };
@@ -227,7 +228,7 @@ const isLocalRequest = (origin: string | null): boolean => {
         const url = new URL(origin);
         const hostname = url.hostname;
         // localhost and 127.0.0.1 are standard local addresses
-        if (hostname === "localhost" || hostname === "127.0.0.1") {
+        if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === ENV_HOSTNAME) {
             return true;
         }
         return privateIPRanges.some((range) => range.test(hostname));
@@ -262,7 +263,7 @@ const createRoutingServer = async ({
             path,
         });
         path = path.replace(new RegExp(`^${c.req.routePath.replace("*", "")}`), "/");
-        let url = `http://127.0.0.1:${ports.apolloServer}${path}`;
+        let url = `http://${ENV_HOSTNAME}:${ports.apolloServer}${path}`;
         // add params to URL
         if (c.req.query()) url = `${url}?${new URLSearchParams(c.req.query())}`;
         const sequenceId = c.req.header("sequence-id");
@@ -480,7 +481,7 @@ const createRoutingServer = async ({
         logger.debug("request to apollo-server", {
             sequenceId,
         });
-        const rep = await fetch(`http://127.0.0.1:${ports.apolloServer}/graphql`, {
+        const rep = await fetch(`http://${ENV_HOSTNAME}:${ports.apolloServer}/graphql`, {
             method: c.req.method,
             headers: c.req.raw.headers,
             body: c.req.raw.body,
@@ -629,8 +630,8 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
             });
             return {
                 urls: {
-                    fakeServer: `http://127.0.0.1:${options.ports.fakeServer}`,
-                    apolloServer: `http://127.0.0.1:${options.ports.apolloServer}`,
+                    fakeServer: `http://${ENV_HOSTNAME}:${options.ports.fakeServer}`,
+                    apolloServer: `http://${ENV_HOSTNAME}:${options.ports.apolloServer}`,
                 },
             };
         },
