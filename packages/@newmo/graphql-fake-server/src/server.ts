@@ -6,17 +6,17 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { serve } from "@hono/node-server";
-import { type MockObject, createMock } from "@newmo/graphql-fake-core";
+import { createMock, type MockObject } from "@newmo/graphql-fake-core";
 import corsExpress from "cors";
 import express from "express";
-// @ts-expect-error -- no types
-import depthLimit from "graphql-depth-limit";
 import type { GraphQLSchema } from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
+// @ts-expect-error -- no types
+import depthLimit from "graphql-depth-limit";
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import type { RequiredFakeServerConfig } from "./config.js";
-import { type LogLevel, createLogger } from "./logger.js";
+import { createLogger, type LogLevel } from "./logger.js";
 
 // @ts-expect-error -- biome error
 const ENV_HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
@@ -208,7 +208,10 @@ class LRUMap<K, V> {
 const createMapKey = ({
     sequenceId,
     operationName,
-}: { sequenceId: string; operationName: string }) => {
+}: {
+    sequenceId: string;
+    operationName: string;
+}) => {
     return `${sequenceId}.${operationName}`;
 };
 
@@ -412,7 +415,7 @@ const createRoutingServer = async ({
         );
     });
     const fakeGraphQLQuery = async (c: Context) => {
-        const requestTimestamp = Date.now();
+        const _requestTimestamp = Date.now();
         /**
          * Steps:
          * 1. Receive a request for a GraphQL query
