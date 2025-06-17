@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import http from "node:http";
 import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { expressMiddleware } from "@as-integrations/express5";
 import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { serve } from "@hono/node-server";
