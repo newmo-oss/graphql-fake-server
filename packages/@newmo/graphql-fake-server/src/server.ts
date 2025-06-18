@@ -582,7 +582,7 @@ const createRoutingServer = async ({
             data,
             responseBody,
         });
-        const responseData = responseBody.data;
+        const responseData = responseBody.data as any;
         const merged = {
             ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
             ...data,
