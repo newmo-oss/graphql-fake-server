@@ -317,11 +317,7 @@ const createRoutingServer = async ({
         // save request and response for /called api
         if (sequenceId && typeof operationName === "string") {
             logger.debug("passToApollo: getting response body for caching");
-            const responseText = await proxyResponse.clone().text();
-            logger.debug("passToApollo: got response text", {
-                responseText,
-            });
-            const responseBody = JSON.parse(responseText) as Record<string, unknown>;
+            const responseBody = (await proxyResponse.clone().json()) as Record<string, unknown>;
             logger.debug("passToApollo: parsed response body", {
                 responseBody,
             });
@@ -575,11 +571,7 @@ const createRoutingServer = async ({
 
         // 4. Get response body
         logger.debug("fakeGraphQLQuery: getting response body");
-        const responseText = await proxyResponse.text();
-        logger.debug("fakeGraphQLQuery: got response text", {
-            responseText,
-        });
-        const responseBody = JSON.parse(responseText);
+        const responseBody = (await proxyResponse.json()) as Record<string, unknown>;
         logger.debug("fakeGraphQLQuery: parsed response body", {
             responseBody,
         });
@@ -590,8 +582,9 @@ const createRoutingServer = async ({
             data,
             responseBody,
         });
+        const responseData = responseBody.data;
         const merged = {
-            ...responseBody.data,
+            ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
             ...data,
         };
 
