@@ -582,7 +582,8 @@ const createRoutingServer = async ({
             data,
             responseBody,
         });
-        const responseData = responseBody.data as any;
+        // Use bracket notation for properties from index signature
+        const responseData = responseBody["data"] as any;
         const merged = {
             ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
             ...data,

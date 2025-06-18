@@ -1301,10 +1301,11 @@ describe("graphql-fake-server", () => {
             expect(calledResult.data.length).toBe(2);
             assert(calledResult.data[0]);
             assert(calledResult.data[1]);
-            expect(calledResult.data[0].request.body.variables).toEqual({
+            // Use bracket notation for properties from index signature
+            expect(calledResult.data[0].request.body["variables"]).toEqual({
                 title: "1111",
             });
-            expect(calledResult.data[1].request.body.variables).toEqual({
+            expect(calledResult.data[1].request.body["variables"]).toEqual({
                 title: "2222",
             });
         });
