@@ -1,11 +1,11 @@
 import type { CodegenPlugin } from "@graphql-codegen/plugin-helpers";
-import { type RawPluginConfig, normalizeConfig } from "./config";
+import { normalizeConfig, type RawPluginConfig } from "./config";
 import { convertName } from "./convertName";
 
 const plugin: CodegenPlugin<RawPluginConfig> = {
-    plugin(schema, documents, rawConfig, _info) {
+    plugin(_schema, documents, rawConfig, _info) {
         const config = normalizeConfig(rawConfig);
-        const fakeEndpoint = config.fakeServerEndpoint;
+        const _fakeEndpoint = config.fakeServerEndpoint;
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
         type GenerateFakeFunction =
             | {

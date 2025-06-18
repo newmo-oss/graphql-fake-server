@@ -15,6 +15,7 @@ import { buildSchema } from "graphql/utilities/index.js";
 import depthLimit from "graphql-depth-limit";
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
+import { proxy } from "hono/proxy";
 import type { RequiredFakeServerConfig } from "./config.js";
 import { createLogger, type LogLevel } from "./logger.js";
 
@@ -94,7 +95,7 @@ const startStandaloneServerWithCORS = async (
     await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
 
     return {
-        url: `http://${ENV_HOSTNAME}:${port}/`,
+        url: `http://${ENV_HOSTNAME}:${port}`,
         httpServer,
     };
 };
@@ -256,44 +257,85 @@ const createRoutingServer = async ({
     allowedCORSOrigins: string[];
 }) => {
     const logger = createLogger(logLevel);
+    const app = new Hono();
     // pass through to apollo server
     const passToApollo = async (c: Context) => {
+        logger.debug("passToApollo: starting");
         // remove prefix
         // prefix = /app1/*, path = /app1/a/b
         // => suffix_path = /a/b
         // let path = new URL(c.req.raw.url).pathname
         let path = c.req.path;
-        logger.debug("pass to apollo server", {
+        logger.debug("passToApollo: got path", {
             path,
+            routePath: c.req.routePath,
         });
         path = path.replace(new RegExp(`^${c.req.routePath.replace("*", "")}`), "/");
         let url = `http://${ENV_HOSTNAME}:${ports.apolloServer}${path}`;
         // add params to URL
         if (c.req.query()) url = `${url}?${new URLSearchParams(c.req.query())}`;
+        logger.debug("passToApollo: built URL", { url });
+
         const sequenceId = c.req.header("sequence-id");
+        logger.debug("passToApollo: getting request body", { sequenceId });
+
         const requestBody = await c.req.raw.clone().json();
+        logger.debug("passToApollo: got request body", { requestBody });
+
         const operationName =
             typeof requestBody === "object" &&
             requestBody !== null &&
             "operationName" in requestBody
                 ? requestBody.operationName
                 : undefined;
+
         // request
-        const rep = await fetch(url, {
-            method: c.req.method,
-            headers: c.req.raw.headers,
-            body: c.req.raw.body,
-            duplex: "half",
+        logger.debug("passToApollo: calling proxy", {
+            url,
+            sequenceId,
+            operationName,
+            headers: c.req.header(),
         });
+
+        const proxyResponse = await proxy(url, {
+            raw: c.req.raw,
+            headers: {
+                ...c.req.header(),
+            },
+        });
+
+        logger.debug("passToApollo: proxy call completed", {
+            sequenceId,
+            operationName,
+            status: proxyResponse.status,
+            headers: Object.fromEntries(proxyResponse.headers),
+        });
+
         // log response with pipe
-        if (rep.status === 101) return rep;
+        if (proxyResponse.status === 101) return proxyResponse;
+
         // save request and response for /called api
         if (sequenceId && typeof operationName === "string") {
-            const responseBody = (await rep.clone().json()) as Record<string, unknown>;
+            logger.debug("passToApollo: getting response body for caching");
+            const responseText = await proxyResponse.clone().text();
+            logger.debug("passToApollo: got response text", {
+                responseText,
+            });
+            const responseBody = JSON.parse(responseText) as Record<string, unknown>;
+            logger.debug("passToApollo: parsed response body", {
+                responseBody,
+            });
+
             const cacheKey = createMapKey({
                 sequenceId,
                 operationName,
             });
+            logger.debug("save called result", {
+                sequenceId,
+                operationName,
+                cacheKey,
+            });
+
             sequenceCalledResultLruMap.set(cacheKey, [
                 ...(sequenceCalledResultLruMap.get(cacheKey) ?? []),
                 {
@@ -303,14 +345,20 @@ const createRoutingServer = async ({
                         body: requestBody as Record<string, unknown>,
                     },
                     response: {
-                        status: rep.status,
-                        headers: Object.fromEntries(rep.headers),
+                        status: proxyResponse.status,
+                        headers: Object.fromEntries(proxyResponse.headers),
                         body: responseBody,
                     },
                 },
             ]);
         }
-        return new Response(rep.body, rep);
+
+        logger.debug("passToApollo: returning proxy response", {
+            sequenceId,
+            operationName,
+            status: proxyResponse.status,
+        });
+        return proxyResponse;
     };
     // sequenceId x operationName -> FakeResponse
     const sequenceFakeResponseLruMap = new LRUMap<string, RegisterSequenceOptions>({
@@ -321,7 +369,6 @@ const createRoutingServer = async ({
     const sequenceCalledResultLruMap = new LRUMap<string, CalledResult[]>({
         maxSize: maxRegisteredSequences,
     });
-    const app = new Hono();
     // /fake api does not support CORS
     // because it allows any user to modify the response
     // If you need to support CORS, implement with checking the origin or something
@@ -415,6 +462,7 @@ const createRoutingServer = async ({
         );
     });
     const fakeGraphQLQuery = async (c: Context) => {
+        logger.debug("fakeGraphQLQuery: starting");
         const _requestTimestamp = Date.now();
         /**
          * Steps:
@@ -427,7 +475,13 @@ const createRoutingServer = async ({
          * 5. Return the merged data
          */
         const sequenceId = c.req.header("sequence-id");
+
+        logger.debug("fakeGraphQLQuery: getting request body", { sequenceId });
         const requestBody = await c.req.raw.clone().json();
+        logger.debug("fakeGraphQLQuery: got request body", {
+            requestBody,
+        });
+
         const requestOperationName =
             typeof requestBody === "object" &&
             requestBody !== null &&
@@ -436,12 +490,22 @@ const createRoutingServer = async ({
             typeof requestBody.operationName === "string"
                 ? requestBody.operationName
                 : undefined;
-        logger.debug(`operationName: ${requestOperationName} sequenceId: ${sequenceId}`, {
-            sequenceId,
-        });
+        logger.debug(
+            `fakeGraphQLQuery: operationName: ${requestOperationName} sequenceId: ${sequenceId}`,
+            {
+                sequenceId,
+            },
+        );
         // 2. Does it contain a sequence id?
-        if (!sequenceId) return passToApollo(c);
-        if (!requestOperationName) return passToApollo(c);
+        if (!sequenceId) {
+            logger.debug("fakeGraphQLQuery: no sequenceId, passing to Apollo");
+            return passToApollo(c);
+        }
+        if (!requestOperationName) {
+            logger.debug("fakeGraphQLQuery: no operationName, passing to Apollo");
+            return passToApollo(c);
+        }
+
         const sequence = sequenceFakeResponseLruMap.get(
             createMapKey({
                 sequenceId,
@@ -449,7 +513,7 @@ const createRoutingServer = async ({
             }),
         );
         logger.debug(
-            `/query: sequence-id: ${sequenceId} x operationName: ${requestOperationName}, sequence exists: ${Boolean(
+            `fakeGraphQLQuery: sequence-id: ${sequenceId} x operationName: ${requestOperationName}, sequence exists: ${Boolean(
                 sequence,
             )}`,
             {
@@ -458,8 +522,13 @@ const createRoutingServer = async ({
                 operationName: requestOperationName,
             },
         );
-        if (!sequence) return passToApollo(c);
+        if (!sequence) {
+            logger.debug("fakeGraphQLQuery: no sequence found, passing to Apollo");
+            return passToApollo(c);
+        }
+
         if (requestOperationName !== sequence.operationName) {
+            logger.debug("fakeGraphQLQuery: operationName mismatch, returning error");
             return Response.json(
                 JSON.stringify({
                     errors: [
@@ -471,7 +540,9 @@ const createRoutingServer = async ({
                 },
             );
         }
+
         if (sequence.type === "network-error") {
+            logger.debug("fakeGraphQLQuery: network-error type, returning error");
             return new Response(
                 JSON.stringify({
                     errors: sequence.errors,
@@ -481,34 +552,49 @@ const createRoutingServer = async ({
                 },
             );
         }
+
         // 3. Send a request to Apollo Server
-        logger.debug("request to apollo-server", {
+        logger.debug("fakeGraphQLQuery: sending request to apollo server", {
             sequenceId,
         });
-        const rep = await fetch(`http://${ENV_HOSTNAME}:${ports.apolloServer}/graphql`, {
-            method: c.req.method,
-            headers: c.req.raw.headers,
-            body: c.req.raw.body,
-            duplex: "half",
+
+        const proxyResponse = await proxy(`http://${ENV_HOSTNAME}:${ports.apolloServer}/graphql`, {
+            raw: c.req.raw,
+            headers: {
+                ...c.req.header(),
+            },
         });
-        logger.debug("/query: response from apollo-server", {
+
+        logger.debug("fakeGraphQLQuery: apollo server response completed", {
             sequenceId,
-            rep,
+            status: proxyResponse.status,
+            headers: Object.fromEntries(proxyResponse.headers),
         });
-        if (rep.status === 101) return rep;
-        // 4. Does the request contain a sequence id?
-        const responseBody = await rep.json();
-        // 5. Merge the registration data with the response from 2
+
+        if (proxyResponse.status === 101) return proxyResponse;
+
+        // 4. Get response body
+        logger.debug("fakeGraphQLQuery: getting response body");
+        const responseText = await proxyResponse.text();
+        logger.debug("fakeGraphQLQuery: got response text", {
+            responseText,
+        });
+        const responseBody = JSON.parse(responseText);
+        logger.debug("fakeGraphQLQuery: parsed response body", {
+            responseBody,
+        });
+
+        // 5. Merge the registration data with the response
         const data = sequence.data;
-        logger.debug(`/query: merge sequence-id: ${sequenceId}`, {
+        logger.debug(`fakeGraphQLQuery: starting data merge sequence-id: ${sequenceId}`, {
             data,
             responseBody,
         });
         const merged = {
-            //@ts-expect-error
             ...responseBody.data,
             ...data,
         };
+
         const cacheKey = createMapKey({
             sequenceId,
             operationName: requestOperationName,
@@ -522,20 +608,25 @@ const createRoutingServer = async ({
                     body: requestBody as Record<string, unknown>,
                 },
                 response: {
-                    status: rep.status,
-                    headers: Object.fromEntries(rep.headers),
+                    status: proxyResponse.status,
+                    headers: Object.fromEntries(proxyResponse.headers),
                     body: {
                         data: merged,
                     },
                 },
             },
         ]);
-        return Response.json(
-            {
-                data: merged,
+
+        logger.debug("fakeGraphQLQuery: merge completed, returning response");
+        // "content-length" should be matched from the response body length
+        const responseJson = JSON.stringify({ data: merged });
+        return new Response(responseJson, {
+            status: proxyResponse.status,
+            headers: {
+                "Content-Type": "application/json",
+                "Content-Length": responseJson.length.toString(),
             },
-            rep,
-        );
+        });
     };
     // graphql api is for browser and need to support CORS
     app.use(
@@ -621,7 +712,7 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
     return {
         start: async () => {
             // Replace startStandaloneServer with our custom implementation
-            const { url } = await startStandaloneServerWithCORS(
+            await startStandaloneServerWithCORS(
                 apolloServer,
                 {
                     listen: { port: options.ports.apolloServer },

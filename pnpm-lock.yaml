@@ -190,8 +190,8 @@ importers:
         specifier: ^10.0.23
         version: 10.0.23(graphql@16.11.0)
       '@hono/node-server':
-        specifier: ^1.13.8
-        version: 1.13.8(hono@4.7.0)
+        specifier: ^1.14.4
+        version: 1.14.4(hono@4.8.0)
       '@newmo/graphql-fake-core':
         specifier: workspace:*
         version: link:../graphql-fake-core
@@ -205,8 +205,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(graphql@16.11.0)
       hono:
-        specifier: ^4.7.0
-        version: 4.7.0
+        specifier: ^4.8.0
+        version: 4.8.0
     devDependencies:
       '@tsconfig/node18':
         specifier: ^18.2.0
@@ -1141,8 +1141,8 @@ packages:
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
-  '@hono/node-server@1.13.8':
-    resolution: {integrity: sha512-fsn8ucecsAXUoVxrUil0m13kOEq4mkX4/4QozCqmY+HpGfKl74OYSn8JcMA8GnG0ClfdRI4/ZSeG7zhFaVg+wg==}
+  '@hono/node-server@1.14.4':
+    resolution: {integrity: sha512-DnxpshhYewr2q9ZN8ez/M5mmc3sucr8CT1sIgIy1bkeUXut9XWDkqHoFHRhWIQgkYnKpVRxunyhK7WzpJeJ6qQ==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -2759,8 +2759,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.7.0:
-    resolution: {integrity: sha512-hV97aIR4WYbG30k234sD9B3VNr1ZWdQRmrVF76LKFlmI7O9Yo70mG9+mFwyQ6Sjrz4wH71GfnBxv6CPjcx3QNw==}
+  hono@4.8.0:
+    resolution: {integrity: sha512-NoiHrqJxoe1MYXqW+/0/Q4NCizKj2Ivm4KmX8mOSBtw9UJ7KYaOGKkO7csIwO5UlZpfvVRdcgiMb0GGyjEjtcw==}
     engines: {node: '>=16.9.0'}
 
   hosted-git-info@7.0.2:
@@ -5619,9 +5619,9 @@ snapshots:
     dependencies:
       graphql: 16.11.0
 
-  '@hono/node-server@1.13.8(hono@4.7.0)':
+  '@hono/node-server@1.14.4(hono@4.8.0)':
     dependencies:
-      hono: 4.7.0
+      hono: 4.8.0
 
   '@humanfs/core@0.19.1': {}
 
@@ -7558,7 +7558,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.7.0: {}
+  hono@4.8.0: {}
 
   hosted-git-info@7.0.2:
     dependencies:

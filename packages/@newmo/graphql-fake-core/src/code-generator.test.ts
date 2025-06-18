@@ -2,9 +2,9 @@ import vm from "node:vm";
 import type { GraphQLSchema } from "graphql";
 import { buildSchema as buildSchemaGraphQL } from "graphql";
 import { describe, expect, it } from "vitest";
-import { generateCode } from "./code-generator.js";
 import type { ConfigWithOutput } from "./code-generator.js";
-import { type RawConfig, normalizeConfig } from "./config.js";
+import { generateCode } from "./code-generator.js";
+import { normalizeConfig, type RawConfig } from "./config.js";
 import { extendSchema } from "./extend-schema.js";
 import { getTypeInfos } from "./schema-scanner.js";
 
@@ -362,7 +362,7 @@ describe("generateCode", () => {
             `);
         });
         it("generates code for a recursive type", () => {
-            const code = generateCodeFromSchema({
+            const _code = generateCodeFromSchema({
                 schema: `
 # Author and Book are recursive
 type Author {

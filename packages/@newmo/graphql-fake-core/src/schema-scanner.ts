@@ -305,9 +305,9 @@ const SUPPORTED_EXAMPLE_DIRECTIVES = [
     "exampleScalarFloat",
     "exampleScalarBoolean",
 ];
-const isIdType = (node: NonNullTypeNode | NamedTypeNode | ListTypeNode): boolean => {
+const _isIdType = (node: NonNullTypeNode | NamedTypeNode | ListTypeNode): boolean => {
     if (node.kind === "NonNullType") {
-        return isIdType(node.type);
+        return _isIdType(node.type);
     }
     if (node.kind === "NamedType") {
         return node.name.value === "ID";

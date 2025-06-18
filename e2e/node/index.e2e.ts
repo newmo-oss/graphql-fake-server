@@ -12,8 +12,8 @@ import {
     CreateBookDocument,
     type CreateBookInput,
     CreateFooUrlDocument,
-    GetBookWithFragmentsDocument,
     GetBooksDocument,
+    GetBookWithFragmentsDocument,
     GetDogDocument,
     GetUserNamesArrayExampleDocument,
     GotUnionUserDocument,
@@ -97,7 +97,7 @@ describe("integration test", async () => {
             `);
         });
         it("should return Custom Scalar Default Fake Value", async () => {
-            const sequenceId = crypto.randomUUID();
+            const _sequenceId = crypto.randomUUID();
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`);
             // get fake response
             const response = await client.request(GotUnionUserDocument);
@@ -518,7 +518,7 @@ describe("integration test", async () => {
         it("register fake response for mutation errors pattern", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
-            const resRegister =
+            const _resRegister =
                 await fakeClient.registerUseMutationErrorPatternMutationMutationResponse(
                     sequenceId,
                     {
@@ -571,7 +571,7 @@ describe("integration test", async () => {
         it("apollo client catch global errors", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
-            const resRegister = await fakeClient.registerGetDogQueryErrorResponse(sequenceId, {
+            const _resRegister = await fakeClient.registerGetDogQueryErrorResponse(sequenceId, {
                 errors: [
                     {
                         message: "test error",
@@ -625,7 +625,7 @@ describe("integration test", async () => {
                 },
             });
             const spy = vi.fn();
-            const errorLink = apolloOnError(spy);
+            const _errorLink = apolloOnError(spy);
             // request to server
             const client = new ApolloClient({
                 link: ApolloLink.from([
