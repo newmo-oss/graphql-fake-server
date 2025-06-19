@@ -1,8 +1,8 @@
 import vm from "node:vm";
 import type { GraphQLSchema } from "graphql/index.js";
 import { generateCode } from "./code-generator.js";
-import { type RawConfig, normalizeConfig } from "./config.js";
-import { type TypeInfo, getTypeInfos } from "./schema-scanner.js";
+import { normalizeConfig, type RawConfig } from "./config.js";
+import { getTypeInfos, type TypeInfo } from "./schema-scanner.js";
 
 export type MockObject = Record<string, unknown>;
 export type CreateMockOptions = {

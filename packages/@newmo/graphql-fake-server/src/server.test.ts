@@ -4,8 +4,8 @@ import { buildSchema } from "graphql/utilities/index.js";
 import { describe, expect, it } from "vitest";
 import {
     type CalledResultResponse,
-    type RegisterSequenceNetworkError,
     createFakeServerInternal,
+    type RegisterSequenceNetworkError,
 } from "./server.js";
 
 let portCounter = 0;
@@ -36,7 +36,6 @@ const startTestFakeServer = async ({
             cause: mockResult.error,
         });
     }
-    console.log("mockResult.mock", JSON.stringify(mockResult.mock, null, 2));
     return createFakeServerInternal({
         schema,
         mockObject: mockResult.mock,
@@ -973,7 +972,7 @@ describe("graphql-fake-server", () => {
             const server = await startTestFakeServer({ schemaString: schema, ports });
             const { urls } = await server.start();
             const sequenceId = crypto.randomUUID();
-            const response = await fetch(`${urls.fakeServer}/graphql`, {
+            const _response = await fetch(`${urls.fakeServer}/graphql`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1302,8 +1301,13 @@ describe("graphql-fake-server", () => {
             expect(calledResult.data.length).toBe(2);
             assert(calledResult.data[0]);
             assert(calledResult.data[1]);
-            expect(calledResult.data[0].request.body.variables).toEqual({ title: "1111" });
-            expect(calledResult.data[1].request.body.variables).toEqual({ title: "2222" });
+            // Use bracket notation for properties from index signature
+            expect(calledResult.data[0].request.body["variables"]).toEqual({
+                title: "1111",
+            });
+            expect(calledResult.data[1].request.body["variables"]).toEqual({
+                title: "2222",
+            });
         });
     });
 });

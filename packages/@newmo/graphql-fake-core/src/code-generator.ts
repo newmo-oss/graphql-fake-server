@@ -101,7 +101,7 @@ ${functionBodyCode}
 }
 
 function generateDefaultCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo): string {
-    const { name, rawName } = typeInfo;
+    const { rawName } = typeInfo;
     if (config.outputType === "commonjs") {
         return `const ${rawName} = create${rawName}();
 exports.${rawName} = ${rawName};`;

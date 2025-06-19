@@ -1,13 +1,9 @@
-import exp from "node:constants";
-// NOTE: To avoid `Cannot use GraphQLSchema xxx from another module or realm.`, import from 'graphql/index.js' instead of 'graphql'.
-// ref: https://github.com/graphql/graphql-js/issues/1479
-import { convertFactory } from "@graphql-codegen/visitor-plugin-common";
 import { buildSchema as buildSchemaGraphQL } from "graphql";
 import type { GraphQLSchema } from "graphql/index.js";
 import { describe, expect, it } from "vitest";
 import type { Config } from "./config.js";
 import { extendSchema } from "./extend-schema.js";
-import { type ObjectTypeInfo, type TypeInfo, getTypeInfos } from "./schema-scanner.js";
+import { getTypeInfos, type ObjectTypeInfo, type TypeInfo } from "./schema-scanner.js";
 
 /**
  * export type Config = {

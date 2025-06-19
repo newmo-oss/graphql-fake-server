@@ -43,18 +43,18 @@
     "updateSnapshot": "vitest run -u"
   },
   "dependencies": {
-    "@graphql-eslint/eslint-plugin": "^4.3.0"
+    "@graphql-eslint/eslint-plugin": "^4.4.0"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.0",
     "@tsconfig/strictest": "^2.0.1",
     "@types/eslint": "^9.6.1",
-    "@types/node": "^22.13.1",
-    "eslint": "^9.23.0",
-    "graphql": "^16.10.0",
-    "npm-run-all2": "^7.0.2",
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.9",
+    "@types/node": "^24.0.3",
+    "eslint": "^9.29.0",
+    "graphql": "^16.11.0",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
     "vitest-github-actions-reporter": "^0.11.1"
   },
   "peerDependencies": {

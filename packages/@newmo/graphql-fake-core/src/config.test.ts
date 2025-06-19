@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
     type Config,
     DefaultValues,
-    type RawConfig,
     normalizeConfig,
+    type RawConfig,
     validateConfig,
 } from "./config.js";
 

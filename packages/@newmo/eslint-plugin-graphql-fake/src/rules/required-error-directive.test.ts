@@ -1,7 +1,7 @@
 import * as parser from "@graphql-eslint/eslint-plugin";
 import { describe } from "vitest";
-import { VitestESLintRuleTester } from "./VitestESLintRuleTester.js";
 import { requiredErrorDirectiveRule } from "./required-error-directive.js";
+import { VitestESLintRuleTester } from "./VitestESLintRuleTester.js";
 
 const ruleTester = new VitestESLintRuleTester({
     languageOptions: {
