@@ -6,12 +6,50 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
     plugin(_schema, documents, rawConfig, _info) {
         const config = normalizeConfig(rawConfig);
         const _fakeEndpoint = config.fakeServerEndpoint;
-        const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }"; // Conditional fake types with generic Variables
+        const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
+
+        // New registration strategy - align with server implementation
         const conditionRuleTypes = `
-export type FakeClientCountConditionRule = { type: "count"; value: number };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };`;
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientVariablesConditionRule<TVariables>;
+
+// Single response registration
+export type FakeClientRegisterSingleResponse = {
+    type: "single";
+    operationName: string;
+    data: Record<string, unknown>;
+};
+
+// Array-based sequence response registration  
+export type FakeClientRegisterSequenceResponse = {
+    type: "sequence";
+    operationName: string;
+    data: Record<string, unknown>[];
+};
+
+// Conditional response registration
+export type FakeClientRegisterConditionalResponse<TVariables = Record<string, any>> = {
+    type: "conditional";
+    operationName: string;
+    conditions: Array<{
+        condition: FakeClientConditionRule<TVariables>;
+        data: Record<string, unknown> | Record<string, unknown>[];
+    }>;
+};
+
+// Network error registration
+export type FakeClientRegisterNetworkError = {
+    type: "network-error";
+    operationName: string;
+    responseStatusCode: number;
+    errors: Record<string, unknown>[];
+};
+
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = 
+    | FakeClientRegisterSingleResponse 
+    | FakeClientRegisterSequenceResponse 
+    | FakeClientRegisterConditionalResponse<TVariables> 
+    | FakeClientRegisterNetworkError;`;
         type GenerateFakeFunction =
             | {
                   type: "query";
@@ -48,11 +86,19 @@ ${exportsFunctions
             return [
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterOperationMethod(fn.name, "options.fakeServerEndpoint"),
+                    generateRegisterSingleQueryMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterOperationErrorMethod(fn.name, "options.fakeServerEndpoint"),
+                    generateRegisterSequenceQueryMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterConditionalQueryMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterQueryErrorMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
@@ -64,7 +110,18 @@ ${exportsFunctions
             return [
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterMutationMethod(fn.name, "options.fakeServerEndpoint"),
+                    generateRegisterSingleMutationMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterSequenceMutationMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterConditionalMutationMethod(
+                        fn.name,
+                        "options.fakeServerEndpoint",
+                    ),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
@@ -82,12 +139,13 @@ ${exportsFunctions
   };
 }`;
         };
-        const generateRegisterOperationMethod = (
+
+        // Single response registration for Query
+        const generateRegisterSingleQueryMethod = (
             name: string,
             fakeEndpointVariableName: string,
         ) => {
-            const variablesType = `${convertName(name, config)}QueryVariables`;
-            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+            return `async register${name}QuerySingleResponse(sequenceId: string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -95,19 +153,63 @@ ${exportsFunctions
             'sequence-id': sequenceId
         },
         body: JSON.stringify({
-            type: "operation",
+            type: "single",
             operationName: "${name}",
-            data: queryResponse,
-            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+            data: queryResponse
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
-        const generateRegisterOperationErrorMethod = (
+
+        // Array-based sequence registration for Query
+        const generateRegisterSequenceQueryMethod = (
             name: string,
             fakeEndpointVariableName: string,
         ) => {
-            return `async register${name}QueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
+            return `async register${name}QuerySequenceResponse(sequenceId: string, queryResponses: ${name}Query[]): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "sequence",
+            operationName: "${name}",
+            data: queryResponses
+        }),
+    }).then((res) => res.json()) as ${registerOperationResponseType};
+}`;
+        };
+
+        // Conditional response registration for Query
+        const generateRegisterConditionalQueryMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            const variablesType = `${convertName(name, config)}QueryVariables`;
+            return `async register${name}QueryConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Query | ${name}Query[] }>): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "conditional",
+            operationName: "${name}",
+            conditions: conditions
+        }),
+    }).then((res) => res.json()) as ${registerOperationResponseType};
+}`;
+        };
+
+        // Network error registration for Query
+        const generateRegisterQueryErrorMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}QueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -123,9 +225,13 @@ ${exportsFunctions
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
-        const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
-            const variablesType = `${convertName(name, config)}MutationVariables`;
-            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+
+        // Single response registration for Mutation
+        const generateRegisterSingleMutationMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}MutationSingleResponse(sequenceId: string, mutationResponse: ${name}Mutation): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -133,19 +239,63 @@ ${exportsFunctions
             'sequence-id': sequenceId
         },
         body: JSON.stringify({
-            type: "operation",
+            type: "single",
             operationName: "${name}",
-            data: mutationResponse,
-            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+            data: mutationResponse
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
+
+        // Array-based sequence registration for Mutation
+        const generateRegisterSequenceMutationMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}MutationSequenceResponse(sequenceId: string, mutationResponses: ${name}Mutation[]): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "sequence",
+            operationName: "${name}",
+            data: mutationResponses
+        }),
+    }).then((res) => res.json()) as ${registerOperationResponseType};
+}`;
+        };
+
+        // Conditional response registration for Mutation
+        const generateRegisterConditionalMutationMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            const variablesType = `${convertName(name, config)}MutationVariables`;
+            return `async register${name}MutationConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Mutation | ${name}Mutation[] }>): Promise<${registerOperationResponseType}> {
+    return await fetch(${fakeEndpointVariableName}, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify({
+            type: "conditional",
+            operationName: "${name}",
+            conditions: conditions
+        }),
+    }).then((res) => res.json()) as ${registerOperationResponseType};
+}`;
+        };
+
+        // Network error registration for Mutation
         const generateRegisterMutationErrorMethod = (
             name: string,
             fakeEndpointVariableName: string,
         ) => {
-            return `async register${name}MutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
+            return `async register${name}MutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {

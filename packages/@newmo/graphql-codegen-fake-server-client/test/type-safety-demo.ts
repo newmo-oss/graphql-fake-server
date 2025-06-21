@@ -9,75 +9,77 @@ const fakeClient = createFakeClient({
 export async function demonstrateTypeSafety() {
     const sequenceId = "test-sequence";
 
-    // ✅ Correct usage - type-safe variables
-    await fakeClient.registerListDestinationCandidatesQueryResponse(
-        sequenceId,
+    // ✅ Correct usage - single response registration
+    await fakeClient.registerListDestinationCandidatesQuerySingleResponse(sequenceId, {
+        destinationCandidates: [{ id: "1", name: "Tokyo" }],
+    });
+
+    // ✅ Correct usage - conditional response registration
+    await fakeClient.registerListDestinationCandidatesQueryConditionalResponse(sequenceId, [
         {
-            destinationCandidates: [{ id: "1", name: "Tokyo" }],
-        },
-        {
-            requestCondition: {
+            condition: {
                 type: "variables",
                 value: { text: "tokyo" }, // ✅ Matches ListDestinationCandidatesQueryVariables
             },
+            data: {
+                destinationCandidates: [{ id: "1", name: "Tokyo" }],
+            },
         },
-    );
+    ]);
 
-    // ✅ Correct usage - mutation with variables
-    await fakeClient.registerCreateUrlRideHistoryMutationResponse(
-        sequenceId,
+    // ✅ Correct usage - mutation single response
+    await fakeClient.registerCreateUrlRideHistoryMutationSingleResponse(sequenceId, {
+        createURLRideHistory: { id: "1", name: "Shibuya" },
+    });
+
+    // ✅ Correct usage - mutation conditional response
+    await fakeClient.registerCreateUrlRideHistoryMutationConditionalResponse(sequenceId, [
         {
-            createURLRideHistory: { id: "1", name: "Shibuya" },
-        },
-        {
-            requestCondition: {
+            condition: {
                 type: "variables",
                 value: { desinationName: "Shibuya" }, // ✅ Matches CreateUrlRideHistoryMutationVariables
             },
+            data: {
+                createURLRideHistory: { id: "1", name: "Shibuya" },
+            },
         },
-    );
+    ]);
 
-    // ✅ Correct usage - query without variables
-    await fakeClient.registerListRideHistoriesQueryResponse(
-        sequenceId,
+    // ✅ Correct usage - query sequence response
+    await fakeClient.registerListRideHistoriesQuerySequenceResponse(sequenceId, [
         {
             rideHistories: [{ id: "1", destination: { id: "1", name: "Tokyo" } }],
         },
         {
-            requestCondition: {
-                type: "variables",
-                value: {}, // ✅ ListRideHistoriesQueryVariables = Exact<{ [key: string]: never }>
-            },
+            rideHistories: [{ id: "2", destination: { id: "2", name: "Osaka" } }],
         },
-    );
+    ]);
 
-    // Wrong variable type
-    await fakeClient.registerListDestinationCandidatesQueryResponse(
-        sequenceId,
+    // Wrong variable type - conditional with wrong field
+    await fakeClient.registerListDestinationCandidatesQueryConditionalResponse(sequenceId, [
         {
-            destinationCandidates: [],
-        },
-        {
-            requestCondition: {
+            condition: {
                 type: "variables",
-                // @ts-expect-error // ❌ TypeScript error: 'text' should be a string, not a number
-                value: { wrongField: "value" },
+                // TypeScript error: 'wrongField' doesn't exist in ListDestinationCandidatesQueryVariables
+                value: { wrongField: "value" } as unknown as { text: string },
+            },
+            data: {
+                destinationCandidates: [],
             },
         },
-    );
+    ]);
 
     // Wrong variable type for mutation
-    await fakeClient.registerCreateUrlRideHistoryMutationResponse(
-        sequenceId,
+    await fakeClient.registerCreateUrlRideHistoryMutationConditionalResponse(sequenceId, [
         {
-            createURLRideHistory: { id: "1", name: "Test" },
-        },
-        {
-            requestCondition: {
+            condition: {
                 type: "variables",
-                // @ts-expect-error
-                value: { text: "tokyo" },
+                // TypeScript error: 'text' doesn't exist in CreateUrlRideHistoryMutationVariables
+                value: { text: "tokyo" } as unknown as { desinationName: string },
+            },
+            data: {
+                createURLRideHistory: { id: "1", name: "Test" },
             },
         },
-    );
+    ]);
 }

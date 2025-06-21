@@ -5,10 +5,46 @@ import type { ListRideHistoriesQuery, ListRideHistoriesQueryVariables } from './
 import type { CreateUrlRideHistoryMutation, CreateUrlRideHistoryMutationVariables } from './graphql';
 import type { CreateFooUrlRideHistoryMutation, CreateFooUrlRideHistoryMutationVariables } from './graphql';
 
-export type FakeClientCountConditionRule = { type: "count"; value: number };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientVariablesConditionRule<TVariables>;
+
+// Single response registration
+export type FakeClientRegisterSingleResponse = {
+    type: "single";
+    operationName: string;
+    data: Record<string, unknown>;
+};
+
+// Array-based sequence response registration  
+export type FakeClientRegisterSequenceResponse = {
+    type: "sequence";
+    operationName: string;
+    data: Record<string, unknown>[];
+};
+
+// Conditional response registration
+export type FakeClientRegisterConditionalResponse<TVariables = Record<string, any>> = {
+    type: "conditional";
+    operationName: string;
+    conditions: Array<{
+        condition: FakeClientConditionRule<TVariables>;
+        data: Record<string, unknown> | Record<string, unknown>[];
+    }>;
+};
+
+// Network error registration
+export type FakeClientRegisterNetworkError = {
+    type: "network-error";
+    operationName: string;
+    responseStatusCode: number;
+    errors: Record<string, unknown>[];
+};
+
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = 
+    | FakeClientRegisterSingleResponse 
+    | FakeClientRegisterSequenceResponse 
+    | FakeClientRegisterConditionalResponse<TVariables> 
+    | FakeClientRegisterNetworkError;
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -21,7 +57,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
   return {
-    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListDestinationCandidatesQuerySingleResponse(sequenceId: string, queryResponse: ListDestinationCandidatesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -29,14 +65,41 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 'sequence-id': sequenceId
             },
             body: JSON.stringify({
-                type: "operation",
+                type: "single",
                 operationName: "ListDestinationCandidates",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                data: queryResponse
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
-    async registerListDestinationCandidatesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListDestinationCandidatesQuerySequenceResponse(sequenceId: string, queryResponses: ListDestinationCandidatesQuery[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "sequence",
+                operationName: "ListDestinationCandidates",
+                data: queryResponses
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListDestinationCandidatesQueryConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<ListDestinationCandidatesQueryVariables>; data: ListDestinationCandidatesQuery | ListDestinationCandidatesQuery[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "conditional",
+                operationName: "ListDestinationCandidates",
+                conditions: conditions
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListDestinationCandidatesQueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -97,7 +160,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListRideHistoriesQuerySingleResponse(sequenceId: string, queryResponse: ListRideHistoriesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -105,14 +168,41 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 'sequence-id': sequenceId
             },
             body: JSON.stringify({
-                type: "operation",
+                type: "single",
                 operationName: "ListRideHistories",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                data: queryResponse
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
-    async registerListRideHistoriesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListRideHistoriesQuerySequenceResponse(sequenceId: string, queryResponses: ListRideHistoriesQuery[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "sequence",
+                operationName: "ListRideHistories",
+                data: queryResponses
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListRideHistoriesQueryConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<ListRideHistoriesQueryVariables>; data: ListRideHistoriesQuery | ListRideHistoriesQuery[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "conditional",
+                operationName: "ListRideHistories",
+                conditions: conditions
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerListRideHistoriesQueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -173,7 +263,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateUrlRideHistoryMutationSingleResponse(sequenceId: string, mutationResponse: CreateUrlRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -181,14 +271,41 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 'sequence-id': sequenceId
             },
             body: JSON.stringify({
-                type: "operation",
+                type: "single",
                 operationName: "CreateUrlRideHistory",
-                data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                data: mutationResponse
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
-    async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateUrlRideHistoryMutationSequenceResponse(sequenceId: string, mutationResponses: CreateUrlRideHistoryMutation[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "sequence",
+                operationName: "CreateUrlRideHistory",
+                data: mutationResponses
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateUrlRideHistoryMutationConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<CreateUrlRideHistoryMutationVariables>; data: CreateUrlRideHistoryMutation | CreateUrlRideHistoryMutation[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "conditional",
+                operationName: "CreateUrlRideHistory",
+                conditions: conditions
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -251,7 +368,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlRideHistoryMutationSingleResponse(sequenceId: string, mutationResponse: CreateFooUrlRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -259,14 +376,41 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 'sequence-id': sequenceId
             },
             body: JSON.stringify({
-                type: "operation",
+                type: "single",
                 operationName: "CreateFooUrlRideHistory",
-                data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                data: mutationResponse
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
-    async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlRideHistoryMutationSequenceResponse(sequenceId: string, mutationResponses: CreateFooUrlRideHistoryMutation[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "sequence",
+                operationName: "CreateFooUrlRideHistory",
+                data: mutationResponses
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateFooUrlRideHistoryMutationConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<CreateFooUrlRideHistoryMutationVariables>; data: CreateFooUrlRideHistoryMutation | CreateFooUrlRideHistoryMutation[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify({
+                type: "conditional",
+                operationName: "CreateFooUrlRideHistory",
+                conditions: conditions
+            }),
+        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    },
+    async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
