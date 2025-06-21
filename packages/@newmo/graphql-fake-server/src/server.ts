@@ -118,7 +118,7 @@ const creteApolloServer = async (options: FakeServerInternal) => {
     });
 };
 // Allowed condition types
-const ALLOWED_CONDITION_TYPES = ["always", "variables", "count"] as const;
+const ALLOWED_CONDITION_TYPES = ["always", "variables"] as const;
 type AllowedConditionType = (typeof ALLOWED_CONDITION_TYPES)[number];
 
 // Validation result type for better error messages
@@ -132,11 +132,7 @@ export type ConditionRule =
     | {
           type: "variables";
           value: Record<string, unknown>;
-      } // Match based on complete variables object
-    | {
-          type: "count";
-          value: number;
-      }; // Match based on call count (1-indexed)
+      }; // Match based on complete variables object
 
 // Called result structure for tracking requests/responses
 export type CalledResult = {
@@ -179,10 +175,7 @@ export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSeq
  * Check if two condition types are conflicting and return specific error message
  * With the new API design:
  * - Multiple different variable conditions are allowed
- * - Multiple count conditions are allowed (for different call numbers)
  * - always and variables can coexist
- * - count and variables cannot coexist
- * - count and default (always) cannot coexist
  * - Single response and array response cannot coexist with the same conditions
  */
 const areConditionTypesConflicting = (
@@ -197,30 +190,6 @@ const areConditionTypesConflicting = (
             isConflicting: true,
             errorMessage:
                 "Cannot mix single response and array response with the same requestCondition for the same sequenceId x operationName",
-        };
-    }
-
-    // Count and always conflict
-    if (
-        (conditionType1 === "count" && conditionType2 === "always") ||
-        (conditionType1 === "always" && conditionType2 === "count")
-    ) {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-        };
-    }
-
-    // Count and variables conflict
-    if (
-        (conditionType1 === "count" && conditionType2 === "variables") ||
-        (conditionType1 === "variables" && conditionType2 === "count")
-    ) {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
         };
     }
 
@@ -1155,10 +1124,6 @@ const evaluateCondition = (
             if (!context.variables) return false;
             return isDeepStrictEqual(context.variables, condition.value);
 
-        case "count":
-            if (context.callCount === undefined) return false;
-            return context.callCount === condition.value;
-
         default:
             return false;
     }
@@ -1174,9 +1139,6 @@ const calculateConditionSpecificity = (condition: ConditionRule): number => {
 
         case "variables":
             return 20; // variables conditions have high priority
-
-        case "count":
-            return 10; // count conditions have medium priority
 
         default:
             return 0;

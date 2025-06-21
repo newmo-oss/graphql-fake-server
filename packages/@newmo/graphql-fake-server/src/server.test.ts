@@ -2020,7 +2020,7 @@ describe("Condition validation", () => {
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
           [
-            "Invalid request conditions: Unknown condition type 'unknown'. Allowed types: always, variables, count",
+            "Invalid request conditions: Unknown condition type 'unknown'. Allowed types: always, variables",
           ]
         `);
 

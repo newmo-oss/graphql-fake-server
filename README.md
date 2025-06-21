@@ -411,35 +411,6 @@ console.log(json);
 
 You can register fake responses with conditions to return different results based on request characteristics:
 
-**Count-based conditions** - Return specific responses on the nth call:
-
-```ts
-// Return different response on the 2nd call
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "sequence-id": sequenceId,
-  },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: {
-      type: "count",
-      value: 2, // Only match on the 2nd call
-    },
-    data: {
-      books: [
-        {
-          id: "book-id01",
-          title: "Second Call Book",
-        },
-      ],
-    },
-  }),
-});
-```
-
 **Variables-based conditions** - Return specific responses when variables match exactly:
 
 ```ts
@@ -522,7 +493,6 @@ This is useful for testing scenarios like:
 #### Condition Matching Rules
 
 - **Exact Match**: For variables-based conditions, the variables must match exactly (deep equality)
-- **Call Count**: For count-based conditions, the condition matches only on the specified call number (1-indexed)
 - **Priority**: If multiple fake responses are registered for the same operation, they are checked in registration order
 - **Fallback**: When no condition matches, the server falls back to declarative fake data defined in the GraphQL schema
 
@@ -530,30 +500,6 @@ This is useful for testing scenarios like:
 
 ```ts
 const sequenceId = "test-scenario-1";
-
-// First call returns normal data
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: { type: "count", value: 1 },
-    data: { books: [{ id: "1", title: "First Book" }] },
-  }),
-});
-
-// Second call returns different data
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: { type: "count", value: 2 },
-    data: { books: [{ id: "2", title: "Second Book" }] },
-  }),
-});
 
 // Admin user gets special data
 fetch("http://127.0.0.1:4000/fake", {

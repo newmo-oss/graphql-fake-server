@@ -710,63 +710,6 @@ describe("integration test", async () => {
     });
 
     describe("Conditional Fake", () => {
-        it("should handle count-based conditions", async () => {
-            const sequenceId = crypto.randomUUID();
-            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-                headers: {
-                    "sequence-id": sequenceId,
-                },
-            });
-
-            // Register fake for 1st call
-            await fetch(`${fakeServerUrl}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "GetBooks",
-                    requestCondition: { type: "count", value: 1 },
-                    data: {
-                        books: [{ id: "book-1", title: "First Call Book" }],
-                    },
-                }),
-            });
-
-            // Register fake for 2nd call
-            await fetch(`${fakeServerUrl}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "GetBooks",
-                    requestCondition: { type: "count", value: 2 },
-                    data: {
-                        books: [{ id: "book-2", title: "Second Call Book" }],
-                    },
-                }),
-            }); // First call should return "First Call Book"
-            const firstResponse = (await client.request(GetBooksDocument)) as {
-                books: { title: string }[];
-            };
-            expect(firstResponse.books).toBeDefined();
-            assert.ok(firstResponse.books[0], "First book should exist");
-            expect(firstResponse.books[0].title).toBe("First Call Book");
-
-            // Second call should return "Second Call Book"
-            const secondResponse = (await client.request(GetBooksDocument)) as {
-                books: { title: string }[];
-            };
-            expect(secondResponse.books).toBeDefined();
-            assert.ok(secondResponse.books[0], "Second book should exist");
-            expect(secondResponse.books[0].title).toBe("Second Call Book");
-        });
-
         it("should handle variables-based conditions", async () => {
             const sequenceId = crypto.randomUUID();
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
@@ -876,7 +819,7 @@ describe("integration test", async () => {
             });
             expect(defaultResponse.ok).toBe(true);
 
-            // Try to register count condition - should fail
+            // Try to register count condition - should fail with invalid condition type error
             const countResponse = await fetch(`${fakeServerUrl}/fake`, {
                 method: "POST",
                 headers: {
@@ -895,51 +838,7 @@ describe("integration test", async () => {
             expect(countResponse.ok).toBe(false);
             const errorResult = (await countResponse.json()) as { errors: string[] };
             expect(errorResult.errors).toContain(
-                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-            );
-        });
-
-        it("should reject count condition when variables condition is already registered", async () => {
-            const sequenceId = crypto.randomUUID();
-
-            // First register variables condition
-            const variablesResponse = await fetch(`${fakeServerUrl}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "GetBooks",
-                    requestCondition: { type: "variables", value: { filter: "fiction" } },
-                    data: {
-                        books: [{ id: "fiction-book", title: "Fiction Book" }],
-                    },
-                }),
-            });
-            expect(variablesResponse.ok).toBe(true);
-
-            // Try to register count condition - should fail
-            const countResponse = await fetch(`${fakeServerUrl}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "GetBooks",
-                    requestCondition: { type: "count", value: 1 },
-                    data: {
-                        books: [{ id: "count-book", title: "Count Book" }],
-                    },
-                }),
-            });
-            expect(countResponse.ok).toBe(false);
-            const errorResult = (await countResponse.json()) as { errors: string[] };
-            expect(errorResult.errors).toContain(
-                "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
+                "Invalid request conditions: Unknown condition type 'count'. Allowed types: always, variables",
             );
         });
 
@@ -983,39 +882,6 @@ describe("integration test", async () => {
         });
     });
 
-    describe("Condition conflicts (using fakeClient)", () => {
-        it("should reject count condition when default fake is already registered using fakeClient", async () => {
-            const sequenceId = crypto.randomUUID(); // First register default fake using fakeClient
-            const defaultResponse = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
-                __typename: "Query",
-                books: [{ __typename: "Book", id: "default-book", title: "Default Book" }],
-            });
-            expect(defaultResponse.ok).toBe(true);
-
-            // Try to register count condition directly - should fail
-            const countResponse = await fetch(`${fakeServerUrl}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify({
-                    type: "operation",
-                    operationName: "GetBooks",
-                    requestCondition: { type: "count", value: 1 },
-                    data: {
-                        books: [{ id: "count-book", title: "Count Book" }],
-                    },
-                }),
-            });
-
-            expect(countResponse.ok).toBe(false);
-            const errorResult = (await countResponse.json()) as { errors: string[] };
-            expect(errorResult.errors).toContain(
-                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-            );
-        });
-    });
     describe("Array responses", () => {
         it("should support array responses for sequential calls", async () => {
             const sequenceId = crypto.randomUUID();

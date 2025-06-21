@@ -92,7 +92,7 @@ it("register fake response for query", async () => {
 
 ### Conditional Fake Responses
 
-You can register conditional fake responses that return different results based on call count or variables. **The variables are now fully type-safe** based on your GraphQL operations:
+You can register conditional fake responses that return different results based on variables. **The variables are now fully type-safe** based on your GraphQL operations:
 
 ```ts
 import { it, expect } from "vitest";
@@ -104,28 +104,6 @@ const fakeClient = createFakeClient({
 
 it("register conditional fake responses", async () => {
   const sequenceId = crypto.randomUUID();
-
-  // Return different response on first call
-  await fakeClient.registerGetBooksQueryResponse(
-    sequenceId,
-    {
-      books: [{ id: "1", title: "First Call" }],
-    },
-    {
-      requestCondition: { type: "count", value: 1 },
-    }
-  );
-
-  // Return different response on second call
-  await fakeClient.registerGetBooksQueryResponse(
-    sequenceId,
-    {
-      books: [{ id: "2", title: "Second Call" }],
-    },
-    {
-      requestCondition: { type: "count", value: 2 },
-    }
-  );
 
   // Type-safe variables condition!
   // TypeScript will enforce the correct variables shape for this operation
