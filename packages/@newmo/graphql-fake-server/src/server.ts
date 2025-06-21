@@ -970,13 +970,12 @@ const createRoutingServer = async ({
         ]);
 
         logger.debug("fakeGraphQLQuery: merge completed, returning response");
-        // "content-length" should be matched from the response body length
+        // Let the server automatically calculate Content-Length to avoid issues with multi-byte characters
         const responseJson = JSON.stringify({ data: merged });
         return new Response(responseJson, {
             status: proxyResponse.status,
             headers: {
                 "Content-Type": "application/json",
-                "Content-Length": responseJson.length.toString(),
             },
         });
     };
