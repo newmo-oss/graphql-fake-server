@@ -374,8 +374,13 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
                 error: `Invalid request conditions: ${conditionResult.error}`,
             };
         }
-        // Normalize to requestCondition for internal use
-        (data as Record<string, unknown>)["requestCondition"] = conditionResult.data;
+        return {
+            ok: true,
+            data: {
+                ...data,
+                requestCondition: conditionResult.data,
+            } as RegisterSequenceOptions,
+        };
     }
 
     if (!("type" in data) || typeof data.type !== "string") {
