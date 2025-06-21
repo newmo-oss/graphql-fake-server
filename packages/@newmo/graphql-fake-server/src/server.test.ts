@@ -1676,9 +1676,11 @@ describe("graphql-fake-server", () => {
 
                 const result = (await response.json()) as any;
                 expect(result.ok).toBe(false);
-                expect(result.errors).toContain(
+                expect(result.errors).toMatchInlineSnapshot(`
+                  [
                     "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-                );
+                  ]
+                `);
             });
 
             it("should reject count condition when variables condition is already registered", async () => {
@@ -1745,9 +1747,11 @@ describe("graphql-fake-server", () => {
 
                 const result = (await response.json()) as any;
                 expect(result.ok).toBe(false);
-                expect(result.errors).toContain(
+                expect(result.errors).toMatchInlineSnapshot(`
+                  [
                     "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
-                );
+                  ]
+                `);
             });
 
             it("should allow variables and default conditions to coexist", async () => {
@@ -1859,7 +1863,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+                  [
+                    "invalid fake body",
+                  ]
+                `);
 
             await server.stop();
         });
@@ -1904,7 +1912,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+                  [
+                    "invalid fake body",
+                  ]
+                `);
 
             await server.stop();
         });
@@ -1949,7 +1961,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+                  [
+                    "invalid fake body",
+                  ]
+                `);
 
             await server.stop();
         });
@@ -1994,7 +2010,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+                  [
+                    "invalid fake body",
+                  ]
+                `);
 
             await server.stop();
         });
@@ -2039,7 +2059,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+              [
+                "invalid fake body",
+              ]
+            `);
 
             await server.stop();
         });
@@ -2084,7 +2108,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+              [
+                "invalid fake body",
+              ]
+            `);
 
             await server.stop();
         });
@@ -2129,7 +2157,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+              [
+                "invalid fake body",
+              ]
+            `);
 
             await server.stop();
         });
@@ -2174,7 +2206,11 @@ describe("graphql-fake-server", () => {
             const result = (await response.json()) as any;
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
-            expect(result.errors).toContain("invalid fake body");
+            expect(result.errors).toMatchInlineSnapshot(`
+              [
+                "invalid fake body",
+              ]
+            `);
 
             await server.stop();
         });
