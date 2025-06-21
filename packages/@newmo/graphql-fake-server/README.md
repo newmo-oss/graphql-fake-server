@@ -212,7 +212,7 @@ export default {
   },
   maxRegisteredSequences: 1000,
   maxQueryDepth: 10,
-  maxFieldRecursionDepth: 5,
+  maxFieldRecursionDepth: 9,
   logLevel: "info",
   /**
    * @type {string[] | undefined}
