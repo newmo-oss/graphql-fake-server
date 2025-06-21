@@ -428,9 +428,7 @@ function parseFieldOrInputValueDefinition({
             throw new Error(
                 `${convertedTypeName}.${fieldName}: @${
                     exampleDirective.name.value
-                } directive values must be the same type. Got [${exampleDirectiveRawValues.join(
-                    ", ",
-                )}]`,
+                } directive values must be the same type. Got [${exampleDirectiveRawValues.join(", ")}]`,
             );
         }
         // pick one of the raw value type

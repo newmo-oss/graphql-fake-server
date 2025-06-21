@@ -30,9 +30,9 @@ export type CreateFooUrlErrorDetail = Error & {
 
 export type Destination = {
   __typename?: 'Destination';
-  /** 目的地の ID */
+  /** Destination ID */
   id: Scalars['ID']['output'];
-  /** 目的地の名前 */
+  /** Destination name */
   name: Scalars['String']['output'];
 };
 
@@ -79,9 +79,9 @@ export type MutationCreateUrlRideHistoryArgs = {
 
 export type Query = {
   __typename?: 'Query';
-  /** 検索文字列にマッチする目的地の候補 */
+  /** Destination candidates that match the search string */
   destinationCandidates: Array<Destination>;
-  /** 乗車履歴 */
+  /** Ride history */
   rideHistories: Array<RideHistory>;
 };
 
@@ -92,7 +92,7 @@ export type QueryDestinationCandidatesArgs = {
 
 export type RideHistory = {
   __typename?: 'RideHistory';
-  /** 目的地 */
+  /** Destination */
   destination: Destination;
   /** Ride History ID */
   id: Scalars['ID']['output'];
@@ -101,7 +101,7 @@ export type RideHistory = {
 };
 
 export type RideHistoryInput = {
-  /** 目的地の名前 */
+  /** Destination name */
   name: Scalars['String']['input'];
 };
 

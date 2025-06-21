@@ -17,21 +17,21 @@ GraphQL Code Generator configuration:
 import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-    overwrite: true,
-    schema: "./api/graphql/api.graphqls",
-    documents: "./api/graphql/query.graphql",
-    generates: {
-        "./generated/": {
-            preset: "client"
-        },
-        "./generated/fake-client.ts": {
-            plugins: ["@newmo/graphql-codegen-fake-server-client"],
-            config: {
-                // Required: path to the generated client's graphql file
-                typesFile: "./graphql"
-            },
-        },
+  overwrite: true,
+  schema: "./api/graphql/api.graphqls",
+  documents: "./api/graphql/query.graphql",
+  generates: {
+    "./generated/": {
+      preset: "client",
     },
+    "./generated/fake-client.ts": {
+      plugins: ["@newmo/graphql-codegen-fake-server-client"],
+      config: {
+        // Required: path to the generated client's graphql file
+        typesFile: "./graphql",
+      },
+    },
+  },
 };
 
 export default config;
@@ -39,34 +39,39 @@ export default config;
 
 You can use `./generated/fake-client.ts` to register the fake to the fake server.
 
+### Basic Usage
+
 ```ts
 import { it, expect } from "vitest";
 import { createFakeClient } from "./generated/fake-client";
 
 const fakeClient = createFakeClient({
-  fakeServerEndpoint: "http://localhost:4000"
-})
+  fakeServerEndpoint: "http://localhost:4000",
+});
 it("register fake response for query", async () => {
-    const sequenceId = crypto.randomUUID();
-    // register fake response for GetBooks query
-    const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
-        books: [
-            {
-                id: "new id",
-                title: "new title",
-            },
-        ],
-    });
-    expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
-    // request to server
-    const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-        headers: {
-            "sequence-id": sequenceId,
+  const sequenceId = crypto.randomUUID();
+  // register fake response for GetBooks query
+  const resRegister = await fakeClient.registerGetBooksQueryResponse(
+    sequenceId,
+    {
+      books: [
+        {
+          id: "new id",
+          title: "new title",
         },
-    });
-    // Got fake response
-    const response = await client.request(GetBooksDocument);
-    expect(response).toMatchInlineSnapshot(`
+      ],
+    }
+  );
+  expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+  // request to server
+  const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+    headers: {
+      "sequence-id": sequenceId,
+    },
+  });
+  // Got fake response
+  const response = await client.request(GetBooksDocument);
+  expect(response).toMatchInlineSnapshot(`
           {
             "books": [
               {
@@ -76,12 +81,89 @@ it("register fake response for query", async () => {
             ],
           }
         `);
-    // Get actual request and response for testing
-    const calledResults = await fakeClient.calledGetBooksDocumentQuery(sequenceId);
-    console.log(calledResults[0].request);
-    console.log(calledResults[0].response);
+  // Get actual request and response for testing
+  const calledResults = await fakeClient.calledGetBooksDocumentQuery(
+    sequenceId
+  );
+  console.log(calledResults[0].request);
+  console.log(calledResults[0].response);
 });
 ```
+
+### Conditional Fake Responses
+
+You can register conditional fake responses that return different results based on call count or variables. **The variables are now fully type-safe** based on your GraphQL operations:
+
+```ts
+import { it, expect } from "vitest";
+import { createFakeClient } from "./generated/fake-client";
+
+const fakeClient = createFakeClient({
+  fakeServerEndpoint: "http://localhost:4000",
+});
+
+it("register conditional fake responses", async () => {
+  const sequenceId = crypto.randomUUID();
+
+  // Return different response on first call
+  await fakeClient.registerGetBooksQueryResponse(
+    sequenceId,
+    {
+      books: [{ id: "1", title: "First Call" }],
+    },
+    {
+      requestCondition: { type: "count", value: 1 },
+    }
+  );
+
+  // Return different response on second call
+  await fakeClient.registerGetBooksQueryResponse(
+    sequenceId,
+    {
+      books: [{ id: "2", title: "Second Call" }],
+    },
+    {
+      requestCondition: { type: "count", value: 2 },
+    }
+  );
+
+  // Type-safe variables condition!
+  // TypeScript will enforce the correct variables shape for this operation
+  await fakeClient.registerListDestinationCandidatesQueryResponse(
+    sequenceId,
+    {
+      destinationCandidates: [{ id: "3", name: "Tokyo Station" }],
+    },
+    {
+      requestCondition: {
+        type: "variables",
+        value: { text: "tokyo" }, // ✅ Type-safe! Must match ListDestinationCandidatesQueryVariables
+      },
+    }
+  );
+
+  // Another type-safe variables condition example
+  await fakeClient.registerCreateUrlRideHistoryMutationResponse(
+    sequenceId,
+    {
+      createURLRideHistory: { id: "4", name: "Shibuya" },
+    },
+    {
+      requestCondition: {
+        type: "variables",
+        value: { desinationName: "Shibuya" }, // ✅ Type-safe for this mutation!
+      },
+    }
+  );
+});
+```
+
+#### Type Safety Benefits
+
+- **Variables validation**: TypeScript will ensure variables in conditions match the exact shape expected by your GraphQL operation
+- **Autocomplete**: Your IDE will provide autocomplete for available variable fields
+- **Compile-time errors**: Typos or wrong variable types will be caught at compile time
+- **Refactoring safety**: If you change your GraphQL schema, TypeScript will help you update the affected conditions
 
 ## Options
 

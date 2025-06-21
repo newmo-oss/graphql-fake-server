@@ -6,7 +6,12 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
     plugin(_schema, documents, rawConfig, _info) {
         const config = normalizeConfig(rawConfig);
         const _fakeEndpoint = config.fakeServerEndpoint;
-        const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
+        const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }"; // Conditional fake types with generic Variables
+        const conditionRuleTypes = `
+export type FakeClientCountConditionRule = { type: "count"; value: number };
+export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };`;
         type GenerateFakeFunction =
             | {
                   type: "query";
@@ -81,7 +86,8 @@ ${exportsFunctions
             name: string,
             fakeEndpointVariableName: string,
         ) => {
-            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {
+            const variablesType = `${convertName(name, config)}QueryVariables`;
+            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -91,7 +97,8 @@ ${exportsFunctions
         body: JSON.stringify({
             type: "operation",
             operationName: "${name}",
-            data: queryResponse
+            data: queryResponse,
+            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
@@ -117,7 +124,8 @@ ${exportsFunctions
 }`;
         };
         const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
-            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation): Promise<${registerOperationResponseType}> {
+            const variablesType = `${convertName(name, config)}MutationVariables`;
+            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -127,7 +135,8 @@ ${exportsFunctions
         body: JSON.stringify({
             type: "operation",
             operationName: "${name}",
-            data: mutationResponse
+            data: mutationResponse,
+            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
@@ -253,9 +262,10 @@ ${exportsFunctions
         };
 
         const importQueryIdentifierName = (documentName: string) => {
-            return `import type { ${convertName(documentName, config)}Query } from '${
-                config.typesFile
-            }';`;
+            return `import type { ${convertName(
+                documentName,
+                config,
+            )}Query, ${convertName(documentName, config)}QueryVariables } from '${config.typesFile}';`;
         };
         const importMutationIdentifierName = (documentName: string) => {
             return `import type { ${convertName(documentName, config)}Mutation, ${convertName(
@@ -287,6 +297,7 @@ ${documents
         });
     })
     .join("\n")}
+${conditionRuleTypes}
 ${generateFakeClient(
     documents.flatMap((document) => {
         const flatMap =

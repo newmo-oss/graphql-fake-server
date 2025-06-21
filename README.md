@@ -407,6 +407,167 @@ console.log(json);
 */
 ```
 
+#### Conditional Fake Responses
+
+You can register fake responses with conditions to return different results based on request characteristics:
+
+**Count-based conditions** - Return specific responses on the nth call:
+
+```ts
+// Return different response on the 2nd call
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    requestCondition: {
+      type: "count",
+      value: 2, // Only match on the 2nd call
+    },
+    data: {
+      books: [
+        {
+          id: "book-id01",
+          title: "Second Call Book",
+        },
+      ],
+    },
+  }),
+});
+```
+
+**Variables-based conditions** - Return specific responses when variables match exactly:
+
+```ts
+// Return different response when variables match
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetUser",
+    requestCondition: {
+      type: "variables",
+      value: { id: "admin", role: "admin" }, // Only match when variables exactly match
+    },
+    data: {
+      user: {
+        id: "admin",
+        name: "Admin User",
+      },
+    },
+  }),
+});
+```
+
+When no condition matches, the server falls back to the declarative fake data defined in the GraphQL schema.
+
+### Condition
+
+The `condition` property in fake data registration allows you to control when specific fake responses should be returned. This enables sophisticated testing scenarios where you need different responses based on request characteristics.
+
+#### Supported Condition Types
+
+**Count-based Conditions (`type: "count"`)**
+
+Count-based conditions allow you to return specific responses on the nth call to an operation:
+
+```ts
+{
+  type: "operation",
+  operationName: "GetBooks",
+  requestCondition: {
+    type: "count",
+    value: 3 // Only return this response on the 3rd call
+  },
+  data: { /* response data */ }
+}
+```
+
+This is useful for testing scenarios like:
+
+- Simulating different states after multiple operations
+- Testing pagination where the first call returns data and subsequent calls return empty results
+- Simulating rate limiting where the nth call returns an error
+
+**Variables-based Conditions (`type: "variables"`)**
+
+Variables-based conditions allow you to return specific responses when the GraphQL variables exactly match the specified value:
+
+```ts
+{
+  type: "operation",
+  operationName: "GetUser",
+  requestCondition: {
+    type: "variables",
+    value: { id: "admin", role: "admin" } // Only match when variables exactly match
+  },
+  data: { /* response data */ }
+}
+```
+
+This is useful for testing scenarios like:
+
+- Different user roles returning different data
+- Specific input values triggering special behaviors
+- Testing edge cases with particular variable combinations
+
+#### Condition Matching Rules
+
+- **Exact Match**: For variables-based conditions, the variables must match exactly (deep equality)
+- **Call Count**: For count-based conditions, the condition matches only on the specified call number (1-indexed)
+- **Priority**: If multiple fake responses are registered for the same operation, they are checked in registration order
+- **Fallback**: When no condition matches, the server falls back to declarative fake data defined in the GraphQL schema
+
+#### Example: Complex Testing Scenario
+
+```ts
+const sequenceId = "test-scenario-1";
+
+// First call returns normal data
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    requestCondition: { type: "count", value: 1 },
+    data: { books: [{ id: "1", title: "First Book" }] },
+  }),
+});
+
+// Second call returns different data
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    requestCondition: { type: "count", value: 2 },
+    data: { books: [{ id: "2", title: "Second Book" }] },
+  }),
+});
+
+// Admin user gets special data
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    requestCondition: { type: "variables", value: { userRole: "admin" } },
+    data: { books: [{ id: "admin", title: "Admin Only Book" }] },
+  }),
+});
+```
+
 > [!NOTE]
 > If you use TypeScript, you can use [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client) to generate a client for the Fake Server.
 
