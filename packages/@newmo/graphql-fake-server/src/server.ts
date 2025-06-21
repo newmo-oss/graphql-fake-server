@@ -121,6 +121,9 @@ const creteApolloServer = async (options: FakeServerInternal) => {
 const ALLOWED_CONDITION_TYPES = ["count", "variables"] as const;
 type AllowedConditionType = (typeof ALLOWED_CONDITION_TYPES)[number];
 
+// Validation result type for better error messages
+type ValidationResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
 // Condition rules for conditional fake responses
 export type ConditionRule =
     | { type: "count"; value: number } // Match based on call count (nth call)
@@ -282,64 +285,105 @@ const checkConditionConflicts = (
 /**
  * Validate condition rule structure
  */
-const validateConditionRule = (condition: any): condition is ConditionRule => {
-    if (typeof condition !== "object" || condition === null) return false;
+const validateConditionRule = (condition: any): ValidationResult<ConditionRule> => {
+    if (typeof condition !== "object" || condition === null) {
+        return { ok: false, error: "Condition must be an object" };
+    }
 
-    if (!("type" in condition) || typeof condition.type !== "string") return false;
+    if (!("type" in condition) || typeof condition.type !== "string") {
+        return { ok: false, error: "Condition must have a 'type' field of type string" };
+    }
 
     // Check if type is in the allow list
     if (!ALLOWED_CONDITION_TYPES.includes(condition.type as AllowedConditionType)) {
-        return false;
+        return {
+            ok: false,
+            error: `Unknown condition type '${condition.type}'. Allowed types: ${ALLOWED_CONDITION_TYPES.join(", ")}`,
+        };
+    }
+
+    if (!("value" in condition)) {
+        return { ok: false, error: "Condition must have a 'value' field" };
     }
 
     switch (condition.type) {
         case "count":
-            return (
-                "value" in condition && typeof condition.value === "number" && condition.value > 0
-            );
+            if (typeof condition.value !== "number") {
+                return { ok: false, error: "Count condition value must be a number" };
+            }
+            if (condition.value <= 0) {
+                return { ok: false, error: "Count condition value must be greater than 0" };
+            }
+            return { ok: true, data: condition as ConditionRule };
 
         case "variables":
-            return (
-                "value" in condition &&
-                typeof condition.value === "object" &&
-                condition.value !== null &&
-                !Array.isArray(condition.value)
-            );
+            if (typeof condition.value !== "object" || condition.value === null) {
+                return { ok: false, error: "Variables condition value must be an object" };
+            }
+            if (Array.isArray(condition.value)) {
+                return {
+                    ok: false,
+                    error: "Variables condition value must be an object, not an array",
+                };
+            }
+            return { ok: true, data: condition as ConditionRule };
 
         default:
-            return false;
+            return { ok: false, error: `Unsupported condition type '${condition.type}'` };
     }
 };
 
-const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOptions => {
-    if (typeof data !== "object" || data === null) return false;
+const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterSequenceOptions> => {
+    if (typeof data !== "object" || data === null) {
+        return { ok: false, error: "Request body must be an object" };
+    }
 
     // Validate request condition
     if ("requestCondition" in data && data.requestCondition !== undefined) {
-        if (!validateConditionRule(data.requestCondition)) return false;
+        const conditionResult = validateConditionRule(data.requestCondition);
+        if (!conditionResult.ok) {
+            return { ok: false, error: `Invalid request condition: ${conditionResult.error}` };
+        }
     }
 
-    if ("type" in data && typeof data.type === "string") {
-        if (data.type === "network-error") {
-            return (
-                "errors" in data &&
-                Array.isArray(data.errors) &&
-                "responseStatusCode" in data &&
-                typeof data.responseStatusCode === "number" &&
-                "operationName" in data &&
-                typeof data.operationName === "string"
-            );
-        }
-        if (data.type === "operation") {
-            return (
-                "data" in data &&
-                typeof data.data === "object" &&
-                "operationName" in data &&
-                typeof data.operationName === "string"
-            );
-        }
+    if (!("type" in data) || typeof data.type !== "string") {
+        return { ok: false, error: "Request body must have a 'type' field of type string" };
     }
-    return false;
+
+    if (!("operationName" in data) || typeof data.operationName !== "string") {
+        return {
+            ok: false,
+            error: "Request body must have an 'operationName' field of type string",
+        };
+    }
+
+    if (data.type === "network-error") {
+        if (!("errors" in data) || !Array.isArray(data.errors)) {
+            return {
+                ok: false,
+                error: "Network error type must have an 'errors' field of type array",
+            };
+        }
+        if (!("responseStatusCode" in data) || typeof data.responseStatusCode !== "number") {
+            return {
+                ok: false,
+                error: "Network error type must have a 'responseStatusCode' field of type number",
+            };
+        }
+        return { ok: true, data: data as RegisterSequenceOptions };
+    }
+
+    if (data.type === "operation") {
+        if (!("data" in data) || typeof data.data !== "object" || data.data === null) {
+            return { ok: false, error: "Operation type must have a 'data' field of type object" };
+        }
+        return { ok: true, data: data as RegisterSequenceOptions };
+    }
+
+    return {
+        ok: false,
+        error: `Unknown request type '${data.type}'. Allowed types: 'operation', 'network-error'`,
+    };
 };
 
 class LRUMap<K, V> {
@@ -581,19 +625,20 @@ const createRoutingServer = async ({
             sequenceId,
             body,
         });
-        if (!validateSequenceRegistration(body)) {
+        const validationResult = validateSequenceRegistration(body);
+        if (!validationResult.ok) {
             return Response.json(
-                { ok: false, errors: ["invalid fake body"] },
+                { ok: false, errors: [validationResult.error] },
                 {
                     status: 400,
                 },
             );
         }
-        const operationName = body.operationName;
+        const operationName = validationResult.data.operationName;
         logger.debug("/fake got body type", {
             sequenceId,
-            type: body.type,
-            requestCondition: body.requestCondition,
+            type: validationResult.data.type,
+            requestCondition: validationResult.data.requestCondition,
         });
 
         const baseKey = createMapKey({
@@ -606,7 +651,7 @@ const createRoutingServer = async ({
         const existingDefaultFake = sequenceFakeResponseLruMap.get(baseKey);
 
         const conflictErrors = checkConditionConflicts(
-            body,
+            validationResult.data,
             existingConditionalFakes,
             existingDefaultFake,
         );
@@ -621,19 +666,20 @@ const createRoutingServer = async ({
         }
 
         // Register as conditional fake if request condition exists
-        if (body.requestCondition) {
+        if (validationResult.data.requestCondition) {
             const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
             // Overwrite if same condition exists, otherwise add new
             const existingIndex = existingConditionalFakes.findIndex(
                 (fake) =>
                     fake.requestCondition &&
-                    JSON.stringify(fake.requestCondition) === JSON.stringify(body.requestCondition),
+                    JSON.stringify(fake.requestCondition) ===
+                        JSON.stringify(validationResult.data.requestCondition),
             );
 
             if (existingIndex >= 0) {
-                existingConditionalFakes[existingIndex] = body;
+                existingConditionalFakes[existingIndex] = validationResult.data;
             } else {
-                existingConditionalFakes.push(body);
+                existingConditionalFakes.push(validationResult.data);
             }
 
             // Sort by condition specificity (evaluate more specific conditions first)
@@ -650,7 +696,7 @@ const createRoutingServer = async ({
             conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
         } else {
             // Without condition, use traditional approach
-            sequenceFakeResponseLruMap.set(baseKey, body);
+            sequenceFakeResponseLruMap.set(baseKey, validationResult.data);
         }
         return Response.json(
             { ok: true },

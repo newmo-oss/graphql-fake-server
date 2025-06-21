@@ -1864,10 +1864,10 @@ describe("graphql-fake-server", () => {
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
-                  [
-                    "invalid fake body",
-                  ]
-                `);
+              [
+                "Invalid request condition: Count condition value must be greater than 0",
+              ]
+            `);
 
             await server.stop();
         });
@@ -1913,10 +1913,10 @@ describe("graphql-fake-server", () => {
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
-                  [
-                    "invalid fake body",
-                  ]
-                `);
+              [
+                "Invalid request condition: Count condition value must be greater than 0",
+              ]
+            `);
 
             await server.stop();
         });
@@ -1962,10 +1962,10 @@ describe("graphql-fake-server", () => {
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
-                  [
-                    "invalid fake body",
-                  ]
-                `);
+              [
+                "Invalid request condition: Count condition value must be a number",
+              ]
+            `);
 
             await server.stop();
         });
@@ -2011,10 +2011,10 @@ describe("graphql-fake-server", () => {
             expect(response.status).toBe(400);
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
-                  [
-                    "invalid fake body",
-                  ]
-                `);
+              [
+                "Invalid request condition: Variables condition value must be an object",
+              ]
+            `);
 
             await server.stop();
         });
@@ -2061,7 +2061,7 @@ describe("graphql-fake-server", () => {
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
               [
-                "invalid fake body",
+                "Invalid request condition: Variables condition value must be an object, not an array",
               ]
             `);
 
@@ -2110,7 +2110,7 @@ describe("graphql-fake-server", () => {
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
               [
-                "invalid fake body",
+                "Invalid request condition: Unknown condition type 'unknown'. Allowed types: count, variables",
               ]
             `);
 
@@ -2159,7 +2159,7 @@ describe("graphql-fake-server", () => {
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
               [
-                "invalid fake body",
+                "Invalid request condition: Condition must have a 'type' field of type string",
               ]
             `);
 
@@ -2208,7 +2208,7 @@ describe("graphql-fake-server", () => {
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
               [
-                "invalid fake body",
+                "Invalid request condition: Condition must have a 'value' field",
               ]
             `);
 
