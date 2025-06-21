@@ -8,48 +8,17 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
         const _fakeEndpoint = config.fakeServerEndpoint;
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }";
 
-        // New registration strategy - align with server implementation
-        const conditionRuleTypes = `
+        // New unified API types
+        const unifiedApiTypes = `
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientVariablesConditionRule<TVariables>;
+export type FakeClientAlwaysConditionRule = { type: "always" };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = 
+    | FakeClientVariablesConditionRule<TVariables> 
+    | FakeClientAlwaysConditionRule;
 
-// Single response registration
-export type FakeClientRegisterSingleResponse = {
-    type: "single";
-    operationName: string;
-    data: Record<string, unknown>;
-};
-
-// Array-based sequence response registration  
-export type FakeClientRegisterSequenceResponse = {
-    type: "sequence";
-    operationName: string;
-    data: Record<string, unknown>[];
-};
-
-// Conditional response registration
-export type FakeClientRegisterConditionalResponse<TVariables = Record<string, any>> = {
-    type: "conditional";
-    operationName: string;
-    conditions: Array<{
-        condition: FakeClientConditionRule<TVariables>;
-        data: Record<string, unknown> | Record<string, unknown>[];
-    }>;
-};
-
-// Network error registration
-export type FakeClientRegisterNetworkError = {
-    type: "network-error";
-    operationName: string;
-    responseStatusCode: number;
-    errors: Record<string, unknown>[];
-};
-
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = 
-    | FakeClientRegisterSingleResponse 
-    | FakeClientRegisterSequenceResponse 
-    | FakeClientRegisterConditionalResponse<TVariables> 
-    | FakeClientRegisterNetworkError;`;
+export type FakeClientRequestConditions<TVariables = Record<string, any>> = {
+    requestConditions: FakeClientConditionRule<TVariables>;
+};`;
         type GenerateFakeFunction =
             | {
                   type: "query";
@@ -79,30 +48,25 @@ export function createFakeClient(options: CreateFakeClientOptions) {
   if(!options.fakeServerEndpoint.endsWith('/fake')) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
+  const fakeServerEndpoint = options.fakeServerEndpoint;
   return {
 ${exportsFunctions
     .flatMap((fn) => {
         if (fn.type === "query") {
             return [
+                indentEachLine(`${indent}${indent}`, generateRegisterQueryMethod(fn.name)),
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterQueryMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateCalledQuery(fn.name, `options.fakeServerEndpoint + "/called"`),
+                    generateCalledQuery(fn.name, `fakeServerEndpoint + "/called"`),
                 ),
             ];
         }
         if (fn.type === "mutation") {
             return [
+                indentEachLine(`${indent}${indent}`, generateRegisterMutationMethod(fn.name)),
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterMutationMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateCalledMutation(fn.name, `options.fakeServerEndpoint + "/called"`),
+                    generateCalledMutation(fn.name, `fakeServerEndpoint + "/called"`),
                 ),
             ];
         }
@@ -114,12 +78,16 @@ ${exportsFunctions
         };
 
         // Unified query registration method
-        const generateRegisterQueryMethod = (name: string, fakeEndpointVariableName: string) => {
+        const generateRegisterQueryMethod = (name: string) => {
             const variablesType = `${convertName(name, config)}QueryVariables`;
-            return `async register${name}Query(
+            return `async register${name}Response(
     sequenceId: string, 
-    data: ${name}Query | ${name}Query[] | Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Query | ${name}Query[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+    data: ${name}Query | ${name}Query[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+    requestOptions?: { requestConditions?: FakeClientConditionRule<${variablesType}> }
 ): Promise<${registerOperationResponseType}> {
+    // Default requestConditions to { type: "always" } if not provided
+    const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+    
     let requestBody: any;
     
     // Check if it's a network error
@@ -131,32 +99,30 @@ ${exportsFunctions
             errors: data.errors
         };
     }
-    // Check if it's conditional responses
-    else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+    // Check if it's sequence responses (array)
+    else if (Array.isArray(data)) {
         requestBody = {
             type: "conditional",
             operationName: "${name}",
-            conditions: data
-        };
-    }
-    // Check if it's sequence responses (array of queries)
-    else if (Array.isArray(data)) {
-        requestBody = {
-            type: "sequence",
-            operationName: "${name}",
-            data: data
+            conditions: [{
+                condition: requestConditions,
+                data: data
+            }]
         };
     }
     // Single response
     else {
         requestBody = {
-            type: "single",
+            type: "conditional",
             operationName: "${name}",
-            data: data
+            conditions: [{
+                condition: requestConditions,
+                data: data
+            }]
         };
     }
 
-    return await fetch(${fakeEndpointVariableName}, {
+    return await fetch(fakeServerEndpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -168,12 +134,16 @@ ${exportsFunctions
         };
 
         // Unified mutation registration method
-        const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
+        const generateRegisterMutationMethod = (name: string) => {
             const variablesType = `${convertName(name, config)}MutationVariables`;
-            return `async register${name}Mutation(
+            return `async register${name}Response(
     sequenceId: string, 
-    data: ${name}Mutation | ${name}Mutation[] | Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Mutation | ${name}Mutation[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+    data: ${name}Mutation | ${name}Mutation[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+    requestOptions?: { requestConditions?: FakeClientConditionRule<${variablesType}> }
 ): Promise<${registerOperationResponseType}> {
+    // Default requestConditions to { type: "always" } if not provided
+    const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+    
     let requestBody: any;
     
     // Check if it's a network error
@@ -185,32 +155,30 @@ ${exportsFunctions
             errors: data.errors
         };
     }
-    // Check if it's conditional responses
-    else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+    // Check if it's sequence responses (array)
+    else if (Array.isArray(data)) {
         requestBody = {
             type: "conditional",
             operationName: "${name}",
-            conditions: data
-        };
-    }
-    // Check if it's sequence responses (array of mutations)
-    else if (Array.isArray(data)) {
-        requestBody = {
-            type: "sequence",
-            operationName: "${name}",
-            data: data
+            conditions: [{
+                condition: requestConditions,
+                data: data
+            }]
         };
     }
     // Single response
     else {
         requestBody = {
-            type: "single",
+            type: "conditional",
             operationName: "${name}",
-            data: data
+            conditions: [{
+                condition: requestConditions,
+                data: data
+            }]
         };
     }
 
-    return await fetch(${fakeEndpointVariableName}, {
+    return await fetch(fakeServerEndpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -357,7 +325,7 @@ ${documents
         });
     })
     .join("\n")}
-${conditionRuleTypes}
+${unifiedApiTypes}
 ${generateFakeClient(
     documents.flatMap((document) => {
         const flatMap =

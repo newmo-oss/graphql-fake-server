@@ -24,12 +24,12 @@ import {
 loadDevMessages();
 loadErrorMessages();
 
-const fakeClient = createFakeClient({
-    fakeServerEndpoint: "http://127.0.0.1:4000/fake",
-});
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
     let fakeServerUrl = "";
+    let fakeClient: ReturnType<typeof createFakeClient>;
+    let _apolloClient: ApolloClient<unknown>;
+
     beforeAll(async () => {
         server = await createFakeServer(
             normalizeFakeServerConfig({
@@ -48,6 +48,11 @@ describe("integration test", async () => {
         );
         const { urls } = await server.start();
         fakeServerUrl = urls.fakeServer;
+
+        // Initialize fakeClient after fakeServerUrl is set
+        fakeClient = createFakeClient({
+            fakeServerEndpoint: `${fakeServerUrl}/fake`,
+        });
     });
     afterAll(() => {
         server?.stop();
@@ -251,11 +256,147 @@ describe("integration test", async () => {
             `);
         });
     });
+
+    describe("Unified registerXXXResponse API", () => {
+        it("should register single response (default always condition)", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // Register single response (省略形で type: "always" がデフォルト)
+            const resRegister = await fakeClient.registerGetBooksResponse(sequenceId, {
+                __typename: "Query",
+                books: [
+                    {
+                        __typename: "Book",
+                        id: "single-response-id",
+                        title: "Single Response Book",
+                    },
+                ],
+            });
+            expect(resRegister.ok).toBe(true);
+
+            // Create Apollo client for this test
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+
+            // Query should return the registered response
+            const result = await client.query({
+                query: GetBooksDocument,
+                context: {
+                    headers: {
+                        "sequence-id": sequenceId,
+                    },
+                },
+                fetchPolicy: "network-only", // Bypass cache
+            });
+            expect(result.data.books[0].title).toBe("Single Response Book");
+        });
+
+        it("should register sequence response (array)", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // Register sequence response (配列形式)
+            const resRegister = await fakeClient.registerGetBooksResponse(sequenceId, [
+                {
+                    __typename: "Query",
+                    books: [
+                        {
+                            __typename: "Book",
+                            id: "seq-1-id",
+                            title: "Sequence Book 1",
+                        },
+                    ],
+                },
+                {
+                    __typename: "Query",
+                    books: [
+                        {
+                            __typename: "Book",
+                            id: "seq-2-id",
+                            title: "Sequence Book 2",
+                        },
+                    ],
+                },
+            ]);
+            expect(resRegister.ok).toBe(true);
+
+            // Create Apollo client for this test
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+
+            // First call should return first response
+            const result1 = await client.query({
+                query: GetBooksDocument,
+                context: {
+                    headers: {
+                        "sequence-id": sequenceId,
+                    },
+                },
+                fetchPolicy: "network-only", // Bypass cache
+            });
+            expect(result1.data.books[0].title).toBe("Sequence Book 1");
+
+            // Second call should return second response
+            const result2 = await client.query({
+                query: GetBooksDocument,
+                context: {
+                    headers: {
+                        "sequence-id": sequenceId,
+                    },
+                },
+                fetchPolicy: "network-only", // Bypass cache
+            });
+            expect(result2.data.books[0].title).toBe("Sequence Book 2");
+        });
+
+        it("should register error response", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // Register network error response
+            const resRegister = await fakeClient.registerGetBooksResponse(sequenceId, {
+                errors: [{ message: "Network error occurred" }],
+                responseStatusCode: 500,
+            });
+            expect(resRegister.ok).toBe(true);
+
+            // Create Apollo client for this test
+            const client = new ApolloClient({
+                link: new HttpLink({
+                    uri: `${fakeServerUrl}/graphql`,
+                    fetch,
+                }),
+                cache: new InMemoryCache(),
+            });
+
+            // Query should return error
+            await expect(
+                client.query({
+                    query: GetBooksDocument,
+                    context: {
+                        headers: {
+                            "sequence-id": sequenceId,
+                        },
+                    },
+                    fetchPolicy: "network-only", // Bypass cache
+                }),
+            ).rejects.toThrow();
+        });
+    });
+
     describe("/fake", () => {
         it("register fake response for query and get called request body", async () => {
             const sequenceId = crypto.randomUUID();
-            // register fake response for GetBooks query
-            const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+            // register fake response for GetBooks query using new unified API
+            const resRegister = await fakeClient.registerGetBooksResponse(sequenceId, {
                 __typename: "Query",
                 books: [
                     {
@@ -324,7 +465,7 @@ describe("integration test", async () => {
         });
         it("register fake response for query Dog which is implemented an interface", async () => {
             const sequenceId = crypto.randomUUID();
-            const resRegister = await fakeClient.registerGetDogQueryResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGetDogResponse(sequenceId, {
                 __typename: "Query",
                 dog: {
                     __typename: "Dog",
@@ -358,8 +499,8 @@ describe("integration test", async () => {
         });
         it("register fake response for mutation and get called request body", async () => {
             const sequenceId = crypto.randomUUID();
-            // register fake response for mutation
-            const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, {
+            // register fake response for mutation using new unified API
+            const resRegister = await fakeClient.registerCreateBookResponse(sequenceId, {
                 __typename: "Mutation",
                 createBook: {
                     __typename: "Book",
@@ -438,7 +579,7 @@ describe("integration test", async () => {
         });
         it("register fake data for union type", async () => {
             const sequenceId = crypto.randomUUID();
-            const resRegister = await fakeClient.registerGotUnionUserQueryResponse(sequenceId, {
+            const resRegister = await fakeClient.registerGotUnionUserResponse(sequenceId, {
                 __typename: "Query",
                 unionUser: {
                     __typename: "User",
@@ -477,17 +618,14 @@ describe("integration test", async () => {
         it("register fake response which use Fragment", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for mutation
-            const resRegister = await fakeClient.registerGetBookWithFragmentsQueryResponse(
-                sequenceId,
-                {
-                    __typename: "Query",
-                    book: {
-                        __typename: "Book",
-                        id: "new id",
-                        title: "new title",
-                    } as FragmentType<BookFragmentPartsFragment>,
-                },
-            );
+            const resRegister = await fakeClient.registerGetBookWithFragmentsResponse(sequenceId, {
+                __typename: "Query",
+                book: {
+                    __typename: "Book",
+                    id: "new id",
+                    title: "new title",
+                } as FragmentType<BookFragmentPartsFragment>,
+            });
             expect(resRegister).toMatchInlineSnapshot(`
               {
                 "ok": true,
@@ -514,8 +652,8 @@ describe("integration test", async () => {
 
         it("register fake error response for query", async () => {
             const sequenceId = crypto.randomUUID();
-            // register fake error response for GetBooks query
-            const resRegister = await fakeClient.registerGetBooksQueryErrorResponse(sequenceId, {
+            // register fake error response for GetBooks query using new unified API
+            const resRegister = await fakeClient.registerGetBooksResponse(sequenceId, {
                 errors: [{ message: "fake error message" }],
                 responseStatusCode: 400,
             });
@@ -542,22 +680,21 @@ describe("integration test", async () => {
         it("register fake response for mutation errors pattern", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
-            const _resRegister =
-                await fakeClient.registerUseMutationErrorPatternMutationMutationResponse(
-                    sequenceId,
-                    {
-                        __typename: "Mutation",
-                        useMutationErrorPattern: {
-                            __typename: "UseMutationErrorPatternPayload",
-                            errors: [
-                                {
-                                    __typename: "GeneralError",
-                                    message: "error message",
-                                },
-                            ],
-                        },
+            const _resRegister = await fakeClient.registerUseMutationErrorPatternMutationResponse(
+                sequenceId,
+                {
+                    __typename: "Mutation",
+                    useMutationErrorPattern: {
+                        __typename: "UseMutationErrorPatternPayload",
+                        errors: [
+                            {
+                                __typename: "GeneralError",
+                                message: "error message",
+                            },
+                        ],
                     },
-                );
+                },
+            );
             // request to server
             const client = new ApolloClient({
                 link: new HttpLink({
@@ -595,7 +732,7 @@ describe("integration test", async () => {
         it("apollo client catch global errors", async () => {
             const sequenceId = crypto.randomUUID();
             // register fake response for UseFooBarMutationMutation mutation
-            const _resRegister = await fakeClient.registerGetDogQueryErrorResponse(sequenceId, {
+            const _resRegister = await fakeClient.registerGetDogResponse(sequenceId, {
                 errors: [
                     {
                         message: "test error",
@@ -631,7 +768,7 @@ describe("integration test", async () => {
         it("should override first fake with second fake", async () => {
             const sequenceId = crypto.randomUUID();
             // 1. register error repose - this will be overridden
-            await fakeClient.registerGetDogQueryErrorResponse(sequenceId, {
+            await fakeClient.registerGetDogResponse(sequenceId, {
                 errors: [
                     {
                         message: "test error",
@@ -640,7 +777,7 @@ describe("integration test", async () => {
                 responseStatusCode: 400,
             });
             // 2. register success response
-            await fakeClient.registerGetDogQueryResponse(sequenceId, {
+            await fakeClient.registerGetDogResponse(sequenceId, {
                 __typename: "Query",
                 dog: {
                     __typename: "Dog",
@@ -986,7 +1123,7 @@ describe("integration test", async () => {
     describe("Condition conflicts (using fakeClient)", () => {
         it("should reject count condition when default fake is already registered using fakeClient", async () => {
             const sequenceId = crypto.randomUUID(); // First register default fake using fakeClient
-            const defaultResponse = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+            const defaultResponse = await fakeClient.registerGetBooksResponse(sequenceId, {
                 __typename: "Query",
                 books: [{ __typename: "Book", id: "default-book", title: "Default Book" }],
             });

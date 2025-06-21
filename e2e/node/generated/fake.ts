@@ -11,10 +11,15 @@ import type { CreateBookInlineMutation, CreateBookInlineMutationVariables } from
 import type { UseMutationErrorPatternMutationMutation, UseMutationErrorPatternMutationMutationVariables } from './graphql.js';
 import type { CreateFooUrlMutation, CreateFooUrlMutationVariables } from './graphql.js';
 
-export type FakeClientCountConditionRule = { type: "count"; value: number };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
+export type FakeClientAlwaysConditionRule = { type: "always" };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = 
+    | FakeClientVariablesConditionRule<TVariables> 
+    | FakeClientAlwaysConditionRule;
+
+export type FakeClientRequestConditions<TVariables = Record<string, any>> = {
+    requestConditions: FakeClientConditionRule<TVariables>;
+};
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -26,35 +31,57 @@ export function createFakeClient(options: CreateFakeClientOptions) {
   if(!options.fakeServerEndpoint.endsWith('/fake')) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
+  const fakeServerEndpoint = options.fakeServerEndpoint;
   return {
-    async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetBooksQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "GetBooks",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerGetBooksQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerGetBooksResponse(
+        sequenceId: string, 
+        data: GetBooksQuery | GetBooksQuery[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<GetBooksQueryVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "GetBooks",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetBooks",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetBooks",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledGetBooksQuery(sequenceId:string): Promise<{
@@ -75,7 +102,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -103,34 +130,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetBookWithFragmentsQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "GetBookWithFragments",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerGetBookWithFragmentsQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerGetBookWithFragmentsResponse(
+        sequenceId: string, 
+        data: GetBookWithFragmentsQuery | GetBookWithFragmentsQuery[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<GetBookWithFragmentsQueryVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "GetBookWithFragments",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetBookWithFragments",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetBookWithFragments",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledGetBookWithFragmentsQuery(sequenceId:string): Promise<{
@@ -151,7 +199,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -179,34 +227,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetDogQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "GetDog",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerGetDogQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerGetDogResponse(
+        sequenceId: string, 
+        data: GetDogQuery | GetDogQuery[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<GetDogQueryVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "GetDog",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetDog",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetDog",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledGetDogQuery(sequenceId:string): Promise<{
@@ -227,7 +296,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -255,34 +324,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GotUnionUserQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "GotUnionUser",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerGotUnionUserQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerGotUnionUserResponse(
+        sequenceId: string, 
+        data: GotUnionUserQuery | GotUnionUserQuery[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<GotUnionUserQueryVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "GotUnionUser",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "GotUnionUser",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "GotUnionUser",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledGotUnionUserQuery(sequenceId:string): Promise<{
@@ -303,7 +393,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -331,34 +421,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetUserNamesArrayExampleQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "GetUserNamesArrayExample",
-                data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerGetUserNamesArrayExampleQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerGetUserNamesArrayExampleResponse(
+        sequenceId: string, 
+        data: GetUserNamesArrayExampleQuery | GetUserNamesArrayExampleQuery[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<GetUserNamesArrayExampleQueryVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "GetUserNamesArrayExample",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetUserNamesArrayExample",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "GetUserNamesArrayExample",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledGetUserNamesArrayExampleQuery(sequenceId:string): Promise<{
@@ -379,7 +490,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -407,34 +518,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "CreateBook",
-                data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateBookMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerCreateBookResponse(
+        sequenceId: string, 
+        data: CreateBookMutation | CreateBookMutation[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<CreateBookMutationVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "CreateBook",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateBook",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateBook",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledCreateBookMutation(sequenceId:string): Promise<{
@@ -456,7 +588,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[];
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -485,34 +617,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookInlineMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "CreateBookInline",
-                data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateBookInlineMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerCreateBookInlineResponse(
+        sequenceId: string, 
+        data: CreateBookInlineMutation | CreateBookInlineMutation[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<CreateBookInlineMutationVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "CreateBookInline",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateBookInline",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateBookInline",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledCreateBookInlineMutation(sequenceId:string): Promise<{
@@ -534,7 +687,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[];
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -563,34 +716,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<UseMutationErrorPatternMutationMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "UseMutationErrorPatternMutation",
-                data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerUseMutationErrorPatternMutationMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerUseMutationErrorPatternMutationResponse(
+        sequenceId: string, 
+        data: UseMutationErrorPatternMutationMutation | UseMutationErrorPatternMutationMutation[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<UseMutationErrorPatternMutationMutationVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "UseMutationErrorPatternMutation",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "UseMutationErrorPatternMutation",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "UseMutationErrorPatternMutation",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledUseMutationErrorPatternMutationMutation(sequenceId:string): Promise<{
@@ -612,7 +786,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[];
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -641,34 +815,55 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "CreateFooUrl",
-                data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateFooUrlMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerCreateFooUrlResponse(
+        sequenceId: string, 
+        data: CreateFooUrlMutation | CreateFooUrlMutation[] | { errors: Record<string, unknown>[]; responseStatusCode: number },
+        requestOptions?: { requestConditions?: FakeClientConditionRule<CreateFooUrlMutationVariables> }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        // Default requestConditions to { type: "always" } if not provided
+        const requestConditions = requestOptions?.requestConditions ?? { type: "always" };
+        
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "CreateFooUrl",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's sequence responses (array)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateFooUrl",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateFooUrl",
+                conditions: [{
+                    condition: requestConditions,
+                    data: data
+                }]
+            };
+        }
+    
+        return await fetch(fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledCreateFooUrlMutation(sequenceId:string): Promise<{
@@ -690,7 +885,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[];
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
+        return await fetch(fakeServerEndpoint + "/called", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

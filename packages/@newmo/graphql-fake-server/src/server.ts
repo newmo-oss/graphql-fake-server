@@ -119,11 +119,10 @@ const creteApolloServer = async (options: FakeServerInternal) => {
 // Validation result type for better error messages
 type ValidationResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-// Condition rules for conditional fake responses (variables only, count is replaced by sequence)
-export type ConditionRule = {
-    type: "variables";
-    value: Record<string, unknown>;
-}; // Match based on complete variables object
+// Condition rules for conditional fake responses
+export type ConditionRule =
+    | { type: "variables"; value: Record<string, unknown> } // Match based on complete variables object
+    | { type: "always" }; // Always match (default condition)
 
 // Called result structure for tracking requests/responses
 export type CalledResult = {
@@ -146,7 +145,7 @@ export type CalledResultResponse = {
 };
 
 // Registration strategy types
-export type RegistrationStrategy = "single" | "sequence" | "conditional";
+export type RegistrationStrategy = "single" | "sequence" | "conditional" | "legacy";
 
 // Single response registration
 export type RegisterSingleResponse = {
@@ -166,8 +165,10 @@ export type RegisterSequenceResponse = {
 export type RegisterConditionalResponse = {
     type: "conditional";
     operationName: string;
-    data: Record<string, unknown> | Record<string, unknown>[];
-    condition: ConditionRule;
+    conditions: Array<{
+        condition?: ConditionRule;
+        data: Record<string, unknown> | Record<string, unknown>[];
+    }>;
 };
 
 // Network error registration
@@ -179,11 +180,22 @@ export type RegisterNetworkError = {
     requestCondition?: ConditionRule;
 };
 
+// Legacy operation response (for backward compatibility)
+export type RegisterOperationResponse = {
+    type: "operation";
+    operationName: string;
+    data: Record<string, unknown>;
+    requestCondition?:
+        | { type: "count"; value: number }
+        | { type: "variables"; value: Record<string, unknown> };
+};
+
 export type RegisterSequenceOptions =
     | RegisterSingleResponse
     | RegisterSequenceResponse
     | RegisterConditionalResponse
-    | RegisterNetworkError;
+    | RegisterNetworkError
+    | RegisterOperationResponse;
 
 /**
  * Check if a new registration strategy conflicts with existing strategy
@@ -228,6 +240,8 @@ const getRegistrationStrategy = (fake: RegisterSequenceOptions): RegistrationStr
             return "conditional";
         case "network-error":
             return "single"; // Network errors are treated as single responses
+        case "operation":
+            return "legacy"; // Legacy operation responses use their own strategy
         default:
             return "single";
     }
@@ -248,12 +262,17 @@ const validateConditionRule = (condition: unknown): ValidationResult<ConditionRu
         };
     }
 
-    // Only variables condition is allowed
-    if (condition.type !== "variables") {
+    // Allow variables and always condition types
+    if (condition.type !== "variables" && condition.type !== "always") {
         return {
             ok: false,
-            error: `Invalid condition type '${condition.type}'. Only 'variables' is allowed`,
+            error: `Invalid condition type '${condition.type}'. Only 'variables' and 'always' are allowed`,
         };
+    }
+
+    if (condition.type === "always") {
+        // Always condition doesn't need a value
+        return { ok: true, data: condition as ConditionRule };
     }
 
     if (!("value" in condition)) {
@@ -333,40 +352,83 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
         return { ok: true, data: data as RegisterSequenceResponse };
     }
 
+    // Handle legacy operation type (for backward compatibility)
+    if (data.type === "operation") {
+        if (!("data" in data) || typeof data.data !== "object" || data.data === null) {
+            return {
+                ok: false,
+                error: "Operation type must have a 'data' field of type object",
+            };
+        }
+
+        // Legacy operation type can optionally have requestCondition
+        const operationData = data as RegisterOperationResponse;
+        const requestCondition = operationData.requestCondition;
+        if (requestCondition && typeof requestCondition !== "object") {
+            return {
+                ok: false,
+                error: "Operation type 'requestCondition' field must be an object if provided",
+            };
+        }
+
+        return { ok: true, data: operationData };
+    }
+
     // Handle conditional type
     if (data.type === "conditional") {
-        if (!("data" in data)) {
+        if (!("conditions" in data)) {
             return {
                 ok: false,
-                error: "Conditional type must have a 'data' field",
+                error: "Conditional type must have a 'conditions' field",
             };
         }
 
-        // data can be either a single object or an array
-        const isValidData =
-            (typeof data.data === "object" && data.data !== null && !Array.isArray(data.data)) ||
-            Array.isArray(data.data);
-
-        if (!isValidData) {
+        if (!Array.isArray(data.conditions)) {
             return {
                 ok: false,
-                error: "Conditional type 'data' field must be an object or array",
+                error: "Conditional type 'conditions' field must be an array",
             };
         }
 
-        if (!("condition" in data)) {
+        if (data.conditions.length === 0) {
             return {
                 ok: false,
-                error: "Conditional type must have a 'condition' field",
+                error: "Conditional type 'conditions' array cannot be empty",
             };
         }
 
-        const conditionResult = validateConditionRule(data.condition);
-        if (!conditionResult.ok) {
-            return {
-                ok: false,
-                error: `Invalid condition: ${conditionResult.error}`,
-            };
+        // Validate each condition in the array
+        for (const conditionItem of data.conditions) {
+            if (!("data" in conditionItem)) {
+                return {
+                    ok: false,
+                    error: "Each condition must have a 'data' field",
+                };
+            }
+
+            // data can be either a single object or an array
+            const isValidData =
+                (typeof conditionItem.data === "object" &&
+                    conditionItem.data !== null &&
+                    !Array.isArray(conditionItem.data)) ||
+                Array.isArray(conditionItem.data);
+
+            if (!isValidData) {
+                return {
+                    ok: false,
+                    error: "Each condition 'data' field must be an object or array",
+                };
+            }
+
+            if ("condition" in conditionItem) {
+                const conditionResult = validateConditionRule(conditionItem.condition);
+                if (!conditionResult.ok) {
+                    return {
+                        ok: false,
+                        error: `Invalid condition: ${conditionResult.error}`,
+                    };
+                }
+            }
         }
 
         return { ok: true, data: data as RegisterConditionalResponse };
@@ -567,6 +629,10 @@ const createRoutingServer = async ({
     const sequenceResponseArrayMap = new LRUMap<string, Record<string, unknown>[]>({
         maxSize: maxRegisteredSequences,
     });
+    // Store legacy operation responses (allow multiple conditions per operation)
+    const _legacyOperationResponseMap = new LRUMap<string, RegisterOperationResponse[]>({
+        maxSize: maxRegisteredSequences,
+    });
     // Track registration strategy for each operation
     const registrationStrategyMap = new LRUMap<string, RegistrationStrategy>({
         maxSize: maxRegisteredSequences,
@@ -645,8 +711,9 @@ const createRoutingServer = async ({
         // Register based on the type
         switch (validationResult.data.type) {
             case "single":
-            case "network-error": {
-                // Single response registration
+            case "network-error":
+            case "operation": {
+                // Single response registration (including legacy operation type)
                 sequenceFakeResponseLruMap.set(baseKey, validationResult.data);
                 registrationStrategyMap.set(baseKey, "single");
                 break;
@@ -664,17 +731,40 @@ const createRoutingServer = async ({
                 const conditionalData = validationResult.data as RegisterConditionalResponse;
                 const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
 
-                // Check if same condition already exists (overwrite if found)
-                const existingIndex = existingConditionalFakes.findIndex(
-                    (fake) =>
-                        JSON.stringify(fake.condition) ===
-                        JSON.stringify(conditionalData.condition),
-                );
+                // For new conditions array format, we need to handle each condition separately
+                for (const conditionItem of conditionalData.conditions) {
+                    // Check if same condition already exists (overwrite if found)
+                    const existingIndex = existingConditionalFakes.findIndex((fake) => {
+                        // Find matching condition in the fake's conditions array
+                        return fake.conditions.some(
+                            (existingCondItem) =>
+                                JSON.stringify(existingCondItem.condition) ===
+                                JSON.stringify(conditionItem.condition),
+                        );
+                    });
 
-                if (existingIndex >= 0) {
-                    existingConditionalFakes[existingIndex] = conditionalData;
-                } else {
-                    existingConditionalFakes.push(conditionalData);
+                    if (existingIndex >= 0) {
+                        // Update existing fake with new condition
+                        const existingFake = existingConditionalFakes[existingIndex];
+                        if (existingFake) {
+                            const conditionIndex = existingFake.conditions.findIndex(
+                                (existingCondItem) =>
+                                    JSON.stringify(existingCondItem.condition) ===
+                                    JSON.stringify(conditionItem.condition),
+                            );
+                            if (conditionIndex >= 0) {
+                                existingFake.conditions[conditionIndex] = conditionItem;
+                            }
+                        }
+                    } else {
+                        // Create new fake for this operation with this condition
+                        const newFake: RegisterConditionalResponse = {
+                            type: "conditional",
+                            operationName: conditionalData.operationName,
+                            conditions: [conditionItem],
+                        };
+                        existingConditionalFakes.push(newFake);
+                    }
                 }
 
                 conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
@@ -799,6 +889,12 @@ const createRoutingServer = async ({
         const currentCallCount = (callCountMap.get(baseKey) || 0) + 1;
         callCountMap.set(baseKey, currentCallCount);
 
+        logger.debug("fakeGraphQLQuery: call count updated", {
+            baseKey,
+            currentCallCount,
+            previousCount: currentCallCount - 1,
+        });
+
         // Get request variables
         const requestVariables =
             typeof requestBody === "object" &&
@@ -817,7 +913,7 @@ const createRoutingServer = async ({
         if (registrationStrategy === "conditional") {
             // Handle conditional responses
             const conditionalFakes = conditionalFakeResponseMap.get(baseKey);
-            const matchedConditionalFake = findMatchedConditionalFake({
+            const matchedConditionalResult = findMatchedConditionalFake({
                 conditionalFakes,
                 requestVariables,
                 logger,
@@ -825,18 +921,29 @@ const createRoutingServer = async ({
                 requestOperationName,
             });
 
-            if (matchedConditionalFake) {
-                // Handle both single data and array data in conditional responses
-                if (Array.isArray(matchedConditionalFake.data)) {
-                    // Array-based conditional response - use call count as index
-                    const responseIndex = Math.min(
-                        currentCallCount - 1,
-                        matchedConditionalFake.data.length - 1,
-                    );
-                    matchedResponse = matchedConditionalFake.data[responseIndex];
-                } else {
-                    // Single conditional response
-                    matchedResponse = matchedConditionalFake.data;
+            if (matchedConditionalResult) {
+                // Find the matching condition and use its data
+                const matchedCondition = matchedConditionalResult.matchedCondition;
+                if (matchedCondition) {
+                    // Handle both single data and array data in conditional responses
+                    if (Array.isArray(matchedCondition.data)) {
+                        // Array-based conditional response - use call count as index
+                        const responseIndex = Math.min(
+                            currentCallCount - 1,
+                            matchedCondition.data.length - 1,
+                        );
+                        matchedResponse = matchedCondition.data[responseIndex];
+                        logger.debug(
+                            `fakeGraphQLQuery: conditional array response, callCount: ${currentCallCount}, responseIndex: ${responseIndex}, dataLength: ${matchedCondition.data.length}`,
+                            {
+                                matchedResponse,
+                                allResponses: matchedCondition.data,
+                            },
+                        );
+                    } else {
+                        // Single conditional response
+                        matchedResponse = matchedCondition.data;
+                    }
                 }
             }
         } else if (registrationStrategy === "sequence") {
@@ -847,13 +954,56 @@ const createRoutingServer = async ({
                 matchedResponse = sequenceArray[responseIndex];
             }
         } else if (registrationStrategy === "single") {
-            // Handle single responses (including network errors)
+            // Handle single responses (including network errors and legacy operations)
             const singleResponse = sequenceFakeResponseLruMap.get(baseKey);
             if (singleResponse) {
                 if (singleResponse.type === "network-error") {
                     responseType = "network-error";
                 } else if (singleResponse.type === "single") {
                     matchedResponse = singleResponse.data;
+                } else if (singleResponse.type === "operation") {
+                    // Handle legacy operation type with optional requestCondition
+                    const operationResponse = singleResponse as RegisterOperationResponse;
+                    const requestCondition = operationResponse.requestCondition;
+
+                    logger.debug("fakeGraphQLQuery: legacy operation condition check", {
+                        sequenceId,
+                        operationName: requestOperationName,
+                        requestCondition,
+                        currentCallCount,
+                        requestVariables,
+                    });
+
+                    if (!requestCondition) {
+                        // No condition, always match
+                        logger.debug("fakeGraphQLQuery: legacy operation no condition, matching");
+                        matchedResponse = operationResponse.data;
+                    } else if (requestCondition.type === "count") {
+                        // Match based on call count
+                        const matches = currentCallCount === requestCondition.value;
+                        logger.debug("fakeGraphQLQuery: legacy operation count condition", {
+                            currentCallCount,
+                            expectedCount: requestCondition.value,
+                            matches,
+                        });
+                        if (matches) {
+                            matchedResponse = operationResponse.data;
+                        }
+                    } else if (requestCondition.type === "variables") {
+                        // Match based on variables
+                        const matches =
+                            requestVariables &&
+                            JSON.stringify(requestVariables) ===
+                                JSON.stringify(requestCondition.value);
+                        logger.debug("fakeGraphQLQuery: legacy operation variables condition", {
+                            requestVariables,
+                            expectedVariables: requestCondition.value,
+                            matches,
+                        });
+                        if (matches) {
+                            matchedResponse = operationResponse.data;
+                        }
+                    }
                 }
             }
         }
@@ -1080,6 +1230,9 @@ const evaluateCondition = (
             if (!context.variables) return false;
             return isDeepStrictEqual(context.variables, condition.value);
 
+        case "always":
+            return true; // Always matches
+
         default:
             return false;
     }
@@ -1100,7 +1253,15 @@ const findMatchedConditionalFake = ({
     logger: ReturnType<typeof createLogger>;
     sequenceId: string;
     requestOperationName: string;
-}): RegisterConditionalResponse | undefined => {
+}):
+    | {
+          fake: RegisterConditionalResponse;
+          matchedCondition: {
+              condition?: ConditionRule;
+              data: Record<string, unknown> | Record<string, unknown>[];
+          };
+      }
+    | undefined => {
     if (!conditionalFakes || conditionalFakes.length === 0) {
         return undefined;
     }
@@ -1111,14 +1272,18 @@ const findMatchedConditionalFake = ({
             ...(requestVariables && { variables: requestVariables }),
         };
 
-        if (evaluateCondition(fake.condition, context)) {
-            logger.debug("fakeGraphQLQuery: matched conditional fake", {
-                sequenceId,
-                operationName: requestOperationName,
-                condition: fake.condition,
-                variables: requestVariables,
-            });
-            return fake;
+        // Check each condition in the conditions array
+        for (const conditionItem of fake.conditions) {
+            // If no condition is specified, it's a default condition (always matches)
+            if (!conditionItem.condition || evaluateCondition(conditionItem.condition, context)) {
+                logger.debug("fakeGraphQLQuery: matched conditional fake", {
+                    sequenceId,
+                    operationName: requestOperationName,
+                    condition: conditionItem.condition,
+                    variables: requestVariables,
+                });
+                return { fake, matchedCondition: conditionItem };
+            }
         }
     }
 
