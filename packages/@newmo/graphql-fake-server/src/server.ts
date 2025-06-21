@@ -873,6 +873,30 @@ const createRoutingServer = async ({
 
         if (matchedFake.type === "network-error") {
             logger.debug("fakeGraphQLQuery: network-error type, returning error");
+
+            // Record call history for error responses as well
+            const cacheKey = createMapKey({
+                sequenceId,
+                operationName: requestOperationName,
+            });
+            sequenceCalledResultLruMap.set(cacheKey, [
+                ...(sequenceCalledResultLruMap.get(cacheKey) ?? []),
+                {
+                    requestTimestamp: Date.now(),
+                    request: {
+                        headers: Object.fromEntries(c.req.raw.headers),
+                        body: requestBody as Record<string, unknown>,
+                    },
+                    response: {
+                        status: matchedFake.responseStatusCode,
+                        headers: { "Content-Type": "application/json" },
+                        body: {
+                            errors: matchedFake.errors,
+                        },
+                    },
+                },
+            ]);
+
             return new Response(
                 JSON.stringify({
                     errors: matchedFake.errors,
