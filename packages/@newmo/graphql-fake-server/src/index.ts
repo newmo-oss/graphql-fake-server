@@ -6,8 +6,7 @@ export {
 export type {
     ConditionRule,
     CreateFakeServerOptions,
-    RegisterSequenceNetworkError,
-    RegisterSequenceOperation,
+    RegisterNetworkError,
     RegisterSequenceOptions,
 } from "./server.js";
 export { createFakeServer } from "./server.js";
