@@ -15,7 +15,6 @@ import { buildSchema } from "graphql/utilities/index.js";
 // @ts-expect-error -- no types
 import depthLimit from "graphql-depth-limit";
 import { type Context, Hono } from "hono";
-import { cors } from "hono/cors";
 import { proxy } from "hono/proxy";
 import type { RequiredFakeServerConfig } from "./config.js";
 import { createLogger, type LogLevel } from "./logger.js";
@@ -117,23 +116,14 @@ const creteApolloServer = async (options: FakeServerInternal) => {
         validationRules: [depthLimit(options.maxQueryDepth)],
     });
 };
-// Allowed condition types
-const ALLOWED_CONDITION_TYPES = ["count", "variables"] as const;
-type AllowedConditionType = (typeof ALLOWED_CONDITION_TYPES)[number];
-
 // Validation result type for better error messages
 type ValidationResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-// Condition rules for conditional fake responses
-export type ConditionRule =
-    | {
-          type: "count";
-          value: number;
-      } // Match based on call count (nth call)
-    | {
-          type: "variables";
-          value: Record<string, unknown>;
-      }; // Match based on complete variables object
+// Condition rules for conditional fake responses (variables only, count is replaced by sequence)
+export type ConditionRule = {
+    type: "variables";
+    value: Record<string, unknown>;
+}; // Match based on complete variables object
 
 // Called result structure for tracking requests/responses
 export type CalledResult = {
@@ -155,141 +145,96 @@ export type CalledResultResponse = {
     data: CalledResult[];
 };
 
-export type RegisterSequenceNetworkError = {
+// Registration strategy types
+export type RegistrationStrategy = "single" | "sequence" | "conditional";
+
+// Single response registration
+export type RegisterSingleResponse = {
+    type: "single";
+    operationName: string;
+    data: Record<string, unknown>;
+};
+
+// Sequence response registration (array-based)
+export type RegisterSequenceResponse = {
+    type: "sequence";
+    operationName: string;
+    data: Record<string, unknown>[];
+};
+
+// Conditional response registration (supports both single and array data)
+export type RegisterConditionalResponse = {
+    type: "conditional";
+    operationName: string;
+    data: Record<string, unknown> | Record<string, unknown>[];
+    condition: ConditionRule;
+};
+
+// Network error registration
+export type RegisterNetworkError = {
     type: "network-error";
     operationName: string;
     responseStatusCode: number;
     errors: Record<string, unknown>[];
-    // Add request condition
     requestCondition?: ConditionRule;
 };
-export type RegisterSequenceOperation = {
-    type: "operation";
-    operationName: string;
-    data: Record<string, unknown>;
-    // Add request condition
-    requestCondition?: ConditionRule;
-};
-export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
+
+export type RegisterSequenceOptions =
+    | RegisterSingleResponse
+    | RegisterSequenceResponse
+    | RegisterConditionalResponse
+    | RegisterNetworkError;
 
 /**
- * Check if two condition types are conflicting and return specific error message
- * Only the following combinations are allowed:
- * - count + count
- * - variables + variables
- * - variables + no condition (undefined)
- * - no condition (undefined) + no condition (undefined)
- * All other combinations are conflicting
+ * Check if a new registration strategy conflicts with existing strategy
  */
-const areConditionTypesConflicting = (
-    conditionType1: ConditionRule["type"] | undefined,
-    conditionType2: ConditionRule["type"] | undefined,
-): { isConflicting: boolean; errorMessage?: string } => {
-    // Define allowed combinations with their descriptions
-    const allowedCombinations = new Map<string, string>([
-        // Multiple count conditions for the same operation (e.g., 1st call, 2nd call)
-        ["count,count", "Multiple count-based conditions are allowed for different call counts"],
-        // Multiple variables conditions for the same operation (e.g., different variable sets)
-        [
-            "variables,variables",
-            "Multiple variable-based conditions are allowed for different variable sets",
-        ],
-        // Variables condition can coexist with default fallback
-        ["variables,undefined", "Variable-based condition can coexist with default fallback"],
-        // Default fallback can coexist with variables condition
-        ["undefined,variables", "Default fallback can coexist with variable-based condition"],
-        // Multiple default conditions - overwrite with the last one
-        ["undefined,undefined", "Multiple default conditions are allowed (latest will be used)"],
-    ]);
-
-    const combinationKey = `${conditionType1 ?? "undefined"},${conditionType2 ?? "undefined"}`;
-
-    // If the combination is allowed, return no conflict
-    if (allowedCombinations.has(combinationKey)) {
-        return { isConflicting: false };
+const checkRegistrationStrategyConflict = (
+    newStrategy: RegistrationStrategy,
+    existingStrategy: RegistrationStrategy | undefined,
+    operationName: string,
+): string | undefined => {
+    if (!existingStrategy) {
+        return undefined; // No conflict if no existing strategy
     }
 
-    // Generate specific error message for conflicting combinations
-    const getTypeDescription = (type: ConditionRule["type"] | undefined): string => {
-        switch (type) {
-            case "count":
-                return "count-based condition (e.g., { type: 'count', value: 1 })";
-            case "variables":
-                return "variables-based condition (e.g., { type: 'variables', value: {...} })";
-            case undefined:
-                return "default condition (no requestCondition specified)";
-            default:
-                return `unknown condition type: ${type}`;
-        }
+    if (existingStrategy === newStrategy) {
+        return undefined; // Same strategy is allowed (overwrite)
+    }
+
+    // Different strategies conflict
+    const strategyNames = {
+        single: "single response",
+        sequence: "sequence response",
+        conditional: "conditional response",
     };
 
-    const type1Desc = getTypeDescription(conditionType1);
-    const type2Desc = getTypeDescription(conditionType2);
-
-    // Specific error messages for common problematic combinations
-    if (
-        (conditionType1 === "count" && conditionType2 === "variables") ||
-        (conditionType1 === "variables" && conditionType2 === "count")
-    ) {
-        const errorMessage =
-            "Cannot mix count-based and variables-based conditions for the same operation. " +
-            "Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), " +
-            `but not both. Current conflict: ${type1Desc} vs ${type2Desc}`;
-        return { isConflicting: true, errorMessage };
-    }
-    const errorMessage =
-        `Conflicting condition types detected: ${type1Desc} vs ${type2Desc}. ` +
-        "Allowed combinations are: count+count, variables+variables, variables+default, or default+default.";
-    return { isConflicting: true, errorMessage };
+    return (
+        `Cannot register ${strategyNames[newStrategy]} for '${operationName}'. ` +
+        `This operation already has a ${strategyNames[existingStrategy]} registered. ` +
+        "Use the same registration method or clear existing responses first."
+    );
 };
 
 /**
- * Get condition type from a RegisterSequenceOptions
+ * Get registration strategy from RegisterSequenceOptions
  */
-const getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] | undefined => {
-    return fake.requestCondition?.type;
+const getRegistrationStrategy = (fake: RegisterSequenceOptions): RegistrationStrategy => {
+    switch (fake.type) {
+        case "single":
+            return "single";
+        case "sequence":
+            return "sequence";
+        case "conditional":
+            return "conditional";
+        case "network-error":
+            return "single"; // Network errors are treated as single responses
+        default:
+            return "single";
+    }
 };
 
 /**
- * Check for condition conflicts in existing fakes for the same operation
- */
-const checkConditionConflicts = (
-    newFake: RegisterSequenceOptions,
-    existingConditionalFakes: RegisterSequenceOptions[],
-    existingDefaultFake: RegisterSequenceOptions | undefined,
-): string[] => {
-    const errors: string[] = [];
-    const newConditionType = getConditionType(newFake);
-
-    // Check conflicts with existing conditional fakes
-    for (const existingFake of existingConditionalFakes) {
-        const existingConditionType = getConditionType(existingFake);
-        const conflictResult = areConditionTypesConflicting(
-            newConditionType,
-            existingConditionType,
-        );
-        if (conflictResult.isConflicting && conflictResult.errorMessage) {
-            errors.push(conflictResult.errorMessage);
-        }
-    }
-
-    // Check conflicts with existing default fake (no condition)
-    if (existingDefaultFake) {
-        const existingConditionType = getConditionType(existingDefaultFake);
-        const conflictResult = areConditionTypesConflicting(
-            newConditionType,
-            existingConditionType,
-        );
-        if (conflictResult.isConflicting && conflictResult.errorMessage) {
-            errors.push(conflictResult.errorMessage);
-        }
-    }
-
-    return errors;
-};
-
-/**
- * Validate condition rule structure
+ * Validate condition rule structure (only variables condition is allowed)
  */
 const validateConditionRule = (condition: unknown): ValidationResult<ConditionRule> => {
     if (typeof condition !== "object" || condition === null) {
@@ -303,13 +248,11 @@ const validateConditionRule = (condition: unknown): ValidationResult<ConditionRu
         };
     }
 
-    // Check if type is in the allow list
-    if (!ALLOWED_CONDITION_TYPES.includes(condition.type as AllowedConditionType)) {
+    // Only variables condition is allowed
+    if (condition.type !== "variables") {
         return {
             ok: false,
-            error: `Unknown condition type '${
-                condition.type
-            }'. Allowed types: ${ALLOWED_CONDITION_TYPES.join(", ")}`,
+            error: `Invalid condition type '${condition.type}'. Only 'variables' is allowed`,
         };
     }
 
@@ -317,56 +260,24 @@ const validateConditionRule = (condition: unknown): ValidationResult<ConditionRu
         return { ok: false, error: "Condition must have a 'value' field" };
     }
 
-    switch (condition.type) {
-        case "count":
-            if (typeof condition.value !== "number") {
-                return { ok: false, error: "Count condition value must be a number" };
-            }
-            if (condition.value <= 0) {
-                return {
-                    ok: false,
-                    error: "Count condition value must be greater than 0",
-                };
-            }
-            return { ok: true, data: condition as ConditionRule };
-
-        case "variables":
-            if (typeof condition.value !== "object" || condition.value === null) {
-                return {
-                    ok: false,
-                    error: "Variables condition value must be an object",
-                };
-            }
-            if (Array.isArray(condition.value)) {
-                return {
-                    ok: false,
-                    error: "Variables condition value must be an object, not an array",
-                };
-            }
-            return { ok: true, data: condition as ConditionRule };
-
-        default:
-            return {
-                ok: false,
-                error: `Unsupported condition type '${condition.type}'`,
-            };
+    if (typeof condition.value !== "object" || condition.value === null) {
+        return {
+            ok: false,
+            error: "Variables condition value must be an object",
+        };
     }
+    if (Array.isArray(condition.value)) {
+        return {
+            ok: false,
+            error: "Variables condition value must be an object, not an array",
+        };
+    }
+    return { ok: true, data: condition as ConditionRule };
 };
 
 const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterSequenceOptions> => {
     if (typeof data !== "object" || data === null) {
         return { ok: false, error: "Request body must be an object" };
-    }
-
-    // Validate request condition
-    if ("requestCondition" in data && data.requestCondition !== undefined) {
-        const conditionResult = validateConditionRule(data.requestCondition);
-        if (!conditionResult.ok) {
-            return {
-                ok: false,
-                error: `Invalid request condition: ${conditionResult.error}`,
-            };
-        }
     }
 
     if (!("type" in data) || typeof data.type !== "string") {
@@ -383,6 +294,7 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
         };
     }
 
+    // Handle network-error type
     if (data.type === "network-error") {
         if (!("errors" in data) || !Array.isArray(data.errors)) {
             return {
@@ -396,22 +308,73 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
                 error: "Network error type must have a 'responseStatusCode' field of type number",
             };
         }
-        return { ok: true, data: data as RegisterSequenceOptions };
+        return { ok: true, data: data as RegisterNetworkError };
     }
 
-    if (data.type === "operation") {
+    // Handle single operation type
+    if (data.type === "single") {
         if (!("data" in data) || typeof data.data !== "object" || data.data === null) {
             return {
                 ok: false,
                 error: "Operation type must have a 'data' field of type object",
             };
         }
-        return { ok: true, data: data as RegisterSequenceOptions };
+        return { ok: true, data: data as RegisterSingleResponse };
+    }
+
+    // Handle sequence type
+    if (data.type === "sequence") {
+        if (!("data" in data) || !Array.isArray(data.data)) {
+            return {
+                ok: false,
+                error: "Sequence type must have a 'data' field of type array",
+            };
+        }
+        return { ok: true, data: data as RegisterSequenceResponse };
+    }
+
+    // Handle conditional type
+    if (data.type === "conditional") {
+        if (!("data" in data)) {
+            return {
+                ok: false,
+                error: "Conditional type must have a 'data' field",
+            };
+        }
+
+        // data can be either a single object or an array
+        const isValidData =
+            (typeof data.data === "object" && data.data !== null && !Array.isArray(data.data)) ||
+            Array.isArray(data.data);
+
+        if (!isValidData) {
+            return {
+                ok: false,
+                error: "Conditional type 'data' field must be an object or array",
+            };
+        }
+
+        if (!("condition" in data)) {
+            return {
+                ok: false,
+                error: "Conditional type must have a 'condition' field",
+            };
+        }
+
+        const conditionResult = validateConditionRule(data.condition);
+        if (!conditionResult.ok) {
+            return {
+                ok: false,
+                error: `Invalid condition: ${conditionResult.error}`,
+            };
+        }
+
+        return { ok: true, data: data as RegisterConditionalResponse };
     }
 
     return {
         ok: false,
-        error: `Unknown request type '${data.type}'. Allowed types: 'operation', 'network-error'`,
+        error: `Unknown request type '${data.type}'. Allowed types: 'operation', 'sequence', 'conditional', 'network-error'`,
     };
 };
 
@@ -484,7 +447,6 @@ const createRoutingServer = async ({
     logLevel,
     ports,
     maxRegisteredSequences,
-    allowedCORSOrigins,
 }: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
@@ -492,7 +454,6 @@ const createRoutingServer = async ({
         fakeServer: number;
         apolloServer: number;
     };
-    allowedCORSOrigins: string[];
 }) => {
     const logger = createLogger(logLevel);
     const app = new Hono();
@@ -599,10 +560,18 @@ const createRoutingServer = async ({
         maxSize: maxRegisteredSequences,
     });
     // Manage conditional fake responses (store multiple conditional responses)
-    const conditionalFakeResponseMap = new LRUMap<string, RegisterSequenceOptions[]>({
+    const conditionalFakeResponseMap = new LRUMap<string, RegisterConditionalResponse[]>({
         maxSize: maxRegisteredSequences,
     });
-    // Track call count
+    // Store sequence response arrays (array-based responses)
+    const sequenceResponseArrayMap = new LRUMap<string, Record<string, unknown>[]>({
+        maxSize: maxRegisteredSequences,
+    });
+    // Track registration strategy for each operation
+    const registrationStrategyMap = new LRUMap<string, RegistrationStrategy>({
+        maxSize: maxRegisteredSequences,
+    });
+    // Track call count for array-based sequences
     const callCountMap = new LRUMap<string, number>({
         maxSize: maxRegisteredSequences,
     });
@@ -646,7 +615,6 @@ const createRoutingServer = async ({
         logger.debug("/fake got body type", {
             sequenceId,
             type: validationResult.data.type,
-            requestCondition: validationResult.data.requestCondition,
         });
 
         const baseKey = createMapKey({
@@ -654,57 +622,72 @@ const createRoutingServer = async ({
             operationName,
         });
 
-        // Check for condition conflicts before registration
-        const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
-        const existingDefaultFake = sequenceFakeResponseLruMap.get(baseKey);
+        // Get current registration strategy for this operation
+        const currentStrategy = registrationStrategyMap.get(baseKey);
+        const newStrategy = getRegistrationStrategy(validationResult.data);
 
-        const conflictErrors = checkConditionConflicts(
-            validationResult.data,
-            existingConditionalFakes,
-            existingDefaultFake,
+        // Check for registration strategy conflicts
+        const strategyConflict = checkRegistrationStrategyConflict(
+            newStrategy,
+            currentStrategy,
+            operationName,
         );
 
-        if (conflictErrors.length > 0) {
+        if (strategyConflict) {
             return Response.json(
-                { ok: false, errors: conflictErrors },
+                { ok: false, errors: [strategyConflict] },
                 {
                     status: 400,
                 },
             );
         }
 
-        // Register as conditional fake if request condition exists
-        if (validationResult.data.requestCondition) {
-            const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
-            // Overwrite if same condition exists, otherwise add new
-            const existingIndex = existingConditionalFakes.findIndex(
-                (fake) =>
-                    fake.requestCondition &&
-                    JSON.stringify(fake.requestCondition) ===
-                        JSON.stringify(validationResult.data.requestCondition),
-            );
-
-            if (existingIndex >= 0) {
-                existingConditionalFakes[existingIndex] = validationResult.data;
-            } else {
-                existingConditionalFakes.push(validationResult.data);
+        // Register based on the type
+        switch (validationResult.data.type) {
+            case "single":
+            case "network-error": {
+                // Single response registration
+                sequenceFakeResponseLruMap.set(baseKey, validationResult.data);
+                registrationStrategyMap.set(baseKey, "single");
+                break;
             }
 
-            // Sort by condition specificity (evaluate more specific conditions first)
-            existingConditionalFakes.sort((a, b) => {
-                const scoreA = a.requestCondition
-                    ? calculateConditionSpecificity(a.requestCondition)
-                    : 0;
-                const scoreB = b.requestCondition
-                    ? calculateConditionSpecificity(b.requestCondition)
-                    : 0;
-                return scoreB - scoreA; // Descending order
-            });
+            case "sequence": {
+                // Array-based sequence registration
+                sequenceResponseArrayMap.set(baseKey, validationResult.data.data);
+                registrationStrategyMap.set(baseKey, "sequence");
+                break;
+            }
 
-            conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
-        } else {
-            // Without condition, use traditional approach
-            sequenceFakeResponseLruMap.set(baseKey, validationResult.data);
+            case "conditional": {
+                // Conditional response registration
+                const conditionalData = validationResult.data as RegisterConditionalResponse;
+                const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
+
+                // Check if same condition already exists (overwrite if found)
+                const existingIndex = existingConditionalFakes.findIndex(
+                    (fake) =>
+                        JSON.stringify(fake.condition) ===
+                        JSON.stringify(conditionalData.condition),
+                );
+
+                if (existingIndex >= 0) {
+                    existingConditionalFakes[existingIndex] = conditionalData;
+                } else {
+                    existingConditionalFakes.push(conditionalData);
+                }
+
+                conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
+                registrationStrategyMap.set(baseKey, "conditional");
+                break;
+            }
+
+            default: {
+                return Response.json(
+                    { ok: false, errors: ["Unsupported registration type"] },
+                    { status: 400 },
+                );
+            }
         }
         return Response.json(
             { ok: true },
@@ -812,7 +795,7 @@ const createRoutingServer = async ({
             operationName: requestOperationName,
         });
 
-        // Increment call count
+        // Increment call count for array-based sequences
         const currentCallCount = (callCountMap.get(baseKey) || 0) + 1;
         callCountMap.set(baseKey, currentCallCount);
 
@@ -826,52 +809,76 @@ const createRoutingServer = async ({
                 ? (requestBody.variables as Record<string, unknown>)
                 : undefined;
 
-        // Check conditional fakes first
-        const conditionalFakes = conditionalFakeResponseMap.get(baseKey);
-        // Find the first matching conditional fake based on call count and variables
-        // If no conditional fake matches, use the default fake from sequenceFakeResponseLruMap
-        const matchedFake: RegisterSequenceOptions | undefined =
-            findMatchedConditionalFake({
-                conditionalFakes: conditionalFakes,
-                currentCallCount: currentCallCount,
-                requestVariables: requestVariables,
-                logger: logger,
-                sequenceId: sequenceId,
-                requestOperationName: requestOperationName,
-            }) ?? sequenceFakeResponseLruMap.get(baseKey);
+        // Get registration strategy to determine how to handle the request
+        const registrationStrategy = registrationStrategyMap.get(baseKey);
+        let matchedResponse: Record<string, unknown> | undefined;
+        let responseType: "single" | "network-error" = "single";
+
+        if (registrationStrategy === "conditional") {
+            // Handle conditional responses
+            const conditionalFakes = conditionalFakeResponseMap.get(baseKey);
+            const matchedConditionalFake = findMatchedConditionalFake({
+                conditionalFakes,
+                requestVariables,
+                logger,
+                sequenceId,
+                requestOperationName,
+            });
+
+            if (matchedConditionalFake) {
+                // Handle both single data and array data in conditional responses
+                if (Array.isArray(matchedConditionalFake.data)) {
+                    // Array-based conditional response - use call count as index
+                    const responseIndex = Math.min(
+                        currentCallCount - 1,
+                        matchedConditionalFake.data.length - 1,
+                    );
+                    matchedResponse = matchedConditionalFake.data[responseIndex];
+                } else {
+                    // Single conditional response
+                    matchedResponse = matchedConditionalFake.data;
+                }
+            }
+        } else if (registrationStrategy === "sequence") {
+            // Handle array-based sequence responses
+            const sequenceArray = sequenceResponseArrayMap.get(baseKey);
+            if (sequenceArray) {
+                const responseIndex = Math.min(currentCallCount - 1, sequenceArray.length - 1);
+                matchedResponse = sequenceArray[responseIndex];
+            }
+        } else if (registrationStrategy === "single") {
+            // Handle single responses (including network errors)
+            const singleResponse = sequenceFakeResponseLruMap.get(baseKey);
+            if (singleResponse) {
+                if (singleResponse.type === "network-error") {
+                    responseType = "network-error";
+                } else if (singleResponse.type === "single") {
+                    matchedResponse = singleResponse.data;
+                }
+            }
+        }
 
         logger.debug(
-            `fakeGraphQLQuery: sequence-id: ${sequenceId} x operationName: ${requestOperationName}, fake exists: ${Boolean(
-                matchedFake,
+            `fakeGraphQLQuery: sequence-id: ${sequenceId} x operationName: ${requestOperationName}, strategy: ${registrationStrategy}, matched: ${Boolean(
+                matchedResponse,
             )}`,
             {
-                matchedFake,
+                matchedResponse,
                 sequenceId,
                 operationName: requestOperationName,
                 callCount: currentCallCount,
+                strategy: registrationStrategy,
             },
         );
 
-        if (!matchedFake) {
+        if (!matchedResponse && responseType === "single") {
             logger.debug("fakeGraphQLQuery: no fake found, passing to Apollo");
             return passToApollo(c);
         }
 
-        if (requestOperationName !== matchedFake.operationName) {
-            logger.debug("fakeGraphQLQuery: operationName mismatch, returning error");
-            return Response.json(
-                {
-                    errors: [
-                        `operationName does not match. operationName: ${requestOperationName} sequenceId: ${sequenceId}`,
-                    ],
-                },
-                {
-                    status: 400,
-                },
-            );
-        }
-
-        if (matchedFake.type === "network-error") {
+        // Handle network error responses
+        if (responseType === "network-error") {
+            const singleResponse = sequenceFakeResponseLruMap.get(baseKey) as RegisterNetworkError;
             logger.debug("fakeGraphQLQuery: network-error type, returning error");
 
             // Record call history for error responses as well
@@ -888,10 +895,10 @@ const createRoutingServer = async ({
                         body: requestBody as Record<string, unknown>,
                     },
                     response: {
-                        status: matchedFake.responseStatusCode,
+                        status: singleResponse.responseStatusCode,
                         headers: { "Content-Type": "application/json" },
                         body: {
-                            errors: matchedFake.errors,
+                            errors: singleResponse.errors,
                         },
                     },
                 },
@@ -899,10 +906,10 @@ const createRoutingServer = async ({
 
             return new Response(
                 JSON.stringify({
-                    errors: matchedFake.errors,
+                    errors: singleResponse.errors,
                 }),
                 {
-                    status: matchedFake.responseStatusCode,
+                    status: singleResponse.responseStatusCode,
                 },
             );
         }
@@ -935,7 +942,7 @@ const createRoutingServer = async ({
         });
 
         // 5. Merge the registration data with the response
-        const data = matchedFake.data;
+        const data = matchedResponse;
         logger.debug(`fakeGraphQLQuery: starting data merge sequence-id: ${sequenceId}`, {
             data,
             responseBody,
@@ -979,38 +986,10 @@ const createRoutingServer = async ({
             },
         });
     };
-    // graphql api is for browser and need to support CORS
-    app.use(
-        "/graphql",
-        cors({
-            origin: (origin) => {
-                if (isLocalRequest(origin)) {
-                    return origin;
-                }
-                if (origin && allowedCORSOrigins.includes(origin)) {
-                    return origin;
-                }
-                return null;
-            },
-        }),
-    );
-    app.use(
-        "/query",
-        cors({
-            origin: (origin) => {
-                if (isLocalRequest(origin)) {
-                    return origin;
-                }
-                if (origin && allowedCORSOrigins.includes(origin)) {
-                    return origin;
-                }
-                return null;
-            },
-        }),
-    );
-    app.use("/graphql", fakeGraphQLQuery);
-    app.use("/query", fakeGraphQLQuery);
-    app.all("*", passToApollo);
+
+    // Route all other requests to the fake GraphQL query handler
+    app.all("*", fakeGraphQLQuery);
+
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
@@ -1057,7 +1036,6 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
         logLevel: options.logLevel,
         ports: options.ports,
         maxRegisteredSequences: options.maxRegisteredSequences,
-        allowedCORSOrigins: options.allowedCORSOrigins,
     });
     let routerServer: ReturnType<typeof serve> | null = null;
     return {
@@ -1089,19 +1067,15 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
 };
 
 /**
- * Check if condition rule matches the current request context
+ * Check if condition rule matches the current request context (variables only)
  */
 const evaluateCondition = (
     condition: ConditionRule,
     context: {
-        callCount: number;
         variables?: Record<string, unknown>;
     },
 ): boolean => {
     switch (condition.type) {
-        case "count":
-            return context.callCount === condition.value;
-
         case "variables":
             if (!context.variables) return false;
             return isDeepStrictEqual(context.variables, condition.value);
@@ -1112,60 +1086,41 @@ const evaluateCondition = (
 };
 
 /**
- * Calculate condition specificity score (used for matching priority)
- */
-const calculateConditionSpecificity = (condition: ConditionRule): number => {
-    switch (condition.type) {
-        case "count":
-            return 10; // count conditions have medium priority
-
-        case "variables":
-            return 20; // variables conditions have high priority
-
-        default:
-            return 0;
-    }
-};
-
-/**
- * Find a matching conditional fake based on the current call count and request variables
+ * Find a matching conditional fake based on request variables
  */
 const findMatchedConditionalFake = ({
     conditionalFakes,
-    currentCallCount,
     requestVariables,
     logger,
     sequenceId,
     requestOperationName,
 }: {
-    conditionalFakes: RegisterSequenceOptions[] | undefined;
-    currentCallCount: number;
+    conditionalFakes: RegisterConditionalResponse[] | undefined;
     requestVariables: Record<string, unknown> | undefined;
     logger: ReturnType<typeof createLogger>;
     sequenceId: string;
     requestOperationName: string;
-}): RegisterSequenceOptions | undefined => {
-    if (conditionalFakes && conditionalFakes.length > 0) {
-        // Find matching fake (already sorted by specificity in descending order)
-        for (const fake of conditionalFakes) {
-            if (fake.requestCondition) {
-                const context = {
-                    callCount: currentCallCount,
-                    ...(requestVariables && { variables: requestVariables }),
-                };
+}): RegisterConditionalResponse | undefined => {
+    if (!conditionalFakes || conditionalFakes.length === 0) {
+        return undefined;
+    }
 
-                if (evaluateCondition(fake.requestCondition, context)) {
-                    logger.debug("fakeGraphQLQuery: matched conditional fake", {
-                        sequenceId,
-                        operationName: requestOperationName,
-                        requestCondition: fake.requestCondition,
-                        callCount: currentCallCount,
-                        variables: requestVariables,
-                    });
-                    return fake;
-                }
-            }
+    // Find matching fake based on variables condition
+    for (const fake of conditionalFakes) {
+        const context = {
+            ...(requestVariables && { variables: requestVariables }),
+        };
+
+        if (evaluateCondition(fake.condition, context)) {
+            logger.debug("fakeGraphQLQuery: matched conditional fake", {
+                sequenceId,
+                operationName: requestOperationName,
+                condition: fake.condition,
+                variables: requestVariables,
+            });
+            return fake;
         }
     }
+
     return undefined;
 };
