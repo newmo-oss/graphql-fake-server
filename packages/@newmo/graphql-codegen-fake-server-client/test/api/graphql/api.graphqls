@@ -1,33 +1,33 @@
 type Query {
     """
-    検索文字列にマッチする目的地の候補
+    Destination candidates that match the search string
     """
     destinationCandidates(text: String!): [Destination!]!
 
     """
-    乗車履歴
+    Ride history
     """
     rideHistories: [RideHistory!]!
 }
 
 type RideHistory {
-    "乗車履歴の ID"
+    "Ride history ID"
     id: ID!
 
-    "目的地"
+    "Destination"
     destination: Destination!
 }
 
 type Destination {
-    "目的地の ID"
+    "Destination ID"
     id: ID!
 
-    "目的地の名前"
+    "Destination name"
     name: String!
 }
 
 input RideHistoryInput {
-    "目的地の名前"
+    "Destination name"
     name: String!
 }
 type RideHistory {

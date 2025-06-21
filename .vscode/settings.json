@@ -10,5 +10,7 @@
   "typescript.preferences.importModuleSpecifierEnding": "js",
   "javascript.preferences.importModuleSpecifierEnding": "js",
   "vitest.commandLine": "npm run test --",
-  "typescript.preferences.autoImportFileExcludePatterns": ["@types/node/test.d.ts"]
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "@types/node/test.d.ts"
+  ]
 }

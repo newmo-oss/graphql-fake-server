@@ -44,49 +44,45 @@ You need to set `sequence-id` header to identify the sequence with the request.
 
 ```js
 await fetch(`${urls.fakeServer}/graphql`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "sequence-id": sequenceId,
-    },
-    body: JSON.stringify({
-        operationName: "CreateBook",
-        query: `
-        mutation CreateBook($title: String!) {
-          createBook(title: $title) {
-            id
-            title
-          }
-        }
-    `,
-        variables: {
-            title: "The Great Gatsby",
-        },
-    }),
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    query: `
+            query GetBooks {
+                books {
+                    id
+                    title
+                }
+            }
+        `,
+  }),
 });
 ```
 
 ### `/fake`
 
-Register the fake data for `sequence-id` and `operationName`.
+Register fake response for GraphQL operation.
 
 ```js
 await fetch(`${urls.fakeServer}/fake`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "sequence-id": sequenceId,
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "CreateBook",
+    data: {
+      createBook: {
+        id: "new-id",
+        title: "new BOOK",
+      },
     },
-    body: JSON.stringify({
-        type: "operation",
-        operationName: "CreateBook",
-        data: {
-            createBook: {
-                id: "new-id",
-                title: "new BOOK",
-            },
-        },
-    }),
+  }),
 });
 ```
 
@@ -96,16 +92,106 @@ Return request and response for the request with `sequence-id` and `operationNam
 
 ```js
 const calledResponse = await fetch(`${urls.fakeServer}/fake/called`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "sequence-id": sequenceId,
-    },
-    body: JSON.stringify({
-        operationName: "CreateBook",
-    }),
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    operationName: "CreateBook",
+  }),
 });
-````
+```
+
+### Conditional Fake
+
+You can register fake responses with conditions that determine when they should be returned. This allows for different responses based on request characteristics.
+
+#### Supported Conditions
+
+- **Count condition**: Return a specific response on the nth call
+- **Variables condition**: Return a specific response when variables match exactly
+
+#### Examples
+
+**Count-based condition:**
+
+```js
+// Register a fake that only returns on the 2nd call
+await fetch(`${urls.fakeServer}/fake`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetUser",
+    condition: {
+      type: "count",
+      value: 2,
+    },
+    data: {
+      user: {
+        id: "user123",
+        name: "Second Call User",
+      },
+    },
+  }),
+});
+```
+
+**Variables-based condition:**
+
+```js
+// Register a fake that only returns when variables match exactly
+await fetch(`${urls.fakeServer}/fake`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetUser",
+    condition: {
+      type: "variables",
+      value: { id: "admin", role: "admin" },
+    },
+    data: {
+      user: {
+        id: "admin",
+        name: "Admin User",
+      },
+    },
+  }),
+});
+```
+
+When no condition matches, the server falls back to the declarative fake data defined in the GraphQL schema.
+
+#### Condition Restrictions
+
+To ensure predictable behavior, the following condition combinations are not allowed for the same operation within a sequence:
+
+- **Count + Default**: Cannot mix count conditions with default (no condition) responses
+- **Count + Variables**: Cannot mix count conditions with variables conditions
+
+✅ **Allowed combinations:**
+
+- Variables + Default: You can have both variables-specific responses and a default fallback
+- Multiple Variables: Different variables conditions can coexist
+- Multiple Count: Different count values can coexist
+
+❌ **Rejected combinations:**
+
+```js
+// This will be rejected with an error response
+// 1. Register default response
+await fetch("/fake", { body: { operationName: "GetUser", data: {...} } });
+// 2. Try to register count condition - ERROR!
+await fetch("/fake", { body: { operationName: "GetUser", condition: { type: "count", value: 1 }, data: {...} } });
+```
 
 ## Config
 
@@ -119,86 +205,44 @@ Example of the config file: `graphql-fake-server.config.mjs`
 
 ```js
 export default {
-    schemaFilePath: "./api/api.graphql",
-    ports: {
-        fakeServer: 4000,
-        apolloServer: 4002,
-    },
-    maxRegisteredSequences: 1000,
-    maxFieldRecursionDepth: 9,
-    maxQueryDepth: 10,
-    defaultValues: {
-        String: "string",
-        Int: 1,
-        Float: 1.1,
-        Boolean: true,
-    },
-    allowedCORSOrigins: ["http://eample.localhost:3000"]
+  schemaFilePath: "./api/api.graphql",
+  ports: {
+    fakeServer: 4000,
+    apolloServer: 4002,
+  },
+  maxRegisteredSequences: 1000,
+  maxQueryDepth: 10,
+  maxFieldRecursionDepth: 5,
+  logLevel: "info",
+  /**
+   * @type {string[] | undefined}
+   * Allowed CORS origins for the fake server
+   * If undefined, it allows localhost and internal network connections only
+   * @example ["https://example.com", "https://app.example.com"]
+   */
+  allowedCORSOrigins: undefined,
 };
 ```
 
-
-Please See [src/config.ts](src/config.ts)
+`RequiredFakeServerConfig` schema:
 
 ```ts
-/**
- * Configuration for the fake server.
- */
-export type FakeServerConfig = {
-    /**
-     * The path to the GraphQL schema file from cwd.
-     */
-    schemaFilePath: string;
-    /**
-     * The ports for the fake server and Apollo Server.
-     */
-    ports?:
-        | {
-        /**
-         * Fake Server port.
-         * Default is 4000.
-         */
-        fakeServer?: number | undefined;
-        /**
-         * Apollo Server port.
-         * It provides the GraphQL Playground.
-         * Default is 4002.
-         */
-        apolloServer?: number | undefined;
-    }
-        | undefined;
-    /**
-     * The maximum number of registered sequences.
-     * Default is 1000.
-     */
-    maxRegisteredSequences?: number | undefined;
-    /**
-     * The maximum number of depth of field recursion.
-     * Default is 9.
-     */
-    maxFieldRecursionDepth?: RawConfig["maxFieldRecursionDepth"] | undefined;
-    /**
-     * The maximum number of depth of complexity of query
-     * this value should be maxFieldRecursionDepth + 1
-     * Default is 10
-     */
-    maxQueryDepth?: number | undefined;
-    /**
-     * Default values for scalar types.
-     */
-    defaultValues?: RawConfig["defaultValues"] | undefined;
-    /**
-     * Log level: "debug", "info", "warn", "error"
-     * If you want to see the debug logs, set the logLevel to "debug".
-     * Default is "info".
-     */
-    logLevel?: LogLevel | undefined;
-    /**
-    * Additional origins to allow for CORS requests.
-    * By default, only localhost and private IP ranges are allowed.
-    * This option allows you to specify additional origins to accept.
-    */
-    allowedCORSOrigins?: string[] | undefined;
+type RequiredFakeServerConfig = {
+  schemaFilePath: string;
+  ports: {
+    fakeServer: number;
+    apolloServer: number;
+  };
+  maxRegisteredSequences: number;
+  maxQueryDepth: number;
+  maxFieldRecursionDepth: number;
+  logLevel?: LogLevel;
+  /**
+   * Allowed CORS origins for the fake server
+   * If undefined, it allows localhost and internal network connections only
+   * @example ["https://example.com", "https://app.example.com"]
+   */
+  allowedCORSOrigins?: string[] | undefined;
 };
 ```
 
@@ -218,4 +262,4 @@ npm test
 
 ## License
 
-MIT 
+MIT

@@ -407,6 +407,68 @@ console.log(json);
 */
 ```
 
+#### Conditional Fake Responses
+
+You can register fake responses with conditions to return different results based on request characteristics:
+
+**Count-based conditions** - Return specific responses on the nth call:
+
+```ts
+// Return different response on the 2nd call
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    condition: {
+      type: "count",
+      value: 2, // Only match on the 2nd call
+    },
+    data: {
+      books: [
+        {
+          id: "book-id01",
+          title: "Second Call Book",
+        },
+      ],
+    },
+  }),
+});
+```
+
+**Variables-based conditions** - Return specific responses when variables match exactly:
+
+```ts
+// Return different response when variables match
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": sequenceId,
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetUser",
+    condition: {
+      type: "variables",
+      value: { id: "admin", role: "admin" }, // Only match when variables exactly match
+    },
+    data: {
+      user: {
+        id: "admin",
+        name: "Admin User",
+      },
+    },
+  }),
+});
+```
+
+When no condition matches, the server falls back to the declarative fake data defined in the GraphQL schema.
+
 > [!NOTE]
 > If you use TypeScript, you can use [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client) to generate a client for the Fake Server.
 
@@ -595,6 +657,172 @@ input CreateDocumentInput {
   name: String! @exampleString(value: "new doc")
 }
 ```
+
+## Conditional Fake
+
+Conditional Fake allows you to return different responses based on specified conditions. This is particularly useful for testing scenarios where you need different responses for:
+
+1. Sequential calls (1st call vs 2nd call)
+2. Different request parameters
+3. Complex conditional logic
+
+#### Count-based Conditions
+
+Return different responses based on the number of times an operation has been called:
+
+```ts
+// Register fake for 1st call
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": "test-sequence-1",
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    condition: { type: "count", value: 1 },
+    data: {
+      books: [{ id: "book-1", title: "First Call Book" }],
+    },
+  }),
+});
+
+// Register fake for 2nd call
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": "test-sequence-1",
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    condition: { type: "count", value: 2 },
+    data: {
+      books: [{ id: "book-2", title: "Second Call Book" }],
+    },
+  }),
+});
+```
+
+#### Variables-based Conditions
+
+Return different responses based on complete GraphQL query variables:
+
+```ts
+// Register fake for specific input combination
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": "file-download-sequence",
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "downloadUrlsResponseToUploadedFiles",
+    condition: {
+      type: "variables",
+      value: {
+        input: {
+          fileType: "A",
+        },
+      },
+    },
+    data: {
+      downloadUrlsResponseToUploadedFiles: {
+        payload: {
+          urls: ["https://example.com/file-a.pdf"],
+        },
+      },
+    },
+  }),
+});
+
+// Register fake for different input combination
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": "file-download-sequence",
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "downloadUrlsResponseToUploadedFiles",
+    condition: {
+      type: "variables",
+      value: {
+        input: {
+          fileType: "B",
+        },
+      },
+    },
+    data: {
+      downloadUrlsResponseToUploadedFiles: {
+        payload: {
+          urls: ["https://example.com/file-b.xlsx"],
+        },
+      },
+    },
+  }),
+});
+```
+
+#### Complex Conditions
+
+Combine multiple conditions using `and` and `or` operators:
+
+```ts
+// Register fake that matches both count and variables
+fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "sequence-id": "complex-sequence",
+  },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetUserData",
+    condition: {
+      type: "and",
+      conditions: [
+        { type: "count", value: 1 },
+        { type: "variables", value: { userId: "user123" } },
+      ],
+    },
+    data: {
+      user: { id: "user123", name: "First Call User" },
+    },
+  }),
+});
+```
+
+#### Condition Types
+
+- `count`: Matches based on the number of times the operation has been called
+
+  - `{ type: "count", value: 1 }` - matches the 1st call
+  - `{ type: "count", value: 2 }` - matches the 2nd call
+
+- `variables`: Matches based on complete GraphQL query variables object
+
+  - `{ type: "variables", value: { userId: "123" } }` - matches when `variables` exactly equals `{ userId: "123" }`
+  - `{ type: "variables", value: { input: { fileType: "PDF" } } }` - matches when `variables` exactly equals `{ input: { fileType: "PDF" } }`
+
+- `and`: All conditions must match
+
+  - `{ type: "and", conditions: [...] }`
+
+- `or`: At least one condition must match
+  - `{ type: "or", conditions: [...] }`
+
+#### Matching Priority
+
+When multiple conditions could match a request, the system uses the following priority:
+
+1. **Condition Specificity**: More specific conditions (e.g., `variables` conditions) are matched before less specific ones (e.g., `count` conditions)
+2. **Registration Order**: Among conditions of equal specificity, the most recently registered condition is matched first
+3. **Fallback**: If no conditional fakes match, the system falls back to non-conditional fakes or declarative fakes
 
 ## Contributing
 

@@ -265,7 +265,11 @@ describe("integration test", async () => {
                     },
                 ],
             });
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
             // request to server
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
                 headers: {
@@ -328,7 +332,11 @@ describe("integration test", async () => {
                     name: "dog name",
                 },
             });
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
             // request to server
             const client = new GraphQLClient(`${fakeServerUrl}/query`, {
                 headers: {
@@ -359,7 +367,11 @@ describe("integration test", async () => {
                     title: "new title",
                 },
             });
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
             // request to server
             const client = new ApolloClient({
                 link: new HttpLink({
@@ -436,7 +448,11 @@ describe("integration test", async () => {
                     birthYYYYMM: "2022-01",
                 },
             });
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
             // request to server
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
                 headers: {
@@ -472,7 +488,11 @@ describe("integration test", async () => {
                     } as FragmentType<BookFragmentPartsFragment>,
                 },
             );
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
             // request to server
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
                 headers: {
@@ -499,7 +519,11 @@ describe("integration test", async () => {
                 errors: [{ message: "fake error message" }],
                 responseStatusCode: 400,
             });
-            expect(resRegister).toMatchInlineSnapshot(`"{"ok":true}"`);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
             // request to server
             const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
                 headers: {
