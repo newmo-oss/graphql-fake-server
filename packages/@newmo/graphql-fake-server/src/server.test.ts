@@ -49,6 +49,26 @@ const startTestFakeServer = async ({
     allowedCORSOrigins: allowedCORSOrigins ?? [],
   });
 };
+
+// Test response types
+type GraphQLResponse = {
+  data?: Record<string, unknown>;
+  errors?: Array<{ message: string }>;
+  ok?: boolean;
+};
+
+type GraphQLTestResponse = GraphQLResponse & {
+  data?: {
+    books?: Array<{ id: string; title: string }>;
+    downloadUrlsResponseToUploadedFiles?: {
+      payload?: {
+        urls?: string[];
+      };
+    };
+    [key: string]: unknown;
+  };
+};
+
 describe("graphql-fake-server", () => {
   describe("ApolloServer", () => {
     it("should not deny CORS request from outer", async () => {
@@ -1388,9 +1408,9 @@ describe("graphql-fake-server", () => {
           }),
         });
 
-        const firstResult = (await firstResponse.json()) as any;
-        assert.ok(firstResult.data.books[0], "First book should exist");
-        expect(firstResult.data.books[0].title).toBe("First Call Book");
+        const firstResult = (await firstResponse.json()) as GraphQLTestResponse;
+        assert.ok(firstResult.data?.books?.[0], "First book should exist");
+        expect(firstResult.data?.books?.[0]?.title).toBe("First Call Book");
 
         // Second call should return second fake
         const secondResponse = await fetch(`${urls.fakeServer}/query`, {
@@ -1412,7 +1432,7 @@ describe("graphql-fake-server", () => {
           }),
         });
 
-        const secondResult = (await secondResponse.json()) as any;
+        const secondResult = (await secondResponse.json()) as GraphQLTestResponse;
         assert.ok(secondResult.data.books[0], "Second book should exist");
         expect(secondResult.data.books[0].title).toBe("Second Call Book");
 
@@ -1436,7 +1456,7 @@ describe("graphql-fake-server", () => {
           }),
         });
 
-        const thirdResult = (await thirdResponse.json()) as any;
+        const thirdResult = (await thirdResponse.json()) as GraphQLTestResponse;
         assert.ok(thirdResult.data.books[0], "Third book should exist");
         expect(thirdResult.data.books[0].title).toBe("Default Book");
       });
@@ -1562,7 +1582,7 @@ describe("graphql-fake-server", () => {
           }),
         });
 
-        const resultA = (await responseA.json()) as any;
+        const resultA = (await responseA.json()) as GraphQLTestResponse;
         assert.ok(
           resultA.data.downloadUrlsResponseToUploadedFiles.payload.urls[0],
           "First URL should exist",
@@ -1597,7 +1617,7 @@ describe("graphql-fake-server", () => {
           }),
         });
 
-        const resultB = (await responseB.json()) as any;
+        const resultB = (await responseB.json()) as GraphQLTestResponse;
         assert.ok(
           resultB.data.downloadUrlsResponseToUploadedFiles.payload.urls[0],
           "Second URL should exist",
@@ -1670,7 +1690,7 @@ describe("graphql-fake-server", () => {
           body: JSON.stringify(countFake),
         });
 
-        const result = (await response.json()) as any;
+        const result = (await response.json()) as GraphQLTestResponse;
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
                   [
@@ -1741,7 +1761,7 @@ describe("graphql-fake-server", () => {
           body: JSON.stringify(countFake),
         });
 
-        const result = (await response.json()) as any;
+        const result = (await response.json()) as GraphQLTestResponse;
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
                   [
@@ -1789,7 +1809,7 @@ describe("graphql-fake-server", () => {
           body: JSON.stringify(defaultFake),
         });
 
-        const defaultResult = (await defaultResponse.json()) as any;
+        const defaultResult = (await defaultResponse.json()) as GraphQLTestResponse;
         expect(defaultResult.ok).toBe(true);
 
         // Register variables condition - should succeed
@@ -1814,7 +1834,7 @@ describe("graphql-fake-server", () => {
           body: JSON.stringify(variablesFake),
         });
 
-        const variablesResult = (await variablesResponse.json()) as any;
+        const variablesResult = (await variablesResponse.json()) as GraphQLTestResponse;
         expect(variablesResult.ok).toBe(true);
       });
     });
@@ -1856,7 +1876,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(invalidCountFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -1905,7 +1925,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(negativeCountFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -1954,7 +1974,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(stringCountFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -2003,7 +2023,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(nullVariablesFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -2052,7 +2072,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(arrayVariablesFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -2101,7 +2121,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(unknownConditionFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -2150,7 +2170,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(noTypeFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`
@@ -2199,7 +2219,7 @@ describe("graphql-fake-server", () => {
         body: JSON.stringify(noValueFake),
       });
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLTestResponse;
       expect(response.status).toBe(400);
       expect(result.ok).toBe(false);
       expect(result.errors).toMatchInlineSnapshot(`

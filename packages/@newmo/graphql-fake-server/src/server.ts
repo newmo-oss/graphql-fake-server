@@ -127,7 +127,7 @@ type ValidationResult<T> = { ok: true; data: T } | { ok: false; error: string };
 // Condition rules for conditional fake responses
 export type ConditionRule =
   | { type: "count"; value: number } // Match based on call count (nth call)
-  | { type: "variables"; value: Record<string, any> }; // Match based on complete variables object
+  | { type: "variables"; value: Record<string, unknown> }; // Match based on complete variables object
 
 // Called result structure for tracking requests/responses
 export type CalledResult = {
@@ -259,8 +259,8 @@ const checkConditionConflicts = (
   for (const existingFake of existingConditionalFakes) {
     const existingConditionType = getConditionType(existingFake);
     const conflictResult = areConditionTypesConflicting(newConditionType, existingConditionType);
-    if (conflictResult.isConflicting) {
-      errors.push(conflictResult.errorMessage!);
+    if (conflictResult.isConflicting && conflictResult.errorMessage) {
+      errors.push(conflictResult.errorMessage);
     }
   }
 
@@ -268,8 +268,8 @@ const checkConditionConflicts = (
   if (existingDefaultFake) {
     const existingConditionType = getConditionType(existingDefaultFake);
     const conflictResult = areConditionTypesConflicting(newConditionType, existingConditionType);
-    if (conflictResult.isConflicting) {
-      errors.push(conflictResult.errorMessage!);
+    if (conflictResult.isConflicting && conflictResult.errorMessage) {
+      errors.push(conflictResult.errorMessage);
     }
   }
 
@@ -279,7 +279,7 @@ const checkConditionConflicts = (
 /**
  * Validate condition rule structure
  */
-const validateConditionRule = (condition: any): ValidationResult<ConditionRule> => {
+const validateConditionRule = (condition: unknown): ValidationResult<ConditionRule> => {
   if (typeof condition !== "object" || condition === null) {
     return { ok: false, error: "Condition must be an object" };
   }
@@ -826,7 +826,7 @@ const createRoutingServer = async ({
       "variables" in requestBody &&
       typeof requestBody.variables === "object" &&
       requestBody.variables !== null
-        ? (requestBody.variables as Record<string, any>)
+        ? (requestBody.variables as Record<string, unknown>)
         : undefined;
 
     // Check conditional fakes first
@@ -939,7 +939,7 @@ const createRoutingServer = async ({
       responseBody,
     });
     // Use bracket notation for properties from index signature
-    const responseData = responseBody["data"] as any;
+    const responseData = responseBody["data"] as unknown;
     const merged = {
       ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
       ...data,
@@ -1094,7 +1094,7 @@ const evaluateCondition = (
   condition: ConditionRule,
   context: {
     callCount: number;
-    variables?: Record<string, any>;
+    variables?: Record<string, unknown>;
   },
 ): boolean => {
   switch (condition.type) {

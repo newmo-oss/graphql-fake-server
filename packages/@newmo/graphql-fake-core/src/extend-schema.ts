@@ -163,5 +163,5 @@ It allows setting an error response and specifying the field name.
 directive @error on FIELD_DEFINITION
 `;
 export const extendSchema = (schema: string) => {
-    return EXAMPLE_DIRECTIVE + schema;
+  return EXAMPLE_DIRECTIVE + schema;
 };

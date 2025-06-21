@@ -1,96 +1,96 @@
 query GetBooks {
-    books {
-        id
-        title
-    }
+  books {
+    id
+    title
+  }
 }
 # Fragment
 fragment BookFragmentParts on Book {
-    id
-    title
+  id
+  title
 }
 query GetBookWithFragments($bookId: ID!) {
-    book(id: $bookId) {
-        ...BookFragmentParts
-    }
+  book(id: $bookId) {
+    ...BookFragmentParts
+  }
 }
 query GetDog {
-    dog {
-        id
-        name
-    }
+  dog {
+    id
+    name
+  }
 }
 
 query GotUnionUser {
-    unionUser {
-        ... on User {
-            id
-            name
-            birthDate
-            birthYYYYMM
-        }
-        ... on UserIsBlocked {
-            message
-            blockedByUser {
-                id
-                name
-            }
-        }
+  unionUser {
+    ... on User {
+      id
+      name
+      birthDate
+      birthYYYYMM
     }
+    ... on UserIsBlocked {
+      message
+      blockedByUser {
+        id
+        name
+      }
+    }
+  }
 }
 
 query GetUserNamesArrayExample {
-    userNamesArray {
-        names
-    }
+  userNamesArray {
+    names
+  }
 }
 
 mutation CreateBook($title: String!) {
-    createBook(input: { title: $title }) {
-        id
-        title
-    }
+  createBook(input: { title: $title }) {
+    id
+    title
+  }
 }
 
 mutation CreateBookInline($title: String!) {
-    createBookInline(bookId: 1, bookTitle: $title) {
-        id
-        title
-    }
+  createBookInline(bookId: 1, bookTitle: $title) {
+    id
+    title
+  }
 }
 
 # errors pattern
 mutation UseMutationErrorPatternMutation {
-    useMutationErrorPattern(input: { id: "x" }) {
-        errors {
-            ... on GeneralError {
-                message
-            }
-            ... on AbcError {
-                message
-                code
-                localizedMessage
-            }
-            ... on DisplayableError {
-                localizedMessage
-                message
-            }
-            ... on Error {
-                message
-            }
-        }
+  useMutationErrorPattern(input: { id: "x" }) {
+    errors {
+      ... on GeneralError {
+        message
+      }
+      ... on AbcError {
+        message
+        code
+        localizedMessage
+      }
+      ... on DisplayableError {
+        localizedMessage
+        message
+      }
+      ... on Error {
+        message
+      }
     }
+  }
 }
 
 # mutation createFooURL
 mutation CreateFooURL($input: FooURLInput!) {
-    createFooURL(input: $input) {
-        URL
-        errors {
-            ... on CreateFooURLErrorDetail {
-                code
-                message
-            }
-        }
+  createFooURL(input: $input) {
+    URL
+    errors {
+      ... on CreateFooURLErrorDetail {
+        code
+        message
+      }
     }
+  }
 }

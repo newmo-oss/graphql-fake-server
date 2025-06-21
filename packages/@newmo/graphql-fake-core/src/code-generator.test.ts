@@ -9,41 +9,41 @@ import { extendSchema } from "./extend-schema.js";
 import { getTypeInfos } from "./schema-scanner.js";
 
 const buildSchema = (schema: string): GraphQLSchema => {
-    return buildSchemaGraphQL(extendSchema(schema));
+  return buildSchemaGraphQL(extendSchema(schema));
 };
 const generateCodeFromSchema = ({
-    schema,
-    outputType,
-    rawConfig = {},
+  schema,
+  outputType,
+  rawConfig = {},
 }: {
-    schema: string;
-    outputType?: ConfigWithOutput["outputType"];
-    rawConfig?: RawConfig;
+  schema: string;
+  outputType?: ConfigWithOutput["outputType"];
+  rawConfig?: RawConfig;
 }) => {
-    const config = normalizeConfig(rawConfig);
-    const graphQLSchema = buildSchema(schema);
-    const typeInfos = getTypeInfos(config, graphQLSchema);
-    return generateCode(
-        {
-            ...config,
-            typesFile: "./type.ts",
-            outputType: outputType ?? "javascript",
-        },
-        typeInfos,
-    ).trim();
+  const config = normalizeConfig(rawConfig);
+  const graphQLSchema = buildSchema(schema);
+  const typeInfos = getTypeInfos(config, graphQLSchema);
+  return generateCode(
+    {
+      ...config,
+      typesFile: "./type.ts",
+      outputType: outputType ?? "javascript",
+    },
+    typeInfos,
+  ).trim();
 };
 describe("generateCode", () => {
-    describe("non-example directive", () => {
-        it("generates code for a simple Query type", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+  describe("non-example directive", () => {
+    it("generates code for a simple Query type", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         type Query {
             hello: String
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -61,12 +61,12 @@ describe("generateCode", () => {
 
               export const Query = createQuery();"
             `);
-        });
+    });
 
-        it("generates code for a Mutation type", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    it("generates code for a Mutation type", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         type Mutation {
             addMessage(content: String!): Message
         }
@@ -76,8 +76,8 @@ describe("generateCode", () => {
             content: String!
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -103,12 +103,12 @@ describe("generateCode", () => {
 
               export const Message = createMessage();"
             `);
-        });
+    });
 
-        it("generates code for a Subscription type", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    it("generates code for a Subscription type", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         type Subscription {
             messageAdded: Message
         }
@@ -118,8 +118,8 @@ describe("generateCode", () => {
             content: String!
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -145,12 +145,12 @@ describe("generateCode", () => {
 
               export const Message = createMessage();"
             `);
-        });
+    });
 
-        it("generates code for an enum type", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    it("generates code for an enum type", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         enum Status {
             ACTIVE
             INACTIVE
@@ -161,8 +161,8 @@ describe("generateCode", () => {
             status: Status!
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -186,26 +186,26 @@ describe("generateCode", () => {
 
               export const User = createUser();"
             `);
-        });
+    });
 
-        it("generates code for a Custom Scalar using config", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    it("generates code for a Custom Scalar using config", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         scalar Date
         type Query {
             today: Date
         }
                 `,
-                    rawConfig: {
-                        defaultValues: {
-                            CustomScalar: {
-                                Date: "new Date().toISOString()",
-                            },
-                        },
-                    },
-                }),
-            ).toMatchInlineSnapshot(`
+          rawConfig: {
+            defaultValues: {
+              CustomScalar: {
+                Date: "new Date().toISOString()",
+              },
+            },
+          },
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -223,11 +223,11 @@ describe("generateCode", () => {
 
               export const Query = createQuery();"
             `);
-        });
-        it("generates code for an interface", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    });
+    it("generates code for an interface", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         interface Animal {
             id: ID!
             name: String!
@@ -245,8 +245,8 @@ describe("generateCode", () => {
             breed: String
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -282,12 +282,12 @@ describe("generateCode", () => {
 
               export const Dog = createDog();"
             `);
-        });
+    });
 
-        it("generates code for input types", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    it("generates code for input types", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         input NewUserInput {
             name: String! @exampleString(value: "John Doe")
             email: String! @exampleString(value: "example@example.com")
@@ -303,8 +303,8 @@ describe("generateCode", () => {
             email: String!
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -339,20 +339,20 @@ describe("generateCode", () => {
 
               export const User = createUser();"
             `);
-        });
     });
-    describe("execute generateCode", () => {
-        it("generates code for a simple Query type", () => {
-            const code = generateCodeFromSchema({
-                schema: `
+  });
+  describe("execute generateCode", () => {
+    it("generates code for a simple Query type", () => {
+      const code = generateCodeFromSchema({
+        schema: `
         type Query {
             hello: String
         }`,
-                outputType: "commonjs",
-            });
-            const exports = {};
-            vm.runInNewContext(code, { exports });
-            expect(exports).toMatchInlineSnapshot(`
+        outputType: "commonjs",
+      });
+      const exports = {};
+      vm.runInNewContext(code, { exports });
+      expect(exports).toMatchInlineSnapshot(`
               {
                 "Query": {
                   "hello": "string",
@@ -360,10 +360,10 @@ describe("generateCode", () => {
                 "createQuery": [Function],
               }
             `);
-        });
-        it("generates code for a recursive type", () => {
-            const _code = generateCodeFromSchema({
-                schema: `
+    });
+    it("generates code for a recursive type", () => {
+      const _code = generateCodeFromSchema({
+        schema: `
 # Author and Book are recursive
 type Author {
     name: String!
@@ -374,26 +374,26 @@ type Book {
     author: Author
 }    
 `,
-                outputType: "javascript",
-            });
-            // eval using import();
+        outputType: "javascript",
+      });
+      // eval using import();
 
-            expect(exports).toMatchInlineSnapshot("{}");
-        });
+      expect(exports).toMatchInlineSnapshot("{}");
     });
-    describe("example directive", () => {
-        describe("generateCode", () => {
-            describe("with example directives", () => {
-                it("generates code for a simple Query type with @exampleString directive", () => {
-                    expect(
-                        generateCodeFromSchema({
-                            schema: `
+  });
+  describe("example directive", () => {
+    describe("generateCode", () => {
+      describe("with example directives", () => {
+        it("generates code for a simple Query type with @exampleString directive", () => {
+          expect(
+            generateCodeFromSchema({
+              schema: `
         type Query {
             hello: String @exampleString(value: "Hello, World!")
         }
     `,
-                        }),
-                    ).toMatchInlineSnapshot(`
+            }),
+          ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
@@ -411,12 +411,12 @@ type Book {
 
                       export const Query = createQuery();"
                     `);
-                });
+        });
 
-                it("generates code for a Mutation type with @exampleID and @exampleString directives", () => {
-                    expect(
-                        generateCodeFromSchema({
-                            schema: `
+        it("generates code for a Mutation type with @exampleID and @exampleString directives", () => {
+          expect(
+            generateCodeFromSchema({
+              schema: `
         type Mutation {
             addMessage(content: String!): Message
         }
@@ -426,8 +426,8 @@ type Book {
             content: String! @exampleString(value: "Hello, World!")
         }
     `,
-                        }),
-                    ).toMatchInlineSnapshot(`
+            }),
+          ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
@@ -453,12 +453,12 @@ type Book {
 
                       export const Message = createMessage();"
                     `);
-                });
+        });
 
-                it("generates code for a Subscription type with @exampleID and @exampleString directives", () => {
-                    expect(
-                        generateCodeFromSchema({
-                            schema: `
+        it("generates code for a Subscription type with @exampleID and @exampleString directives", () => {
+          expect(
+            generateCodeFromSchema({
+              schema: `
         type Subscription {
             messageAdded: Message
         }
@@ -468,8 +468,8 @@ type Book {
             content: String! @exampleString(value: "Hello, World!")
         }
     `,
-                        }),
-                    ).toMatchInlineSnapshot(`
+            }),
+          ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
@@ -495,12 +495,12 @@ type Book {
 
                       export const Message = createMessage();"
                     `);
-                });
+        });
 
-                it("generates code for an enum type with @exampleID directive", () => {
-                    expect(
-                        generateCodeFromSchema({
-                            schema: `
+        it("generates code for an enum type with @exampleID directive", () => {
+          expect(
+            generateCodeFromSchema({
+              schema: `
         enum Status {
             ACTIVE
             INACTIVE
@@ -511,8 +511,8 @@ type Book {
             status: Status!
         }
     `,
-                        }),
-                    ).toMatchInlineSnapshot(`
+            }),
+          ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
@@ -536,12 +536,12 @@ type Book {
 
                       export const User = createUser();"
                     `);
-                });
+        });
 
-                it("generates code for an interface with @exampleID, @exampleString, and @exampleInt directives", () => {
-                    expect(
-                        generateCodeFromSchema({
-                            schema: `
+        it("generates code for an interface with @exampleID, @exampleString, and @exampleInt directives", () => {
+          expect(
+            generateCodeFromSchema({
+              schema: `
         interface Animal {
             id: ID! @exampleID(value: "1234")
             name: String! @exampleString(value: "Tom")
@@ -559,8 +559,8 @@ type Book {
             breed: String @exampleString(value: "Bulldog")
         }
     `,
-                        }),
-                    ).toMatchInlineSnapshot(`
+            }),
+          ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
@@ -596,12 +596,12 @@ type Book {
 
                       export const Dog = createDog();"
                     `);
-                });
+        });
 
-                it("generates code for input types with @exampleString directive", () => {
-                    expect(
-                        generateCodeFromSchema({
-                            schema: `
+        it("generates code for input types with @exampleString directive", () => {
+          expect(
+            generateCodeFromSchema({
+              schema: `
         input NewUserInput {
             name: String!
             email: String!
@@ -617,8 +617,8 @@ type Book {
             email: String! @exampleString(value: "john.doe@example.com")
         }
     `,
-                        }),
-                    ).toMatchInlineSnapshot(`
+            }),
+          ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
                       function __id({ name, key, depth }) {
@@ -653,14 +653,14 @@ type Book {
 
                       export const User = createUser();"
                     `);
-                });
-            });
         });
+      });
+    });
 
-        it("generates code for exampleId and array", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    it("generates code for exampleId and array", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
                 type Query {
                     books: [Book!]
                 }
@@ -668,8 +668,8 @@ type Book {
                   id: ID! @exampleID(value: "book-id")
                 }
                 `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -694,11 +694,11 @@ type Book {
 
               export const Book = createBook();"
             `);
-        });
-        it("generates code for a recursive type between two types", () => {
-            expect(
-                generateCodeFromSchema({
-                    schema: `
+    });
+    it("generates code for a recursive type between two types", () => {
+      expect(
+        generateCodeFromSchema({
+          schema: `
         type Category {
             id: ID! @exampleID(value: "1234")
             name: String! @exampleString(value: "Electronics")
@@ -711,8 +711,8 @@ type Book {
             parent: Category
         }
     `,
-                }),
-            ).toMatchInlineSnapshot(`
+        }),
+      ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
               function __id({ name, key, depth }) {
@@ -741,19 +741,19 @@ type Book {
 
               export const SubCategory = createSubCategory();"
             `);
-        });
     });
-    it("can output commonjs code", () => {
-        expect(
-            generateCodeFromSchema({
-                schema: `
+  });
+  it("can output commonjs code", () => {
+    expect(
+      generateCodeFromSchema({
+        schema: `
         type Query {
             hello: String
         }
     `,
-                outputType: "commonjs",
-            }),
-        ).toMatchInlineSnapshot(`
+        outputType: "commonjs",
+      }),
+    ).toMatchInlineSnapshot(`
           "let __idGlobalId = 0; // global id
           const __idContextCountMap = new Map() // context count
           function __id({ name, key, depth }) {
@@ -772,18 +772,18 @@ type Book {
           const Query = createQuery();
           exports.Query = Query;"
         `);
-    });
-    it("can output TypeScript code", () => {
-        expect(
-            generateCodeFromSchema({
-                schema: `
+  });
+  it("can output TypeScript code", () => {
+    expect(
+      generateCodeFromSchema({
+        schema: `
         type Query {
             hello: String
         }
     `,
-                outputType: "typescript",
-            }),
-        ).toMatchInlineSnapshot(`
+        outputType: "typescript",
+      }),
+    ).toMatchInlineSnapshot(`
           "import type { 
             Query
           } from './type.ts';
@@ -805,11 +805,11 @@ type Book {
 
           export const Query = createQuery();"
         `);
-    });
-    it("can output TypeScript code with outputType: 'typescript'", () => {
-        expect(
-            generateCodeFromSchema({
-                schema: `
+  });
+  it("can output TypeScript code with outputType: 'typescript'", () => {
+    expect(
+      generateCodeFromSchema({
+        schema: `
         enum Status {
             ACTIVE
             INACTIVE
@@ -820,9 +820,9 @@ type Book {
             status: Status!
         }
         `,
-                outputType: "typescript",
-            }),
-        ).toMatchInlineSnapshot(`
+        outputType: "typescript",
+      }),
+    ).toMatchInlineSnapshot(`
           "import type { 
             User
           } from './type.ts';
@@ -850,11 +850,11 @@ type Book {
 
           export const User = createUser();"
         `);
-    });
-    it("should support enum", () => {
-        expect(
-            generateCodeFromSchema({
-                schema: `
+  });
+  it("should support enum", () => {
+    expect(
+      generateCodeFromSchema({
+        schema: `
         enum Status {
             ACTIVE
             INACTIVE
@@ -865,8 +865,8 @@ type Book {
             status: Status!
         }
         `,
-            }),
-        ).toMatchInlineSnapshot(`
+      }),
+    ).toMatchInlineSnapshot(`
           "let __idGlobalId = 0; // global id
           const __idContextCountMap = new Map() // context count
           function __id({ name, key, depth }) {
@@ -890,5 +890,5 @@ type Book {
 
           export const User = createUser();"
         `);
-    });
+  });
 });

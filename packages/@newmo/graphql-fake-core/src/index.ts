@@ -6,11 +6,11 @@ export type { CreateMockOptions, CreateMockResult, MockObject } from "./createMo
 export { createMock } from "./createMock.js";
 export { EXAMPLE_DIRECTIVE, extendSchema } from "./extend-schema.js";
 export type {
-    ExampleDirectionExpression,
-    ExampleDirective,
-    ExampleDirectiveValue,
-    InterfaceTypeInfo,
-    ObjectTypeInfo,
-    TypeInfo,
+  ExampleDirectionExpression,
+  ExampleDirective,
+  ExampleDirectiveValue,
+  InterfaceTypeInfo,
+  ObjectTypeInfo,
+  TypeInfo,
 } from "./schema-scanner.js";
 export { getTypeInfos } from "./schema-scanner.js";
