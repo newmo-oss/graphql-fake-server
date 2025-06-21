@@ -708,4 +708,140 @@ describe("integration test", async () => {
             `);
         });
     });
+
+    describe("Conditional Fake", () => {
+        it("should handle count-based conditions", async () => {
+            const sequenceId = crypto.randomUUID();
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+
+            // Register fake for 1st call
+            await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "count", value: 1 },
+                    data: {
+                        books: [{ id: "book-1", title: "First Call Book" }],
+                    },
+                }),
+            });
+
+            // Register fake for 2nd call
+            await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "count", value: 2 },
+                    data: {
+                        books: [{ id: "book-2", title: "Second Call Book" }],
+                    },
+                }),
+            });
+
+            // First call should return "First Call Book"
+            const firstResponse = await client.request(GetBooksDocument);
+            expect((firstResponse as any).books[0].title).toBe("First Call Book");
+
+            // Second call should return "Second Call Book"
+            const secondResponse = await client.request(GetBooksDocument);
+            expect((secondResponse as any).books[0].title).toBe("Second Call Book");
+        });
+
+        it("should handle variables-based conditions", async () => {
+            const sequenceId = crypto.randomUUID();
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+
+            // Register fake for specific input
+            await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "CreateBook",
+                    condition: {
+                        type: "variables",
+                        value: {
+                            input: {
+                                title: "Test Book A",
+                                authorId: "author-1",
+                            },
+                        },
+                    },
+                    data: {
+                        createBook: {
+                            id: "book-a",
+                            title: "Test Book A - Created",
+                        },
+                    },
+                }),
+            });
+
+            // Register fake for different input
+            await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "CreateBook",
+                    condition: {
+                        type: "variables",
+                        value: {
+                            input: {
+                                title: "Test Book B",
+                                authorId: "author-2",
+                            },
+                        },
+                    },
+                    data: {
+                        createBook: {
+                            id: "book-b",
+                            title: "Test Book B - Created",
+                        },
+                    },
+                }),
+            });
+
+            // Call with first input
+            const firstResponse = await client.request(CreateBookDocument, {
+                input: {
+                    title: "Test Book A",
+                    authorId: "author-1",
+                },
+            });
+            expect((firstResponse as any).createBook.title).toBe("Test Book A - Created");
+
+            // Call with second input
+            const secondResponse = await client.request(CreateBookDocument, {
+                input: {
+                    title: "Test Book B",
+                    authorId: "author-2",
+                },
+            });
+            expect((secondResponse as any).createBook.title).toBe("Test Book B - Created");
+        });
+    });
 });

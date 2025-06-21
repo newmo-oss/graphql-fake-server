@@ -117,6 +117,10 @@ const creteApolloServer = async (options: FakeServerInternal) => {
         validationRules: [depthLimit(options.maxQueryDepth)],
     });
 };
+// Allowed condition types
+const ALLOWED_CONDITION_TYPES = ["count", "variables"] as const;
+type AllowedConditionType = (typeof ALLOWED_CONDITION_TYPES)[number];
+
 // Condition rules for conditional fake responses
 export type ConditionRule =
     | { type: "count"; value: number } // Match based on call count (nth call)
@@ -235,6 +239,11 @@ const validateConditionRule = (condition: any): condition is ConditionRule => {
 
     if (!("type" in condition) || typeof condition.type !== "string") return false;
 
+    // Check if type is in the allow list
+    if (!ALLOWED_CONDITION_TYPES.includes(condition.type as AllowedConditionType)) {
+        return false;
+    }
+
     switch (condition.type) {
         case "count":
             return (
@@ -247,14 +256,6 @@ const validateConditionRule = (condition: any): condition is ConditionRule => {
                 typeof condition.value === "object" &&
                 condition.value !== null &&
                 !Array.isArray(condition.value)
-            );
-
-        case "and":
-        case "or":
-            return (
-                "conditions" in condition &&
-                Array.isArray(condition.conditions) &&
-                condition.conditions.every(validateConditionRule)
             );
 
         default:

@@ -1,80 +1,80 @@
 type Query {
-    """
-    Destination candidates that match the search string
-    """
-    destinationCandidates(text: String!): [Destination!]!
+  """
+  Destination candidates that match the search string
+  """
+  destinationCandidates(text: String!): [Destination!]!
 
-    """
-    Ride history
-    """
-    rideHistories: [RideHistory!]!
+  """
+  Ride history
+  """
+  rideHistories: [RideHistory!]!
 }
 
 type RideHistory {
-    "Ride history ID"
-    id: ID!
+  "Ride history ID"
+  id: ID!
 
-    "Destination"
-    destination: Destination!
+  "Destination"
+  destination: Destination!
 }
 
 type Destination {
-    "Destination ID"
-    id: ID!
+  "Destination ID"
+  id: ID!
 
-    "Destination name"
-    name: String!
+  "Destination name"
+  name: String!
 }
 
 input RideHistoryInput {
-    "Destination name"
-    name: String!
+  "Destination name"
+  name: String!
 }
 type RideHistory {
-    "Ride History ID"
-    id: ID!
-    "Destination Name"
-    name: String!
+  "Ride History ID"
+  id: ID!
+  "Destination Name"
+  name: String!
 }
 
 # CaseSensitive test
 # *URL*
 # Create*
 type FooURLResource {
-    "Foo URL"
-    URL: String!
+  "Foo URL"
+  URL: String!
 }
 input FooURLInput {
-    "Foo URL"
-    URL: String!
+  "Foo URL"
+  URL: String!
 }
 type FooURLPayload {
-    "Foo URL"
-    URL: String!
-    "Errors"
-    errors: [CreateFooURLError!]!
+  "Foo URL"
+  URL: String!
+  "Errors"
+  errors: [CreateFooURLError!]!
 }
 # Error
 interface Error {
-    message: String!
+  message: String!
 }
 union CreateFooURLError = CreateFooURLErrorDetail
 type CreateFooURLErrorDetail implements Error {
-    code: CreateFooURLErrorCode!
-    message: String!
+  code: CreateFooURLErrorCode!
+  message: String!
 }
 enum CreateFooURLErrorCode {
-    FAILED_TO_CREATE_FOO_URL
+  FAILED_TO_CREATE_FOO_URL
 }
 
 type Mutation {
-    """
-    Create Ride History
-    """
-    createURLRideHistory(input: RideHistoryInput!): RideHistory!
+  """
+  Create Ride History
+  """
+  createURLRideHistory(input: RideHistoryInput!): RideHistory!
 
-    """
-    Create Foo URL
-    """
-    createFooURL(input: FooURLInput!): FooURLPayload!
+  """
+  Create Foo URL
+  """
+  createFooURL(input: FooURLInput!): FooURLPayload!
 }
