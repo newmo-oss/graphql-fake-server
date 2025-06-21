@@ -1333,8 +1333,8 @@ describe("graphql-fake-server", () => {
         });
     });
     describe("Conditional Fake", () => {
-        describe("Count-based conditions", () => {
-            it("should return different responses based on call count", async () => {
+        describe("Sequence-based responses", () => {
+            it("should return responses from array in order", async () => {
                 const schema = `
                     type Book {
                         id: ID! @exampleID(value: "book-id")
@@ -1352,15 +1352,19 @@ describe("graphql-fake-server", () => {
                 const { urls } = await server.start();
                 const sequenceId = crypto.randomUUID();
 
-                // Register fake for 1st call
-                const firstCallCondition: ConditionRule = { type: "count", value: 1 };
-                const firstCallFake: RegisterSequenceOptions = {
+                // Register array of responses for sequence
+                const sequenceFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetBooks",
-                    requestCondition: firstCallCondition,
-                    data: {
-                        books: [{ id: "book-1", title: "First Call Book" }],
-                    },
+                    requestCondition: { type: "always" },
+                    data: [
+                        {
+                            books: [{ id: "book-1", title: "First Call Book" }],
+                        },
+                        {
+                            books: [{ id: "book-2", title: "Second Call Book" }],
+                        },
+                    ],
                 };
 
                 await fetch(`${urls.fakeServer}/fake`, {
@@ -1369,30 +1373,10 @@ describe("graphql-fake-server", () => {
                         "Content-Type": "application/json",
                         "sequence-id": sequenceId,
                     },
-                    body: JSON.stringify(firstCallFake),
+                    body: JSON.stringify(sequenceFake),
                 });
 
-                // Register fake for 2nd call
-                const secondCallCondition: ConditionRule = { type: "count", value: 2 };
-                const secondCallFake: RegisterSequenceOptions = {
-                    type: "operation",
-                    operationName: "GetBooks",
-                    requestCondition: secondCallCondition,
-                    data: {
-                        books: [{ id: "book-2", title: "Second Call Book" }],
-                    },
-                };
-
-                await fetch(`${urls.fakeServer}/fake`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "sequence-id": sequenceId,
-                    },
-                    body: JSON.stringify(secondCallFake),
-                });
-
-                // First call should return first fake
+                // First call should return first response from array
                 const firstResponse = await fetch(`${urls.fakeServer}/query`, {
                     method: "POST",
                     headers: {
@@ -1416,7 +1400,7 @@ describe("graphql-fake-server", () => {
                 assert.ok(firstResult.data?.books?.[0], "First book should exist");
                 expect(firstResult.data?.books?.[0]?.title).toBe("First Call Book");
 
-                // Second call should return second fake
+                // Second call should return second response from array
                 const secondResponse = await fetch(`${urls.fakeServer}/query`, {
                     method: "POST",
                     headers: {
@@ -1437,10 +1421,10 @@ describe("graphql-fake-server", () => {
                 });
 
                 const secondResult = (await secondResponse.json()) as GraphQLTestResponse;
-                assert.ok(secondResult.data.books[0], "Second book should exist");
-                expect(secondResult.data.books[0].title).toBe("Second Call Book");
+                assert.ok(secondResult.data?.books?.[0], "Second book should exist");
+                expect(secondResult.data?.books?.[0]?.title).toBe("Second Call Book");
 
-                // Third call should fallback to declarative fake (no condition matches)
+                // Third call should repeat last response in sequence
                 const thirdResponse = await fetch(`${urls.fakeServer}/query`, {
                     method: "POST",
                     headers: {
@@ -1461,8 +1445,10 @@ describe("graphql-fake-server", () => {
                 });
 
                 const thirdResult = (await thirdResponse.json()) as GraphQLTestResponse;
-                assert.ok(thirdResult.data.books[0], "Third book should exist");
-                expect(thirdResult.data.books[0].title).toBe("Default Book");
+                assert.ok(thirdResult.data?.books?.[0], "Third book should exist");
+                expect(thirdResult.data?.books?.[0]?.title).toBe("Second Call Book");
+
+                await server.stop();
             });
         });
         it("should return called operations for network-error type", async () => {
@@ -1694,10 +1680,10 @@ describe("graphql-fake-server", () => {
 
             const resultA = (await responseA.json()) as GraphQLTestResponse;
             assert.ok(
-                resultA.data.downloadUrlsResponseToUploadedFiles.payload.urls[0],
+                resultA.data?.downloadUrlsResponseToUploadedFiles?.payload?.urls?.[0],
                 "First URL should exist",
             );
-            expect(resultA.data.downloadUrlsResponseToUploadedFiles.payload.urls[0]).toBe(
+            expect(resultA.data?.downloadUrlsResponseToUploadedFiles?.payload?.urls?.[0]).toBe(
                 "https://example.com/file-a.pdf",
             );
 
@@ -1729,17 +1715,19 @@ describe("graphql-fake-server", () => {
 
             const resultB = (await responseB.json()) as GraphQLTestResponse;
             assert.ok(
-                resultB.data.downloadUrlsResponseToUploadedFiles.payload.urls[0],
+                resultB.data?.downloadUrlsResponseToUploadedFiles?.payload?.urls?.[0],
                 "Second URL should exist",
             );
-            expect(resultB.data.downloadUrlsResponseToUploadedFiles.payload.urls[0]).toBe(
+            expect(resultB.data?.downloadUrlsResponseToUploadedFiles?.payload?.urls?.[0]).toBe(
                 "https://example.com/file-b.xlsx",
             );
+
+            await server.stop();
         });
     });
 
     describe("Condition conflicts", () => {
-        it("should reject count condition when default fake is already registered", async () => {
+        it("should reject array response when single response is already registered", async () => {
             const schema = `
                     type User {
                         id: ID! @exampleID(value: "user-id")
@@ -1757,14 +1745,15 @@ describe("graphql-fake-server", () => {
             const { urls } = await server.start();
             const sequenceId = crypto.randomUUID();
 
-            // First register default fake (no condition)
-            const defaultFake: RegisterSequenceOptions = {
+            // First register single response with always condition
+            const singleFake: RegisterSequenceOptions = {
                 type: "operation",
                 operationName: "GetUser",
+                requestCondition: { type: "always" },
                 data: {
                     user: {
-                        id: "default-user",
-                        name: "Default User",
+                        id: "single-user",
+                        name: "Single User",
                     },
                 },
             };
@@ -1775,20 +1764,28 @@ describe("graphql-fake-server", () => {
                     "Content-Type": "application/json",
                     "sequence-id": sequenceId,
                 },
-                body: JSON.stringify(defaultFake),
+                body: JSON.stringify(singleFake),
             });
 
-            // Try to register count condition - should fail
-            const countFake: RegisterSequenceOptions = {
+            // Try to register array response with same condition - should fail
+            const arrayFake: RegisterSequenceOptions = {
                 type: "operation",
                 operationName: "GetUser",
-                requestCondition: { type: "count", value: 1 },
-                data: {
-                    user: {
-                        id: "count-user",
-                        name: "Count User",
+                requestCondition: { type: "always" },
+                data: [
+                    {
+                        user: {
+                            id: "array-user-1",
+                            name: "Array User 1",
+                        },
                     },
-                },
+                    {
+                        user: {
+                            id: "array-user-2",
+                            name: "Array User 2",
+                        },
+                    },
+                ],
             };
 
             const response = await fetch(`${urls.fakeServer}/fake`, {
@@ -1797,87 +1794,18 @@ describe("graphql-fake-server", () => {
                     "Content-Type": "application/json",
                     "sequence-id": sequenceId,
                 },
-                body: JSON.stringify(countFake),
+                body: JSON.stringify(arrayFake),
             });
 
             const result = (await response.json()) as GraphQLTestResponse;
             expect(result.ok).toBe(false);
             expect(result.errors).toMatchInlineSnapshot(`
-                  [
-                    "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-                  ]
-                `);
-        });
+              [
+                "Cannot mix single response and array response with the same requestCondition for the same sequenceId x operationName",
+              ]
+            `);
 
-        it("should reject count condition when variables condition is already registered", async () => {
-            const schema = `
-                    type User {
-                        id: ID! @exampleID(value: "user-id")
-                        name: String! @exampleString(value: "Default User")
-                    }
-                    type Query {
-                        user(id: ID!): User!
-                    }
-                `;
-            const ports = getPorts();
-            const server = await startTestFakeServer({
-                schemaString: schema,
-                ports,
-            });
-            const { urls } = await server.start();
-            const sequenceId = crypto.randomUUID();
-
-            // First register variables condition
-            const variablesFake: RegisterSequenceOptions = {
-                type: "operation",
-                operationName: "GetUser",
-                requestCondition: { type: "variables", value: { id: "user123" } },
-                data: {
-                    user: {
-                        id: "vars-user",
-                        name: "Variables User",
-                    },
-                },
-            };
-
-            await fetch(`${urls.fakeServer}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify(variablesFake),
-            });
-
-            // Try to register count condition - should fail
-            const countFake: RegisterSequenceOptions = {
-                type: "operation",
-                operationName: "GetUser",
-                requestCondition: { type: "count", value: 1 },
-                data: {
-                    user: {
-                        id: "count-user",
-                        name: "Count User",
-                    },
-                },
-            };
-
-            const response = await fetch(`${urls.fakeServer}/fake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sequence-id": sequenceId,
-                },
-                body: JSON.stringify(countFake),
-            });
-
-            const result = (await response.json()) as GraphQLTestResponse;
-            expect(result.ok).toBe(false);
-            expect(result.errors).toMatchInlineSnapshot(`
-                  [
-                    "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
-                  ]
-                `);
+            await server.stop();
         });
 
         it("should allow variables and default conditions to coexist", async () => {
@@ -1946,156 +1874,12 @@ describe("graphql-fake-server", () => {
 
             const variablesResult = (await variablesResponse.json()) as GraphQLTestResponse;
             expect(variablesResult.ok).toBe(true);
+
+            await server.stop();
         });
     });
 });
 describe("Condition validation", () => {
-    it("should reject count condition with value 0", async () => {
-        const schema = `
-                    type Book {
-                        id: ID! @exampleID(value: "book-id")
-                        title: String! @exampleString(value: "Default Book")
-                    }
-                    type Query {
-                        books: [Book!]!
-                    }
-                `;
-        const ports = getPorts();
-        const server = await startTestFakeServer({
-            schemaString: schema,
-            ports,
-        });
-        const { urls } = await server.start();
-        const sequenceId = crypto.randomUUID();
-
-        // Try to register fake with count: 0 - should fail
-        const invalidCountFake: RegisterSequenceOptions = {
-            type: "operation",
-            operationName: "GetBooks",
-            requestCondition: { type: "count", value: 0 },
-            data: {
-                books: [{ id: "book-1", title: "Zero Count Book" }],
-            },
-        };
-        const response = await fetch(`${urls.fakeServer}/fake`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "sequence-id": sequenceId,
-            },
-            body: JSON.stringify(invalidCountFake),
-        });
-
-        const result = (await response.json()) as GraphQLTestResponse;
-        expect(response.status).toBe(400);
-        expect(result.ok).toBe(false);
-        expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Count condition value must be greater than 0",
-              ]
-            `);
-
-        await server.stop();
-    });
-
-    it("should reject count condition with negative value", async () => {
-        const schema = `
-                    type Book {
-                        id: ID! @exampleID(value: "book-id")
-                        title: String! @exampleString(value: "Default Book")
-                    }
-                    type Query {
-                        books: [Book!]!
-                    }
-                `;
-        const ports = getPorts();
-        const server = await startTestFakeServer({
-            schemaString: schema,
-            ports,
-        });
-        const { urls } = await server.start();
-        const sequenceId = crypto.randomUUID();
-
-        // Try to register fake with negative count - should fail
-        const negativeCountFake: RegisterSequenceOptions = {
-            type: "operation",
-            operationName: "GetBooks",
-            requestCondition: { type: "count", value: -1 },
-            data: {
-                books: [{ id: "book-1", title: "Negative Count Book" }],
-            },
-        };
-
-        const response = await fetch(`${urls.fakeServer}/fake`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "sequence-id": sequenceId,
-            },
-            body: JSON.stringify(negativeCountFake),
-        });
-
-        const result = (await response.json()) as GraphQLTestResponse;
-        expect(response.status).toBe(400);
-        expect(result.ok).toBe(false);
-        expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Count condition value must be greater than 0",
-              ]
-            `);
-
-        await server.stop();
-    });
-
-    it("should reject count condition with non-number value", async () => {
-        const schema = `
-                    type Book {
-                        id: ID! @exampleID(value: "book-id")
-                        title: String! @exampleString(value: "Default Book")
-                    }
-                    type Query {
-                        books: [Book!]!
-                    }
-                `;
-        const ports = getPorts();
-        const server = await startTestFakeServer({
-            schemaString: schema,
-            ports,
-        });
-        const { urls } = await server.start();
-        const sequenceId = crypto.randomUUID();
-
-        // Try to register fake with string count - should fail
-        const stringCountFake = {
-            type: "operation",
-            operationName: "GetBooks",
-            requestCondition: { type: "count", value: "1" }, // string instead of number
-            data: {
-                books: [{ id: "book-1", title: "String Count Book" }],
-            },
-        };
-
-        const response = await fetch(`${urls.fakeServer}/fake`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "sequence-id": sequenceId,
-            },
-            body: JSON.stringify(stringCountFake),
-        });
-
-        const result = (await response.json()) as GraphQLTestResponse;
-        expect(response.status).toBe(400);
-        expect(result.ok).toBe(false);
-        expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Count condition value must be a number",
-              ]
-            `);
-
-        await server.stop();
-    });
-
     it("should reject variables condition with null value", async () => {
         const schema = `
                     type User {
@@ -2137,10 +1921,10 @@ describe("Condition validation", () => {
         expect(response.status).toBe(400);
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Variables condition value must be an object",
-              ]
-            `);
+          [
+            "Invalid request conditions: Variables condition value must be an object",
+          ]
+        `);
 
         await server.stop();
     });
@@ -2186,10 +1970,10 @@ describe("Condition validation", () => {
         expect(response.status).toBe(400);
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Variables condition value must be an object, not an array",
-              ]
-            `);
+          [
+            "Invalid request conditions: Variables condition value must be an object, not an array",
+          ]
+        `);
 
         await server.stop();
     });
@@ -2235,10 +2019,10 @@ describe("Condition validation", () => {
         expect(response.status).toBe(400);
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Unknown condition type 'unknown'. Allowed types: count, variables",
-              ]
-            `);
+          [
+            "Invalid request conditions: Unknown condition type 'unknown'. Allowed types: always, variables, count",
+          ]
+        `);
 
         await server.stop();
     });
@@ -2284,15 +2068,15 @@ describe("Condition validation", () => {
         expect(response.status).toBe(400);
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Condition must have a 'type' field of type string",
-              ]
-            `);
+          [
+            "Invalid request conditions: Condition must have a 'type' field of type string",
+          ]
+        `);
 
         await server.stop();
     });
 
-    it("should reject condition without value field", async () => {
+    it("should reject condition without value field for variables type", async () => {
         const schema = `
                     type Book {
                         id: ID! @exampleID(value: "book-id")
@@ -2310,11 +2094,11 @@ describe("Condition validation", () => {
         const { urls } = await server.start();
         const sequenceId = crypto.randomUUID();
 
-        // Try to register fake with condition missing value - should fail
+        // Try to register fake with variables condition missing value - should fail
         const noValueFake = {
             type: "operation",
             operationName: "GetBooks",
-            requestCondition: { type: "count" }, // missing value field
+            requestCondition: { type: "variables" }, // missing value field
             data: {
                 books: [{ id: "book-1", title: "No Value Condition Book" }],
             },
@@ -2333,10 +2117,10 @@ describe("Condition validation", () => {
         expect(response.status).toBe(400);
         expect(result.ok).toBe(false);
         expect(result.errors).toMatchInlineSnapshot(`
-              [
-                "Invalid request condition: Condition must have a 'value' field",
-              ]
-            `);
+          [
+            "Invalid request conditions: Variables condition must have a 'value' field",
+          ]
+        `);
 
         await server.stop();
     });

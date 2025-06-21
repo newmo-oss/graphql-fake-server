@@ -8,7 +8,7 @@ import type { CreateFooUrlRideHistoryMutation, CreateFooUrlRideHistoryMutationVa
 export type FakeClientAlwaysConditionRule = { type: "always" };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
 export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientAlwaysConditionRule | FakeClientVariablesConditionRule<TVariables>;
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestConditions?: FakeClientConditionRule<TVariables> };
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -32,7 +32,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "ListDestinationCandidates",
                 data: queryResponse,
-                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
+                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -108,7 +108,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "ListRideHistories",
                 data: queryResponse,
-                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
+                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -184,7 +184,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateUrlRideHistory",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
+                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -262,7 +262,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateFooUrlRideHistory",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
+                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },

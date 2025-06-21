@@ -11,7 +11,7 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
 export type FakeClientAlwaysConditionRule = { type: "always" };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
 export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientAlwaysConditionRule | FakeClientVariablesConditionRule<TVariables>;
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestConditions?: FakeClientConditionRule<TVariables> };`;
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };`;
         type GenerateFakeFunction =
             | {
                   type: "query";
@@ -98,7 +98,7 @@ ${exportsFunctions
             type: "operation",
             operationName: "${name}",
             data: queryResponse,
-            ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
+            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
@@ -136,7 +136,7 @@ ${exportsFunctions
             type: "operation",
             operationName: "${name}",
             data: mutationResponse,
-            ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
+            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;

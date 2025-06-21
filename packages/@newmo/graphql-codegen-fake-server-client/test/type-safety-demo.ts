@@ -9,6 +9,23 @@ const fakeClient = createFakeClient({
 export async function demonstrateTypeSafety() {
     const sequenceId = "test-sequence";
 
+    // ✅ Correct usage - always response
+    await fakeClient.registerListDestinationCandidatesQueryResponse(
+        sequenceId,
+        {
+            destinationCandidates: [{ id: "1", name: "Tokyo" }],
+        },
+        {
+            requestCondition: {
+                type: "always",
+            },
+        },
+    );
+    // ✅ Correct usage - shorthand for always response
+    await fakeClient.registerListDestinationCandidatesQueryResponse(sequenceId, {
+        destinationCandidates: [{ id: "1", name: "Tokyo" }],
+    });
+
     // ✅ Correct usage - type-safe variables
     await fakeClient.registerListDestinationCandidatesQueryResponse(
         sequenceId,
@@ -16,7 +33,7 @@ export async function demonstrateTypeSafety() {
             destinationCandidates: [{ id: "1", name: "Tokyo" }],
         },
         {
-            requestConditions: {
+            requestCondition: {
                 type: "variables",
                 value: { text: "tokyo" }, // ✅ Matches ListDestinationCandidatesQueryVariables
             },
@@ -30,7 +47,7 @@ export async function demonstrateTypeSafety() {
             createURLRideHistory: { id: "1", name: "Shibuya" },
         },
         {
-            requestConditions: {
+            requestCondition: {
                 type: "variables",
                 value: { desinationName: "Shibuya" }, // ✅ Matches CreateUrlRideHistoryMutationVariables
             },
@@ -44,7 +61,7 @@ export async function demonstrateTypeSafety() {
             rideHistories: [{ id: "1", destination: { id: "1", name: "Tokyo" } }],
         },
         {
-            requestConditions: {
+            requestCondition: {
                 type: "variables",
                 value: {}, // ✅ ListRideHistoriesQueryVariables = Exact<{ [key: string]: never }>
             },
@@ -58,7 +75,7 @@ export async function demonstrateTypeSafety() {
             destinationCandidates: [],
         },
         {
-            requestConditions: {
+            requestCondition: {
                 type: "variables",
                 // @ts-expect-error // ❌ TypeScript error: 'text' should be a string, not a number
                 value: { wrongField: "value" },
@@ -73,7 +90,7 @@ export async function demonstrateTypeSafety() {
             createURLRideHistory: { id: "1", name: "Test" },
         },
         {
-            requestConditions: {
+            requestCondition: {
                 type: "variables",
                 // @ts-expect-error
                 value: { text: "tokyo" },
