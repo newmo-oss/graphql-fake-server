@@ -448,22 +448,6 @@ const createMapKey = ({
     return `${sequenceId}.${operationName}`;
 };
 
-// Extension to manage conditional fakes
-const _createConditionalMapKey = ({
-    sequenceId,
-    operationName,
-    conditionHash,
-}: {
-    sequenceId: string;
-    operationName: string;
-    conditionHash?: string;
-}) => {
-    if (conditionHash) {
-        return `${sequenceId}.${operationName}.${conditionHash}`;
-    }
-    return `${sequenceId}.${operationName}`;
-};
-
 // Generate hash value for condition (same condition produces same hash)
 const _hashCondition = (condition: ConditionRule): string => {
     return Buffer.from(JSON.stringify(condition)).toString("base64");
