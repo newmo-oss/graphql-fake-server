@@ -492,6 +492,7 @@ Count-based conditions allow you to return specific responses on the nth call to
 ```
 
 This is useful for testing scenarios like:
+
 - Simulating different states after multiple operations
 - Testing pagination where the first call returns data and subsequent calls return empty results
 - Simulating rate limiting where the nth call returns an error
@@ -513,6 +514,7 @@ Variables-based conditions allow you to return specific responses when the Graph
 ```
 
 This is useful for testing scenarios like:
+
 - Different user roles returning different data
 - Specific input values triggering special behaviors
 - Testing edge cases with particular variable combinations
@@ -537,8 +539,8 @@ fetch("http://127.0.0.1:4000/fake", {
     type: "operation",
     operationName: "GetBooks",
     condition: { type: "count", value: 1 },
-    data: { books: [{ id: "1", title: "First Book" }] }
-  })
+    data: { books: [{ id: "1", title: "First Book" }] },
+  }),
 });
 
 // Second call returns different data
@@ -549,8 +551,8 @@ fetch("http://127.0.0.1:4000/fake", {
     type: "operation",
     operationName: "GetBooks",
     condition: { type: "count", value: 2 },
-    data: { books: [{ id: "2", title: "Second Book" }] }
-  })
+    data: { books: [{ id: "2", title: "Second Book" }] },
+  }),
 });
 
 // Admin user gets special data
@@ -561,8 +563,8 @@ fetch("http://127.0.0.1:4000/fake", {
     type: "operation",
     operationName: "GetBooks",
     condition: { type: "variables", value: { userRole: "admin" } },
-    data: { books: [{ id: "admin", title: "Admin Only Book" }] }
-  })
+    data: { books: [{ id: "admin", title: "Admin Only Book" }] },
+  }),
 });
 ```
 

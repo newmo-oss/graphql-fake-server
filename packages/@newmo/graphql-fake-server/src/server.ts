@@ -165,27 +165,35 @@ export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSeq
 
 /**
  * Check if two condition types are conflicting
- * Count conditions conflict with any other type (variables or no condition)
- * Variables and no condition can coexist
+ * Only the following combinations are allowed:
+ * - count + count
+ * - variables + variables
+ * - variables + no condition (undefined)
+ * - no condition (undefined) + no condition (undefined)
+ * All other combinations are conflicting
  */
 const areConditionTypesConflicting = (
     conditionType1: string | undefined,
     conditionType2: string | undefined,
 ): boolean => {
-    // If either is count, they conflict unless both are count or both are the same type
-    if (conditionType1 === "count" || conditionType2 === "count") {
-        // count conflicts with variables or no-condition
-        if (
-            (conditionType1 === "count" && conditionType2 === "variables") ||
-            (conditionType1 === "variables" && conditionType2 === "count") ||
-            (conditionType1 === "count" && conditionType2 === undefined) ||
-            (conditionType1 === undefined && conditionType2 === "count")
-        ) {
-            return true;
-        }
-    }
+    // Define allowed combinations
+    const allowedCombinations = new Set([
+        // Multiple count conditions for the same operation (e.g., 1st call, 2nd call)
+        "count,count",
+        // Multiple variables conditions for the same operation (e.g., different variable sets)
+        "variables,variables",
+        // Variables condition can coexist with default fallback
+        "variables,undefined",
+        // Default fallback can coexist with variables condition
+        "undefined,variables",
+        // Multiple default conditions - overwrite with the last one
+        "undefined,undefined",
+    ]);
 
-    return false;
+    const combinationKey = `${conditionType1 ?? "undefined"},${conditionType2 ?? "undefined"}`;
+
+    // If the combination is not in the allowed list, it's conflicting
+    return !allowedCombinations.has(combinationKey);
 };
 
 /**
