@@ -1,30 +1,30 @@
 query ListDestinationCandidates($text: String!) {
-  destinationCandidates(text: $text) {
-    id
-    name
-  }
+    destinationCandidates(text: $text) {
+        id
+        name
+    }
 }
 
 query ListRideHistories {
-  rideHistories {
-    id
-    destination {
-      id
-      name
+    rideHistories {
+        id
+        destination {
+            id
+            name
+        }
     }
-  }
 }
 
 mutation CreateURLRideHistory($desinationName: String!) {
-  createURLRideHistory(input: { name: $desinationName }) {
-    id
-    name
-  }
+    createURLRideHistory(input: { name: $desinationName }) {
+        id
+        name
+    }
 }
 
 mutation CreateFooURLRideHistory($desinationName: String!) {
-  createURLRideHistory(input: { name: $desinationName }) {
-    id
-    name
-  }
+    createURLRideHistory(input: { name: $desinationName }) {
+        id
+        name
+    }
 }

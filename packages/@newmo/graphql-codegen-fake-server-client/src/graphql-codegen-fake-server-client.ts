@@ -3,33 +3,33 @@ import { normalizeConfig, type RawPluginConfig } from "./config";
 import { convertName } from "./convertName";
 
 const plugin: CodegenPlugin<RawPluginConfig> = {
-  plugin(_schema, documents, rawConfig, _info) {
-    const config = normalizeConfig(rawConfig);
-    const _fakeEndpoint = config.fakeServerEndpoint;
-    const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }"; // Conditional fake types with generic Variables
-    const conditionRuleTypes = `
+    plugin(_schema, documents, rawConfig, _info) {
+        const config = normalizeConfig(rawConfig);
+        const _fakeEndpoint = config.fakeServerEndpoint;
+        const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }"; // Conditional fake types with generic Variables
+        const conditionRuleTypes = `
 export type CountConditionRule = { type: "count"; value: number };
 export type VariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
 export type ConditionRule<TVariables = Record<string, any>> = CountConditionRule | VariablesConditionRule<TVariables>;
 export type RegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: ConditionRule<TVariables> };`;
-    type GenerateFakeFunction =
-      | {
-          type: "query";
-          name: string;
-        }
-      | {
-          type: "mutation";
-          name: string;
+        type GenerateFakeFunction =
+            | {
+                  type: "query";
+                  name: string;
+              }
+            | {
+                  type: "mutation";
+                  name: string;
+              };
+        const indentEachLine = (indent: string, text: string) => {
+            return text
+                .split("\n")
+                .map((line) => `${indent}${line}`)
+                .join("\n");
         };
-    const indentEachLine = (indent: string, text: string) => {
-      return text
-        .split("\n")
-        .map((line) => `${indent}${line}`)
-        .join("\n");
-    };
-    const generateFakeClient = (exportsFunctions: GenerateFakeFunction[]) => {
-      const indent = "  ";
-      return `\
+        const generateFakeClient = (exportsFunctions: GenerateFakeFunction[]) => {
+            const indent = "  ";
+            return `\
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -43,48 +43,51 @@ export function createFakeClient(options: CreateFakeClientOptions) {
   }
   return {
 ${exportsFunctions
-  .flatMap((fn) => {
-    if (fn.type === "query") {
-      return [
-        indentEachLine(
-          `${indent}${indent}`,
-          generateRegisterOperationMethod(fn.name, "options.fakeServerEndpoint"),
-        ),
-        indentEachLine(
-          `${indent}${indent}`,
-          generateRegisterOperationErrorMethod(fn.name, "options.fakeServerEndpoint"),
-        ),
-        indentEachLine(
-          `${indent}${indent}`,
-          generateCalledQuery(fn.name, `options.fakeServerEndpoint + "/called"`),
-        ),
-      ];
-    }
-    if (fn.type === "mutation") {
-      return [
-        indentEachLine(
-          `${indent}${indent}`,
-          generateRegisterMutationMethod(fn.name, "options.fakeServerEndpoint"),
-        ),
-        indentEachLine(
-          `${indent}${indent}`,
-          generateRegisterMutationErrorMethod(fn.name, "options.fakeServerEndpoint"),
-        ),
-        indentEachLine(
-          `${indent}${indent}`,
-          generateCalledMutation(fn.name, `options.fakeServerEndpoint + "/called"`),
-        ),
-      ];
-    }
-    throw new Error(`Unknown type${fn}`);
-  })
-  .join(",\n")}
+    .flatMap((fn) => {
+        if (fn.type === "query") {
+            return [
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterOperationMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterOperationErrorMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateCalledQuery(fn.name, `options.fakeServerEndpoint + "/called"`),
+                ),
+            ];
+        }
+        if (fn.type === "mutation") {
+            return [
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterMutationMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateRegisterMutationErrorMethod(fn.name, "options.fakeServerEndpoint"),
+                ),
+                indentEachLine(
+                    `${indent}${indent}`,
+                    generateCalledMutation(fn.name, `options.fakeServerEndpoint + "/called"`),
+                ),
+            ];
+        }
+        throw new Error(`Unknown type${fn}`);
+    })
+    .join(",\n")}
   };
 }`;
-    };
-    const generateRegisterOperationMethod = (name: string, fakeEndpointVariableName: string) => {
-      const variablesType = `${convertName(name, config)}QueryVariables`;
-      return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: RegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+        };
+        const generateRegisterOperationMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            const variablesType = `${convertName(name, config)}QueryVariables`;
+            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: RegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -99,12 +102,12 @@ ${exportsFunctions
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
-    };
-    const generateRegisterOperationErrorMethod = (
-      name: string,
-      fakeEndpointVariableName: string,
-    ) => {
-      return `async register${name}QueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
+        };
+        const generateRegisterOperationErrorMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}QueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -119,10 +122,10 @@ ${exportsFunctions
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
-    };
-    const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
-      const variablesType = `${convertName(name, config)}MutationVariables`;
-      return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: RegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+        };
+        const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
+            const variablesType = `${convertName(name, config)}MutationVariables`;
+            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: RegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -137,12 +140,12 @@ ${exportsFunctions
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
-    };
-    const generateRegisterMutationErrorMethod = (
-      name: string,
-      fakeEndpointVariableName: string,
-    ) => {
-      return `async register${name}MutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
+        };
+        const generateRegisterMutationErrorMethod = (
+            name: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            return `async register${name}MutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -157,9 +160,9 @@ ${exportsFunctions
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
-    };
-    const generateCalledQuery = (name: string, calledEndpoint: string) => {
-      return `async called${name}Query(sequenceId:string): Promise<{
+        };
+        const generateCalledQuery = (name: string, calledEndpoint: string) => {
+            return `async called${name}Query(sequenceId:string): Promise<{
   ok: true;
   data: {
     requestTimestamp: number;
@@ -205,10 +208,10 @@ ${exportsFunctions
   }[];
 };
 }`;
-    };
+        };
 
-    const generateCalledMutation = (name: string, calledEndpoint: string) => {
-      return `async called${name}Mutation(sequenceId:string): Promise<{
+        const generateCalledMutation = (name: string, calledEndpoint: string) => {
+            return `async called${name}Mutation(sequenceId:string): Promise<{
   ok: true;
   data: {
     requestTimestamp: number;
@@ -256,80 +259,80 @@ ${exportsFunctions
   }[];
 }
 }`;
-    };
+        };
 
-    const importQueryIdentifierName = (documentName: string) => {
-      return `import type { ${convertName(
-        documentName,
-        config,
-      )}Query, ${convertName(documentName, config)}QueryVariables } from '${config.typesFile}';`;
-    };
-    const importMutationIdentifierName = (documentName: string) => {
-      return `import type { ${convertName(documentName, config)}Mutation, ${convertName(
-        documentName,
-        config,
-      )}MutationVariables } from '${config.typesFile}';`;
-    };
-    return `/* eslint-disable */
+        const importQueryIdentifierName = (documentName: string) => {
+            return `import type { ${convertName(
+                documentName,
+                config,
+            )}Query, ${convertName(documentName, config)}QueryVariables } from '${config.typesFile}';`;
+        };
+        const importMutationIdentifierName = (documentName: string) => {
+            return `import type { ${convertName(documentName, config)}Mutation, ${convertName(
+                documentName,
+                config,
+            )}MutationVariables } from '${config.typesFile}';`;
+        };
+        return `/* eslint-disable */
 // This file was generated by a @newmo/graphql-codegen-fake-server-operation
 ${documents
-  .flatMap((document) => {
-    return document.document?.definitions?.map((definition) => {
-      // query
-      if (
-        definition.kind === "OperationDefinition" &&
-        definition.operation === "query" &&
-        definition.name
-      ) {
-        return importQueryIdentifierName(definition.name.value);
-      }
-      if (
-        definition.kind === "OperationDefinition" &&
-        definition.operation === "mutation" &&
-        definition.name
-      ) {
-        return importMutationIdentifierName(definition.name.value);
-      }
-      return [];
-    });
-  })
-  .join("\n")}
+    .flatMap((document) => {
+        return document.document?.definitions?.map((definition) => {
+            // query
+            if (
+                definition.kind === "OperationDefinition" &&
+                definition.operation === "query" &&
+                definition.name
+            ) {
+                return importQueryIdentifierName(definition.name.value);
+            }
+            if (
+                definition.kind === "OperationDefinition" &&
+                definition.operation === "mutation" &&
+                definition.name
+            ) {
+                return importMutationIdentifierName(definition.name.value);
+            }
+            return [];
+        });
+    })
+    .join("\n")}
 ${conditionRuleTypes}
 ${generateFakeClient(
-  documents.flatMap((document) => {
-    const flatMap =
-      document.document?.definitions?.flatMap((definition) => {
-        if (
-          definition.kind === "OperationDefinition" &&
-          definition.operation === "query" &&
-          definition.name
-        ) {
-          return [
-            {
-              name: convertName(definition.name.value, config),
-              type: "query",
-            },
-          ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
-        }
-        if (
-          definition.kind === "OperationDefinition" &&
-          definition.operation === "mutation" &&
-          definition.name
-        ) {
-          return [
-            {
-              name: convertName(definition.name.value, config),
-              type: "mutation",
-            },
-          ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
-        }
-        return [];
-      }) ?? [];
-    return flatMap satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
-  }),
+    documents.flatMap((document) => {
+        const flatMap =
+            document.document?.definitions?.flatMap((definition) => {
+                if (
+                    definition.kind === "OperationDefinition" &&
+                    definition.operation === "query" &&
+                    definition.name
+                ) {
+                    return [
+                        {
+                            name: convertName(definition.name.value, config),
+                            type: "query",
+                        },
+                    ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
+                }
+                if (
+                    definition.kind === "OperationDefinition" &&
+                    definition.operation === "mutation" &&
+                    definition.name
+                ) {
+                    return [
+                        {
+                            name: convertName(definition.name.value, config),
+                            type: "mutation",
+                        },
+                    ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
+                }
+                return [];
+            }) ?? [];
+        return flatMap satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
+    }),
 )}
 `;
-  },
+    },
 };
 // GraphQL Codegen Plugin requires CommonJS export
 module.exports = plugin;

@@ -4,34 +4,34 @@ import { createMock, type MockObject } from "./createMock.js";
 import { extendSchema } from "./extend-schema.js";
 
 describe("createMock", () => {
-  it("should generate a mock object", async () => {
-    const schema = buildSchema("type Query { hello: String }");
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+    it("should generate a mock object", async () => {
+        const schema = buildSchema("type Query { hello: String }");
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "hello": "string",
             },
           }
         `);
-  });
+    });
 
-  it("should support @exampleID directive for a array of object ", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    it("should support @exampleID directive for a array of object ", async () => {
+        const schema = buildSchema(
+            extendSchema(`
            type Query { books: [Book!] }
            type Book {
                 id: ID! @exampleID(value: "id")
                 title: String @exampleString(value: "title")
            }
         `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Book": {
               "id": "id_g3_d0_c3",
@@ -55,53 +55,53 @@ describe("createMock", () => {
             },
           }
         `);
-  });
-  it("should support @exampleString directive for a mock object", async () => {
-    const schema = buildSchema(
-      extendSchema(`type Query { hello: String! @exampleString(value: "Hello World") }`),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
     });
-    expect(mock).toMatchInlineSnapshot(`
+    it("should support @exampleString directive for a mock object", async () => {
+        const schema = buildSchema(
+            extendSchema(`type Query { hello: String! @exampleString(value: "Hello World") }`),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "hello": "Hello World",
             },
           }
         `);
-  });
-  it("should support @exampleInt directive for a mock object", async () => {
-    const schema = buildSchema(extendSchema("type Query { num: Int! @exampleInt(value: 12) }"));
-    const { mock }: MockObject = await createMock({
-      schema,
     });
-    expect(mock).toMatchInlineSnapshot(`
+    it("should support @exampleInt directive for a mock object", async () => {
+        const schema = buildSchema(extendSchema("type Query { num: Int! @exampleInt(value: 12) }"));
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "num": 12,
             },
           }
         `);
-  });
-  it("should support @exampleFloat directive for a mock object", async () => {
-    const schema = buildSchema(
-      extendSchema("type Query { num: Float! @exampleFloat(value: 12.34) }"),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
     });
-    expect(mock).toMatchInlineSnapshot(`
+    it("should support @exampleFloat directive for a mock object", async () => {
+        const schema = buildSchema(
+            extendSchema("type Query { num: Float! @exampleFloat(value: 12.34) }"),
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "num": 12.34,
             },
           }
         `);
-  });
-  it("should support Enum for a mock object", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should support Enum for a mock object", async () => {
+        const schema = buildSchema(
+            extendSchema(`
 enum DocumentType {
     LICENSE
     TICKET
@@ -112,11 +112,11 @@ type RequiredDocument {
   type: DocumentType!
 }
 `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "RequiredDocument": {
               "name": "string",
@@ -124,9 +124,9 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support interface", async () => {
-    const schema = buildSchema(`
+    });
+    it("should support interface", async () => {
+        const schema = buildSchema(`
         interface Node {
             id: ID!
         }
@@ -138,11 +138,11 @@ type RequiredDocument {
             node: Node
         }
     `);
-    const result = await createMock({
-      schema,
-    });
-    if (!result.ok) throw result.error;
-    expect(result.mock).toMatchInlineSnapshot(`
+        const result = await createMock({
+            schema,
+        });
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "node": {
@@ -157,9 +157,9 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support multiple interface", async () => {
-    const schema = buildSchema(`
+    });
+    it("should support multiple interface", async () => {
+        const schema = buildSchema(`
         interface Node {
             id: ID!
         }
@@ -174,11 +174,11 @@ type RequiredDocument {
             user: User
         }
     `);
-    const result = await createMock({
-      schema,
-    });
-    if (!result.ok) throw result.error;
-    expect(result.mock).toMatchInlineSnapshot(`
+        const result = await createMock({
+            schema,
+        });
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -192,9 +192,9 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support union", async () => {
-    const schema = buildSchema(`
+    });
+    it("should support union", async () => {
+        const schema = buildSchema(`
         type User {
           id: ID!
           name: String
@@ -211,10 +211,10 @@ type RequiredDocument {
             user: UserResult
         }
     `);
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "IsBlocked": {
               "blockedByUser": {
@@ -239,10 +239,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support custom scalar with @exampleScalarString", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should support custom scalar with @exampleScalarString", async () => {
+        const schema = buildSchema(
+            extendSchema(`
         scalar Date @exampleScalarString(value: "2024-06-25T14:52:42.074Z")
         type User {
           id: ID!
@@ -253,11 +253,11 @@ type RequiredDocument {
             user: User
         }
     `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -273,10 +273,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support custom scalar with @exampleScalarInt", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should support custom scalar with @exampleScalarInt", async () => {
+        const schema = buildSchema(
+            extendSchema(`
         scalar IntValue @exampleScalarInt(value: 123)
         type User {
             value: IntValue
@@ -285,11 +285,11 @@ type RequiredDocument {
             user: User
         }
     `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -301,10 +301,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support custom scalar with @exampleScalarFloat", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should support custom scalar with @exampleScalarFloat", async () => {
+        const schema = buildSchema(
+            extendSchema(`
         scalar FloatValue @exampleScalarFloat(value: 123.45)
         type User {
             value: FloatValue
@@ -313,11 +313,11 @@ type RequiredDocument {
             user: User
         }
     `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -329,11 +329,11 @@ type RequiredDocument {
             },
           }
         `);
-  });
+    });
 
-  it("should support custom scalar with @exampleScalarBoolean", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    it("should support custom scalar with @exampleScalarBoolean", async () => {
+        const schema = buildSchema(
+            extendSchema(`
         scalar BooleanValue @exampleScalarBoolean(value: true)
         type User {
             value: BooleanValue
@@ -342,11 +342,11 @@ type RequiredDocument {
             user: User
         }
     `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -358,9 +358,9 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support custom scalar with config", async () => {
-    const schema = buildSchema(`
+    });
+    it("should support custom scalar with config", async () => {
+        const schema = buildSchema(`
         scalar Date
         type User {
           id: ID!
@@ -371,15 +371,15 @@ type RequiredDocument {
             user: User
         }
     `);
-    const { mock }: MockObject = await createMock({
-      schema,
-      defaultValues: {
-        CustomScalar: {
-          Date: "new Date('2024-06-25T14:52:42.074Z').toISOString()",
-        },
-      },
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        const { mock }: MockObject = await createMock({
+            schema,
+            defaultValues: {
+                CustomScalar: {
+                    Date: "new Date('2024-06-25T14:52:42.074Z').toISOString()",
+                },
+            },
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -395,10 +395,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support custom scalar with @exampleString", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should support custom scalar with @exampleString", async () => {
+        const schema = buildSchema(
+            extendSchema(`
         scalar Date
         type User {
           id: ID!
@@ -409,11 +409,11 @@ type RequiredDocument {
             user: User
         }
     `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -429,10 +429,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should extend interface type", async () => {
-    // https://spec.graphql.org/October2021/#sec-Interface-Extensions
-    const schema = buildSchema(`
+    });
+    it("should extend interface type", async () => {
+        // https://spec.graphql.org/October2021/#sec-Interface-Extensions
+        const schema = buildSchema(`
         interface Node {
             id: ID!
         }
@@ -447,11 +447,11 @@ type RequiredDocument {
             user: User
         }
     `);
-    const result = await createMock({
-      schema,
-    });
-    if (!result.ok) throw result.error;
-    expect(result.mock).toMatchInlineSnapshot(`
+        const result = await createMock({
+            schema,
+        });
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -465,10 +465,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should support union with @example directive", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should support union with @example directive", async () => {
+        const schema = buildSchema(
+            extendSchema(`
         type User {
           id: ID! @exampleID(value: "id")
           name: String @exampleString(value: "john")
@@ -485,11 +485,11 @@ type RequiredDocument {
             user: UserResult
         }
     `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "IsBlocked": {
               "blockedByUser": {
@@ -514,19 +514,19 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should allow [String!] @exampleArrayString()", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should allow [String!] @exampleArrayString()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
                 names: [String!] @exampleArrayString(values: ["john", "mike"])
             }
             `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "names": [
@@ -536,19 +536,19 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should allow [String!]! @exampleArrayString()", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should allow [String!]! @exampleArrayString()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
                 names: [String!]! @exampleArrayString(values: ["john", "mike"])
             }
             `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "names": [
@@ -558,19 +558,19 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should allow [Int!] @exampleArrayInt()", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should allow [Int!] @exampleArrayInt()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
              values: [Int!] @exampleArrayInt(values: [1, 2, 3])
             }
             `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "values": [
@@ -581,19 +581,19 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should allow [Float!] @exampleArrayFloat()", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should allow [Float!] @exampleArrayFloat()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
               values: [Float!] @exampleArrayFloat(values: [1.1, 2.2, 3.3])
             }
             `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "values": [
@@ -604,19 +604,19 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should allow [Boolean!] @exampleArrayBoolean()", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should allow [Boolean!] @exampleArrayBoolean()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
              values: [Boolean!] @exampleArrayBoolean(values: [true, false])
             }
             `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "values": [
@@ -626,19 +626,19 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should allow [ID!] @exampleArrayID()", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should allow [ID!] @exampleArrayID()", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
              values: [ID!] @exampleArrayID(values: ["id1", "id2"])
             }
             `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "values": [
@@ -648,60 +648,60 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should throw error if @exampleArrayString() is not a array", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should throw error if @exampleArrayString() is not a array", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
                 names: [String!] @exampleArrayString(values: "john")
             }
             `),
-    );
-    await expect(() =>
-      createMock({
-        schema,
-      }),
-    ).rejects.toMatchInlineSnapshot(
-      "[Error: @exampleArrayString directive must have values argument. @exampleArrayString(values: ...). values is not array.]",
-    );
-  });
-  it("should throw error if @exampleArrayInt() is not a array", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+        );
+        await expect(() =>
+            createMock({
+                schema,
+            }),
+        ).rejects.toMatchInlineSnapshot(
+            "[Error: @exampleArrayString directive must have values argument. @exampleArrayString(values: ...). values is not array.]",
+        );
+    });
+    it("should throw error if @exampleArrayInt() is not a array", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
                 values: [Int!] @exampleArrayInt(values: 1)
             }
             `),
-    );
-    await expect(() =>
-      createMock({
-        schema,
-      }),
-    ).rejects.toMatchInlineSnapshot(
-      "[Error: @exampleArrayInt directive must have values argument. @exampleArrayInt(values: ...). values is not array.]",
-    );
-  });
+        );
+        await expect(() =>
+            createMock({
+                schema,
+            }),
+        ).rejects.toMatchInlineSnapshot(
+            "[Error: @exampleArrayInt directive must have values argument. @exampleArrayInt(values: ...). values is not array.]",
+        );
+    });
 
-  it("should throw error if @exampleArray* mismatch type value", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    it("should throw error if @exampleArray* mismatch type value", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
                 values: [Int!] @exampleArrayInt(values: [1, "test"])
             }
             `),
-    );
-    await expect(() =>
-      createMock({
-        schema,
-      }),
-    ).rejects.toMatchInlineSnapshot(
-      "[Error: Query.values: @exampleArrayInt directive values must be the same type. Got [1, test]]",
-    );
-  });
-  it("should handle mutation errors pattern", async () => {
-    // https://productionreadygraphql.com/2020-08-01-guide-to-graphql-errors
-    // https://speakerdeck.com/yukukotani/graphql-schema-design-practice?slide=23
-    const schema = buildSchema(`
+        );
+        await expect(() =>
+            createMock({
+                schema,
+            }),
+        ).rejects.toMatchInlineSnapshot(
+            "[Error: Query.values: @exampleArrayInt directive values must be the same type. Got [1, test]]",
+        );
+    });
+    it("should handle mutation errors pattern", async () => {
+        // https://productionreadygraphql.com/2020-08-01-guide-to-graphql-errors
+        // https://speakerdeck.com/yukukotani/graphql-schema-design-practice?slide=23
+        const schema = buildSchema(`
     type Mutation {
       useFooBar(input: UseFooBarInput!): UseFooBarPayload!
     }
@@ -769,10 +769,10 @@ type RequiredDocument {
       }
     }
 `);
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "AbcError": {
               "code": "INVALID",
@@ -833,10 +833,10 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("should handle @error directive", async () => {
-    const schema = buildSchema(
-      extendSchema(`
+    });
+    it("should handle @error directive", async () => {
+        const schema = buildSchema(
+            extendSchema(`
             type Query {
               user: User
             }
@@ -852,11 +852,11 @@ type RequiredDocument {
               code: String!
             }
           `),
-    );
-    const { mock }: MockObject = await createMock({
-      schema,
-    });
-    expect(mock).toMatchInlineSnapshot(`
+        );
+        const { mock }: MockObject = await createMock({
+            schema,
+        });
+        expect(mock).toMatchInlineSnapshot(`
           {
             "Query": {
               "user": {
@@ -876,9 +876,9 @@ type RequiredDocument {
             },
           }
         `);
-  });
-  it("support UpperCase enum", async () => {
-    const schema = buildSchema(`
+    });
+    it("support UpperCase enum", async () => {
+        const schema = buildSchema(`
 interface Error {
   message: String!
 }
@@ -901,11 +901,11 @@ enum CreateFooURLErrorCode {
   FAILED_TO_CREATE_FOO_URL
 }
 `);
-    const result = await createMock({
-      schema,
-    });
-    if (!result.ok) throw result.error;
-    expect(result.mock).toMatchInlineSnapshot(`
+        const result = await createMock({
+            schema,
+        });
+        if (!result.ok) throw result.error;
+        expect(result.mock).toMatchInlineSnapshot(`
           {
             "CreateFooURLErrorDetail": {
               "code": "FAILED_TO_CREATE_FOO_URL",
@@ -936,5 +936,5 @@ enum CreateFooURLErrorCode {
             },
           }
         `);
-  });
+    });
 });

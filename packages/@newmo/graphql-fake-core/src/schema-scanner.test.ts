@@ -25,36 +25,36 @@ import { getTypeInfos, type ObjectTypeInfo, type TypeInfo } from "./schema-scann
  * @param config
  */
 const fakeConfig = (config?: Partial<Config>): Config => {
-  return {
-    typesFile: "types.ts",
-    skipTypename: true,
-    typesPrefix: "",
-    typesSuffix: "",
-    namingConvention: "keep",
-    maxFieldRecursionDepth: 1,
-    defaultValues: {
-      String: "xxxx",
-      Int: 0,
-      Float: 0,
-      Boolean: false,
-      ID: "xxxx-xxxx-xxxx-xxxx",
-      listLength: 3,
-      ...config?.defaultValues,
-    },
-    ...config,
-  };
+    return {
+        typesFile: "types.ts",
+        skipTypename: true,
+        typesPrefix: "",
+        typesSuffix: "",
+        namingConvention: "keep",
+        maxFieldRecursionDepth: 1,
+        defaultValues: {
+            String: "xxxx",
+            Int: 0,
+            Float: 0,
+            Boolean: false,
+            ID: "xxxx-xxxx-xxxx-xxxx",
+            listLength: 3,
+            ...config?.defaultValues,
+        },
+        ...config,
+    };
 };
 
 function isObjectTypeInfo(x: TypeInfo): x is ObjectTypeInfo {
-  return x.type === "object";
+    return x.type === "object";
 }
 
 const buildSchema = (schema: string): GraphQLSchema => {
-  return buildSchemaGraphQL(extendSchema(schema));
+    return buildSchemaGraphQL(extendSchema(schema));
 };
 describe("getTypeInfos", () => {
-  it("returns typename and field names", () => {
-    const schema = buildSchema(`
+    it("returns typename and field names", () => {
+        const schema = buildSchema(`
       type Book {
         id: ID!
         title: String! @exampleString(value: "title")
@@ -67,8 +67,8 @@ describe("getTypeInfos", () => {
         books: [Book!]!
       }
     `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
           [
             {
               "fields": [
@@ -129,9 +129,9 @@ describe("getTypeInfos", () => {
             },
           ]
         `);
-  });
-  it("should support enum types", () => {
-    const schema = buildSchema(`
+    });
+    it("should support enum types", () => {
+        const schema = buildSchema(`
 enum DocumentType {
     LICENSE
     TICKET
@@ -142,8 +142,8 @@ type RequiredDocument {
   type: DocumentType!
 }
 `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
           [
             {
               "fields": [
@@ -187,9 +187,9 @@ type RequiredDocument {
             },
           ]
         `);
-  });
-  it("includes description comment", () => {
-    const schema = buildSchema(`
+    });
+    it("includes description comment", () => {
+        const schema = buildSchema(`
       "The book"
       type Book {
         id: ID!
@@ -197,8 +197,8 @@ type RequiredDocument {
         title: String!
       }
     `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
           [
             {
               "fields": [
@@ -224,15 +224,15 @@ type RequiredDocument {
             },
           ]
         `);
-  });
-  it("argument", () => {
-    const schema = buildSchema(`
+    });
+    it("argument", () => {
+        const schema = buildSchema(`
       type Argument {
         field(arg: String!): String!
       }
     `);
-    const config: Config = fakeConfig();
-    expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
+        const config: Config = fakeConfig();
+        expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
           {
             "fields": [
               {
@@ -248,10 +248,10 @@ type RequiredDocument {
             "type": "object",
           }
         `);
-  });
-  describe("GraphQL features test", () => {
-    it("nullable", () => {
-      const schema = buildSchema(`
+    });
+    describe("GraphQL features test", () => {
+        it("nullable", () => {
+            const schema = buildSchema(`
         type Type {
           field1: String
           field2: [String]
@@ -262,8 +262,8 @@ type RequiredDocument {
           field: String!
         }
       `);
-      const config: Config = fakeConfig();
-      expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
+            const config: Config = fakeConfig();
+            expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
               {
                 "fields": [
                   {
@@ -300,9 +300,9 @@ type RequiredDocument {
                 "type": "object",
               }
             `);
-    });
-    it("interface", () => {
-      const schema = buildSchema(`
+        });
+        it("interface", () => {
+            const schema = buildSchema(`
         interface Interface1 {
           fieldA: String!
         }
@@ -314,7 +314,7 @@ type RequiredDocument {
           fieldB: String!
         }
       `);
-      expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
+            expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
               [
                 {
                   "name": "Interface1",
@@ -355,9 +355,9 @@ type RequiredDocument {
                 },
               ]
             `);
-    });
-    it("union", () => {
-      const schema = buildSchema(`
+        });
+        it("union", () => {
+            const schema = buildSchema(`
         union Union1 = Member1 | Member2
         union Union2 = Member1 | Member2
         type Member1 {
@@ -367,7 +367,7 @@ type RequiredDocument {
           field2: String!
         }
       `);
-      expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
+            expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
               [
                 {
                   "name": "Union1",
@@ -417,9 +417,9 @@ type RequiredDocument {
                 },
               ]
             `);
-    });
-    it("should support input type", () => {
-      const schema = buildSchema(`
+        });
+        it("should support input type", () => {
+            const schema = buildSchema(`
         input Input {
           field1: String!
           field2: SubType!
@@ -428,8 +428,8 @@ type RequiredDocument {
           field: String!
         }
       `);
-      const config: Config = fakeConfig();
-      expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
+            const config: Config = fakeConfig();
+            expect(getTypeInfos(config, schema)[0]).toMatchInlineSnapshot(`
               {
                 "fields": [
                   {
@@ -452,9 +452,9 @@ type RequiredDocument {
                 "type": "object",
               }
             `);
-    });
-    it("should support union", () => {
-      const schema = buildSchema(`
+        });
+        it("should support union", () => {
+            const schema = buildSchema(`
         type User {
           id: ID!
           name: String
@@ -471,7 +471,7 @@ type RequiredDocument {
             user: UserResult
         }
     `);
-      expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
+            expect(getTypeInfos(fakeConfig({}), schema)).toMatchInlineSnapshot(`
               [
                 {
                   "fields": [
@@ -555,23 +555,23 @@ type RequiredDocument {
                 },
               ]
             `);
-    });
-    it("support custom scalar", () => {
-      const schema = buildSchema(`
+        });
+        it("support custom scalar", () => {
+            const schema = buildSchema(`
             scalar Date
             type Type {
               field: Date!
             }
           `);
-      const config: Config = fakeConfig({
-        defaultValues: {
-          ...fakeConfig().defaultValues,
-          CustomScalar: {
-            Date: "new Date()",
-          },
-        },
-      });
-      expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+            const config: Config = fakeConfig({
+                defaultValues: {
+                    ...fakeConfig().defaultValues,
+                    CustomScalar: {
+                        Date: "new Date()",
+                    },
+                },
+            });
+            expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
               [
                 {
                   "example": undefined,
@@ -595,16 +595,16 @@ type RequiredDocument {
                 },
               ]
             `);
-    });
-    it("support custom scalar with directive", () => {
-      const schema = buildSchema(`
+        });
+        it("support custom scalar with directive", () => {
+            const schema = buildSchema(`
             scalar Date @exampleScalarString(value: "2024-06-25T14:52:42.074Z")
             type Type {
               field: Date!
             }
           `);
-      const config: Config = fakeConfig();
-      expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+            const config: Config = fakeConfig();
+            expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
               [
                 {
                   "example": {
@@ -630,18 +630,20 @@ type RequiredDocument {
                 },
               ]
             `);
+        });
     });
-  });
-  describe("options", () => {
-    describe("skipTypename", () => {
-      it("includes __typename if skipTypename is false", () => {
-        const schema = buildSchema(`
+    describe("options", () => {
+        describe("skipTypename", () => {
+            it("includes __typename if skipTypename is false", () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
         `);
-        const config: Config = fakeConfig({ skipTypename: false });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ skipTypename: false });
+                expect(
+                    getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields,
+                ).toMatchInlineSnapshot(`
                   [
                     {
                       "comment": undefined,
@@ -652,15 +654,17 @@ type RequiredDocument {
                     },
                   ]
                 `);
-      });
-      it("does not include __typename if skipTypename is true", () => {
-        const schema = buildSchema(`
+            });
+            it("does not include __typename if skipTypename is true", () => {
+                const schema = buildSchema(`
           type Type {
             field: String!
           }
         `);
-        const config: Config = fakeConfig({ skipTypename: true });
-        expect(getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ skipTypename: true });
+                expect(
+                    getTypeInfos(config, schema).find(isObjectTypeInfo)?.fields,
+                ).toMatchInlineSnapshot(`
                   [
                     {
                       "comment": undefined,
@@ -671,11 +675,11 @@ type RequiredDocument {
                     },
                   ]
                 `);
-      });
-    });
-    describe("typesPrefix", () => {
-      it("renames type by typesPrefix", () => {
-        const schema = buildSchema(`
+            });
+        });
+        describe("typesPrefix", () => {
+            it("renames type by typesPrefix", () => {
+                const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
             field2: SubType!
@@ -688,8 +692,8 @@ type RequiredDocument {
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({ typesPrefix: "I" });
-        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ typesPrefix: "I" });
+                expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
                   [
                     {
                       "fields": [
@@ -744,11 +748,11 @@ type RequiredDocument {
                     },
                   ]
                 `);
-      });
-    });
-    describe("typesSuffix", () => {
-      it("renames type by typesSuffix", () => {
-        const schema = buildSchema(`
+            });
+        });
+        describe("typesSuffix", () => {
+            it("renames type by typesSuffix", () => {
+                const schema = buildSchema(`
           type Type implements Interface {
             field1: String!
             field2: SubType!
@@ -761,8 +765,8 @@ type RequiredDocument {
           }
           union Union = Type
         `);
-        const config: Config = fakeConfig({ typesSuffix: "I" });
-        expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
+                const config: Config = fakeConfig({ typesSuffix: "I" });
+                expect(getTypeInfos(config, schema)).toMatchInlineSnapshot(`
                   [
                     {
                       "fields": [
@@ -817,7 +821,7 @@ type RequiredDocument {
                     },
                   ]
                 `);
-      });
+            });
+        });
     });
-  });
 });
