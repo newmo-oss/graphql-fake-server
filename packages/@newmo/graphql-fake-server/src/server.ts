@@ -126,8 +126,14 @@ type ValidationResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 // Condition rules for conditional fake responses
 export type ConditionRule =
-    | { type: "count"; value: number } // Match based on call count (nth call)
-    | { type: "variables"; value: Record<string, unknown> }; // Match based on complete variables object
+    | {
+          type: "count";
+          value: number;
+      } // Match based on call count (nth call)
+    | {
+          type: "variables";
+          value: Record<string, unknown>;
+      }; // Match based on complete variables object
 
 // Called result structure for tracking requests/responses
 export type CalledResult = {
@@ -822,36 +828,17 @@ const createRoutingServer = async ({
 
         // Check conditional fakes first
         const conditionalFakes = conditionalFakeResponseMap.get(baseKey);
-        let matchedFake: RegisterSequenceOptions | undefined;
-
-        if (conditionalFakes && conditionalFakes.length > 0) {
-            // Find matching fake (already sorted by specificity in descending order)
-            for (const fake of conditionalFakes) {
-                if (fake.requestCondition) {
-                    const context = {
-                        callCount: currentCallCount,
-                        ...(requestVariables && { variables: requestVariables }),
-                    };
-
-                    if (evaluateCondition(fake.requestCondition, context)) {
-                        matchedFake = fake;
-                        logger.debug("fakeGraphQLQuery: matched conditional fake", {
-                            sequenceId,
-                            operationName: requestOperationName,
-                            requestCondition: fake.requestCondition,
-                            callCount: currentCallCount,
-                            variables: requestVariables,
-                        });
-                        break;
-                    }
-                }
-            }
-        }
-
-        // If no conditional fake is found, try the traditional method
-        if (!matchedFake) {
-            matchedFake = sequenceFakeResponseLruMap.get(baseKey);
-        }
+        // Find the first matching conditional fake based on call count and variables
+        // If no conditional fake matches, use the default fake from sequenceFakeResponseLruMap
+        const matchedFake: RegisterSequenceOptions | undefined =
+            findMatchedConditionalFake({
+                conditionalFakes: conditionalFakes,
+                currentCallCount: currentCallCount,
+                requestVariables: requestVariables,
+                logger: logger,
+                sequenceId: sequenceId,
+                requestOperationName: requestOperationName,
+            }) ?? sequenceFakeResponseLruMap.get(baseKey);
 
         logger.debug(
             `fakeGraphQLQuery: sequence-id: ${sequenceId} x operationName: ${requestOperationName}, fake exists: ${Boolean(
@@ -1115,4 +1102,47 @@ const calculateConditionSpecificity = (condition: ConditionRule): number => {
         default:
             return 0;
     }
+};
+
+/**
+ * Find a matching conditional fake based on the current call count and request variables
+ */
+const findMatchedConditionalFake = ({
+    conditionalFakes,
+    currentCallCount,
+    requestVariables,
+    logger,
+    sequenceId,
+    requestOperationName,
+}: {
+    conditionalFakes: RegisterSequenceOptions[] | undefined;
+    currentCallCount: number;
+    requestVariables: Record<string, unknown> | undefined;
+    logger: ReturnType<typeof createLogger>;
+    sequenceId: string;
+    requestOperationName: string;
+}): RegisterSequenceOptions | undefined => {
+    if (conditionalFakes && conditionalFakes.length > 0) {
+        // Find matching fake (already sorted by specificity in descending order)
+        for (const fake of conditionalFakes) {
+            if (fake.requestCondition) {
+                const context = {
+                    callCount: currentCallCount,
+                    ...(requestVariables && { variables: requestVariables }),
+                };
+
+                if (evaluateCondition(fake.requestCondition, context)) {
+                    logger.debug("fakeGraphQLQuery: matched conditional fake", {
+                        sequenceId,
+                        operationName: requestOperationName,
+                        requestCondition: fake.requestCondition,
+                        callCount: currentCallCount,
+                        variables: requestVariables,
+                    });
+                    return fake;
+                }
+            }
+        }
+    }
+    return undefined;
 };
