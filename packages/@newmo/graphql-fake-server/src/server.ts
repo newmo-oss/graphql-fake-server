@@ -217,23 +217,20 @@ const areConditionTypesConflicting = (
     const type1Desc = getTypeDescription(conditionType1);
     const type2Desc = getTypeDescription(conditionType2);
 
-    let errorMessage: string;
-
     // Specific error messages for common problematic combinations
     if (
         (conditionType1 === "count" && conditionType2 === "variables") ||
         (conditionType1 === "variables" && conditionType2 === "count")
     ) {
-        errorMessage =
+        const errorMessage =
             "Cannot mix count-based and variables-based conditions for the same operation. " +
             "Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), " +
             `but not both. Current conflict: ${type1Desc} vs ${type2Desc}`;
-    } else {
-        errorMessage =
-            `Conflicting condition types detected: ${type1Desc} vs ${type2Desc}. ` +
-            "Allowed combinations are: count+count, variables+variables, variables+default, or default+default.";
+        return { isConflicting: true, errorMessage };
     }
-
+    const errorMessage =
+        `Conflicting condition types detected: ${type1Desc} vs ${type2Desc}. ` +
+        "Allowed combinations are: count+count, variables+variables, variables+default, or default+default.";
     return { isConflicting: true, errorMessage };
 };
 
