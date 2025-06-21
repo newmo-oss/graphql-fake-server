@@ -146,7 +146,7 @@ it("register conditional fake responses", async () => {
   await fakeClient.registerCreateUrlRideHistoryMutationResponse(
     sequenceId,
     {
-      createURLRideHistory: { id: "4", name: "Specific Variables" },
+      createURLRideHistory: { id: "4", name: "Shibuya" },
     },
     {
       requestCondition: {

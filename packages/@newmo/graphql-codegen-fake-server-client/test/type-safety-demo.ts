@@ -27,7 +27,7 @@ export async function demonstrateTypeSafety() {
     await fakeClient.registerCreateUrlRideHistoryMutationResponse(
         sequenceId,
         {
-            createURLRideHistory: { id: "1", name: "Test" },
+            createURLRideHistory: { id: "1", name: "Shibuya" },
         },
         {
             requestCondition: {
