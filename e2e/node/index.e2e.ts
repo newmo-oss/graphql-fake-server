@@ -1016,4 +1016,179 @@ describe("integration test", async () => {
             );
         });
     });
+    describe("Array responses", () => {
+        it("should support array responses for sequential calls", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // Register array of responses
+            const resRegister = await fakeClient.registerGetBooksQueryResponse(sequenceId, [
+                {
+                    __typename: "Query",
+                    books: [
+                        {
+                            __typename: "Book",
+                            id: "1",
+                            title: "First Call",
+                        },
+                    ],
+                },
+                {
+                    __typename: "Query",
+                    books: [
+                        {
+                            __typename: "Book",
+                            id: "2",
+                            title: "Second Call",
+                        },
+                    ],
+                },
+                {
+                    __typename: "Query",
+                    books: [
+                        {
+                            __typename: "Book",
+                            id: "3",
+                            title: "Third Call",
+                        },
+                    ],
+                },
+            ]);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
+
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+
+            // First call should return first response
+            const response1 = await client.request(GetBooksDocument);
+            expect(response1).toMatchInlineSnapshot(`
+              {
+                "__typename": "Query",
+                "books": [
+                  {
+                    "__typename": "Book",
+                    "id": "1",
+                    "title": "First Call",
+                  },
+                ],
+              }
+            `);
+
+            // Second call should return second response
+            const response2 = await client.request(GetBooksDocument);
+            expect(response2).toMatchInlineSnapshot(`
+              {
+                "__typename": "Query",
+                "books": [
+                  {
+                    "__typename": "Book",
+                    "id": "2",
+                    "title": "Second Call",
+                  },
+                ],
+              }
+            `);
+
+            // Third call should return third response
+            const response3 = await client.request(GetBooksDocument);
+            expect(response3).toMatchInlineSnapshot(`
+              {
+                "__typename": "Query",
+                "books": [
+                  {
+                    "__typename": "Book",
+                    "id": "3",
+                    "title": "Third Call",
+                  },
+                ],
+              }
+            `);
+
+            // Fourth call should return last response (third) again
+            const response4 = await client.request(GetBooksDocument);
+            expect(response4).toMatchInlineSnapshot(`
+              {
+                "__typename": "Query",
+                "books": [
+                  {
+                    "__typename": "Book",
+                    "id": "3",
+                    "title": "Third Call",
+                  },
+                ],
+              }
+            `);
+        });
+
+        it("should support array responses for mutations", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // Register array of mutation responses
+            const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, [
+                {
+                    __typename: "Mutation",
+                    createBook: {
+                        __typename: "Book",
+                        id: "created-1",
+                        title: "Created First",
+                    },
+                },
+                {
+                    __typename: "Mutation",
+                    createBook: {
+                        __typename: "Book",
+                        id: "created-2",
+                        title: "Created Second",
+                    },
+                },
+            ]);
+            expect(resRegister).toMatchInlineSnapshot(`
+              {
+                "ok": true,
+              }
+            `);
+
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: {
+                    "sequence-id": sequenceId,
+                },
+            });
+
+            // First mutation call
+            const response1 = await client.request(CreateBookDocument, {
+                input: { title: "Test Book" },
+            });
+            expect(response1).toMatchInlineSnapshot(`
+              {
+                "__typename": "Mutation",
+                "createBook": {
+                  "__typename": "Book",
+                  "id": "created-1",
+                  "title": "Created First",
+                },
+              }
+            `);
+
+            // Second mutation call
+            const response2 = await client.request(CreateBookDocument, {
+                input: { title: "Test Book 2" },
+            });
+            expect(response2).toMatchInlineSnapshot(`
+              {
+                "__typename": "Mutation",
+                "createBook": {
+                  "__typename": "Book",
+                  "id": "created-2",
+                  "title": "Created Second",
+                },
+              }
+            `);
+        });
+    });
 });

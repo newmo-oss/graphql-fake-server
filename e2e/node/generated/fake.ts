@@ -11,9 +11,9 @@ import type { CreateBookInlineMutation, CreateBookInlineMutationVariables } from
 import type { UseMutationErrorPatternMutationMutation, UseMutationErrorPatternMutationMutationVariables } from './graphql.js';
 import type { CreateFooUrlMutation, CreateFooUrlMutationVariables } from './graphql.js';
 
-export type FakeClientCountConditionRule = { type: "count"; value: number };
+export type FakeClientAlwaysConditionRule = { type: "always" };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientAlwaysConditionRule | FakeClientVariablesConditionRule<TVariables>;
 export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
 export type CreateFakeClientOptions = {
   /** 
@@ -27,7 +27,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
   return {
-    async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetBooksQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery | GetBooksQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetBooksQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -38,7 +39,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "GetBooks",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -103,7 +104,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetBookWithFragmentsQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery | GetBookWithFragmentsQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetBookWithFragmentsQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -114,7 +116,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "GetBookWithFragments",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -179,7 +181,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetDogQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery | GetDogQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetDogQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -190,7 +193,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "GetDog",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -255,7 +258,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GotUnionUserQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery | GotUnionUserQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GotUnionUserQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -266,7 +270,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "GotUnionUser",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -331,7 +335,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetUserNamesArrayExampleQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery | GetUserNamesArrayExampleQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetUserNamesArrayExampleQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -342,7 +347,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "GetUserNamesArrayExample",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -407,7 +412,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation | CreateBookMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -418,7 +424,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateBook",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -485,7 +491,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookInlineMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation | CreateBookInlineMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookInlineMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -496,7 +503,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateBookInline",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -563,7 +570,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<UseMutationErrorPatternMutationMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation | UseMutationErrorPatternMutationMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<UseMutationErrorPatternMutationMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -574,7 +582,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "UseMutationErrorPatternMutation",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -641,7 +649,8 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation | CreateFooUrlMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -652,7 +661,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateFooUrl",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
