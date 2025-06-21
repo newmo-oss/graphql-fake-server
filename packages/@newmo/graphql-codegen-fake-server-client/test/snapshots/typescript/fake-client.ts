@@ -5,10 +5,10 @@ import type { ListRideHistoriesQuery, ListRideHistoriesQueryVariables } from './
 import type { CreateUrlRideHistoryMutation, CreateUrlRideHistoryMutationVariables } from './graphql';
 import type { CreateFooUrlRideHistoryMutation, CreateFooUrlRideHistoryMutationVariables } from './graphql';
 
-export type CountConditionRule = { type: "count"; value: number };
-export type VariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type ConditionRule<TVariables = Record<string, any>> = CountConditionRule | VariablesConditionRule<TVariables>;
-export type RegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: ConditionRule<TVariables> };
+export type FakeClientCountConditionRule = { type: "count"; value: number };
+export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -21,7 +21,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
   return {
-    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery, sequenceOptions?: RegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -97,7 +97,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery, sequenceOptions?: RegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -173,7 +173,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation, sequenceOptions?: RegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -251,7 +251,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation, sequenceOptions?: RegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {

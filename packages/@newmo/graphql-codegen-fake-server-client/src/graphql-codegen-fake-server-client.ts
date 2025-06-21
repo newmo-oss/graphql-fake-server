@@ -8,10 +8,10 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
         const _fakeEndpoint = config.fakeServerEndpoint;
         const registerOperationResponseType = "{ ok: true } | { ok: false; errors: string[] }"; // Conditional fake types with generic Variables
         const conditionRuleTypes = `
-export type CountConditionRule = { type: "count"; value: number };
-export type VariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type ConditionRule<TVariables = Record<string, any>> = CountConditionRule | VariablesConditionRule<TVariables>;
-export type RegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: ConditionRule<TVariables> };`;
+export type FakeClientCountConditionRule = { type: "count"; value: number };
+export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };`;
         type GenerateFakeFunction =
             | {
                   type: "query";
@@ -87,7 +87,7 @@ ${exportsFunctions
             fakeEndpointVariableName: string,
         ) => {
             const variablesType = `${convertName(name, config)}QueryVariables`;
-            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: RegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
@@ -125,7 +125,7 @@ ${exportsFunctions
         };
         const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
             const variablesType = `${convertName(name, config)}MutationVariables`;
-            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: RegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
