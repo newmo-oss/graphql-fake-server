@@ -5,10 +5,10 @@ import type { ListRideHistoriesQuery, ListRideHistoriesQueryVariables } from './
 import type { CreateUrlRideHistoryMutation, CreateUrlRideHistoryMutationVariables } from './graphql';
 import type { CreateFooUrlRideHistoryMutation, CreateFooUrlRideHistoryMutationVariables } from './graphql';
 
-export type FakeClientCountConditionRule = { type: "count"; value: number };
+export type FakeClientAlwaysConditionRule = { type: "always" };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
-export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientCountConditionRule | FakeClientVariablesConditionRule<TVariables>;
-export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
+export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientAlwaysConditionRule | FakeClientVariablesConditionRule<TVariables>;
+export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestConditions?: FakeClientConditionRule<TVariables> };
 export type CreateFakeClientOptions = {
   /** 
    * The URL of the fake server
@@ -21,7 +21,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
   return {
-    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery | ListDestinationCandidatesQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -32,7 +32,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "ListDestinationCandidates",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -97,7 +97,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery | ListRideHistoriesQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -108,7 +108,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "ListRideHistories",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -173,7 +173,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation | CreateUrlRideHistoryMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -184,7 +184,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateUrlRideHistory",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -251,7 +251,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation | CreateFooUrlRideHistoryMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -262,7 +262,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateFooUrlRideHistory",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                ...(sequenceOptions?.requestConditions && { requestConditions: sequenceOptions.requestConditions })
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },

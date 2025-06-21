@@ -16,7 +16,7 @@ export async function demonstrateTypeSafety() {
             destinationCandidates: [{ id: "1", name: "Tokyo" }],
         },
         {
-            requestCondition: {
+            requestConditions: {
                 type: "variables",
                 value: { text: "tokyo" }, // ✅ Matches ListDestinationCandidatesQueryVariables
             },
@@ -30,7 +30,7 @@ export async function demonstrateTypeSafety() {
             createURLRideHistory: { id: "1", name: "Shibuya" },
         },
         {
-            requestCondition: {
+            requestConditions: {
                 type: "variables",
                 value: { desinationName: "Shibuya" }, // ✅ Matches CreateUrlRideHistoryMutationVariables
             },
@@ -44,7 +44,7 @@ export async function demonstrateTypeSafety() {
             rideHistories: [{ id: "1", destination: { id: "1", name: "Tokyo" } }],
         },
         {
-            requestCondition: {
+            requestConditions: {
                 type: "variables",
                 value: {}, // ✅ ListRideHistoriesQueryVariables = Exact<{ [key: string]: never }>
             },
@@ -58,7 +58,7 @@ export async function demonstrateTypeSafety() {
             destinationCandidates: [],
         },
         {
-            requestCondition: {
+            requestConditions: {
                 type: "variables",
                 // @ts-expect-error // ❌ TypeScript error: 'text' should be a string, not a number
                 value: { wrongField: "value" },
@@ -73,7 +73,7 @@ export async function demonstrateTypeSafety() {
             createURLRideHistory: { id: "1", name: "Test" },
         },
         {
-            requestCondition: {
+            requestConditions: {
                 type: "variables",
                 // @ts-expect-error
                 value: { text: "tokyo" },
