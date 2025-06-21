@@ -750,15 +750,21 @@ describe("integration test", async () => {
                         books: [{ id: "book-2", title: "Second Call Book" }],
                     },
                 }),
-            });
-
-            // First call should return "First Call Book"
-            const firstResponse = await client.request(GetBooksDocument);
-            expect((firstResponse as any).books[0].title).toBe("First Call Book");
+            }); // First call should return "First Call Book"
+            const firstResponse = (await client.request(GetBooksDocument)) as {
+                books: { title: string }[];
+            };
+            expect(firstResponse.books).toBeDefined();
+            assert.ok(firstResponse.books[0], "First book should exist");
+            expect(firstResponse.books[0].title).toBe("First Call Book");
 
             // Second call should return "Second Call Book"
-            const secondResponse = await client.request(GetBooksDocument);
-            expect((secondResponse as any).books[0].title).toBe("Second Call Book");
+            const secondResponse = (await client.request(GetBooksDocument)) as {
+                books: { title: string }[];
+            };
+            expect(secondResponse.books).toBeDefined();
+            assert.ok(secondResponse.books[0], "Second book should exist");
+            expect(secondResponse.books[0].title).toBe("Second Call Book");
         });
 
         it("should handle variables-based conditions", async () => {
@@ -832,7 +838,9 @@ describe("integration test", async () => {
                     authorId: "author-1",
                 },
             });
-            expect((firstResponse as any).createBook.title).toBe("Test Book A - Created");
+            expect((firstResponse as { createBook: { title: string } }).createBook.title).toBe(
+                "Test Book A - Created",
+            );
 
             // Call with second input
             const secondResponse = await client.request(CreateBookDocument, {
@@ -841,7 +849,171 @@ describe("integration test", async () => {
                     authorId: "author-2",
                 },
             });
-            expect((secondResponse as any).createBook.title).toBe("Test Book B - Created");
+            expect((secondResponse as { createBook: { title: string } }).createBook.title).toBe(
+                "Test Book B - Created",
+            );
+        });
+    });
+
+    describe("Condition conflicts", () => {
+        it("should reject count condition when default fake is already registered", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // First register default fake (no condition)
+            const defaultResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    data: {
+                        books: [{ id: "default-book", title: "Default Book" }],
+                    },
+                }),
+            });
+            expect(defaultResponse.ok).toBe(true);
+
+            // Try to register count condition - should fail
+            const countResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "count", value: 1 },
+                    data: {
+                        books: [{ id: "count-book", title: "Count Book" }],
+                    },
+                }),
+            });
+            expect(countResponse.ok).toBe(false);
+            const errorResult = (await countResponse.json()) as { errors: string[] };
+            expect(errorResult.errors).toContain(
+                "Cannot mix count conditions with default (no condition) for the same operation",
+            );
+        });
+
+        it("should reject count condition when variables condition is already registered", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // First register variables condition
+            const variablesResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "variables", value: { filter: "fiction" } },
+                    data: {
+                        books: [{ id: "fiction-book", title: "Fiction Book" }],
+                    },
+                }),
+            });
+            expect(variablesResponse.ok).toBe(true);
+
+            // Try to register count condition - should fail
+            const countResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "count", value: 1 },
+                    data: {
+                        books: [{ id: "count-book", title: "Count Book" }],
+                    },
+                }),
+            });
+            expect(countResponse.ok).toBe(false);
+            const errorResult = (await countResponse.json()) as { errors: string[] };
+            expect(errorResult.errors).toContain(
+                "Cannot mix count conditions with variables conditions for the same operation",
+            );
+        });
+
+        it("should allow variables and default conditions to coexist", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            // First register default fake (no condition)
+            const defaultResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    data: {
+                        books: [{ id: "default-book", title: "Default Book" }],
+                    },
+                }),
+            });
+            expect(defaultResponse.ok).toBe(true);
+
+            // Register variables condition - should succeed
+            const variablesResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "variables", value: { filter: "special" } },
+                    data: {
+                        books: [{ id: "special-book", title: "Special Book" }],
+                    },
+                }),
+            });
+            expect(variablesResponse.ok).toBe(true);
+        });
+    });
+
+    describe("Condition conflicts (using fakeClient)", () => {
+        it("should reject count condition when default fake is already registered using fakeClient", async () => {
+            const sequenceId = crypto.randomUUID(); // First register default fake using fakeClient
+            const defaultResponse = await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+                __typename: "Query",
+                books: [{ __typename: "Book", id: "default-book", title: "Default Book" }],
+            });
+            expect(defaultResponse.ok).toBe(true);
+
+            // Try to register count condition directly - should fail
+            const countResponse = await fetch(`${fakeServerUrl}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetBooks",
+                    condition: { type: "count", value: 1 },
+                    data: {
+                        books: [{ id: "count-book", title: "Count Book" }],
+                    },
+                }),
+            });
+
+            expect(countResponse.ok).toBe(false);
+            const errorResult = (await countResponse.json()) as { errors: string[] };
+            expect(errorResult.errors).toContain(
+                "Cannot mix count conditions with default (no condition) for the same operation",
+            );
         });
     });
 });

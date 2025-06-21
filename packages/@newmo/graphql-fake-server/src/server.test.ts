@@ -1393,6 +1393,7 @@ describe("graphql-fake-server", () => {
                 });
 
                 const firstResult = (await firstResponse.json()) as any;
+                assert.ok(firstResult.data.books[0], "First book should exist");
                 expect(firstResult.data.books[0].title).toBe("First Call Book");
 
                 // Second call should return second fake
@@ -1416,6 +1417,7 @@ describe("graphql-fake-server", () => {
                 });
 
                 const secondResult = (await secondResponse.json()) as any;
+                assert.ok(secondResult.data.books[0], "Second book should exist");
                 expect(secondResult.data.books[0].title).toBe("Second Call Book");
 
                 // Third call should fallback to declarative fake (no condition matches)
@@ -1439,6 +1441,7 @@ describe("graphql-fake-server", () => {
                 });
 
                 const thirdResult = (await thirdResponse.json()) as any;
+                assert.ok(thirdResult.data.books[0], "Third book should exist");
                 expect(thirdResult.data.books[0].title).toBe("Default Book");
             });
         });
@@ -1564,6 +1567,10 @@ describe("graphql-fake-server", () => {
                 });
 
                 const resultA = (await responseA.json()) as any;
+                assert.ok(
+                    resultA.data.downloadUrlsResponseToUploadedFiles.payload.urls[0],
+                    "First URL should exist",
+                );
                 expect(resultA.data.downloadUrlsResponseToUploadedFiles.payload.urls[0]).toBe(
                     "https://example.com/file-a.pdf",
                 );
@@ -1595,6 +1602,10 @@ describe("graphql-fake-server", () => {
                 });
 
                 const resultB = (await responseB.json()) as any;
+                assert.ok(
+                    resultB.data.downloadUrlsResponseToUploadedFiles.payload.urls[0],
+                    "Second URL should exist",
+                );
                 expect(resultB.data.downloadUrlsResponseToUploadedFiles.payload.urls[0]).toBe(
                     "https://example.com/file-b.xlsx",
                 );
