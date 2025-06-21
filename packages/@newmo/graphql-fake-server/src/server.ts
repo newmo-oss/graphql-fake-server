@@ -448,11 +448,6 @@ const createMapKey = ({
     return `${sequenceId}.${operationName}`;
 };
 
-// Generate hash value for condition (same condition produces same hash)
-const _hashCondition = (condition: ConditionRule): string => {
-    return Buffer.from(JSON.stringify(condition)).toString("base64");
-};
-
 // Private IP address ranges defined in RFC 1918
 // See: https://www.rfc-editor.org/rfc/rfc1918
 const privateIPRanges = [
