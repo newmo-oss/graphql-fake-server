@@ -10,12 +10,12 @@ export async function demonstrateTypeSafety() {
     const sequenceId = "test-sequence";
 
     // ✅ Correct usage - single response registration
-    await fakeClient.registerListDestinationCandidatesQuerySingleResponse(sequenceId, {
+    await fakeClient.registerListDestinationCandidatesQuery(sequenceId, {
         destinationCandidates: [{ id: "1", name: "Tokyo" }],
     });
 
     // ✅ Correct usage - conditional response registration
-    await fakeClient.registerListDestinationCandidatesQueryConditionalResponse(sequenceId, [
+    await fakeClient.registerListDestinationCandidatesQuery(sequenceId, [
         {
             condition: {
                 type: "variables",
@@ -28,12 +28,12 @@ export async function demonstrateTypeSafety() {
     ]);
 
     // ✅ Correct usage - mutation single response
-    await fakeClient.registerCreateUrlRideHistoryMutationSingleResponse(sequenceId, {
+    await fakeClient.registerCreateUrlRideHistoryMutation(sequenceId, {
         createURLRideHistory: { id: "1", name: "Shibuya" },
     });
 
     // ✅ Correct usage - mutation conditional response
-    await fakeClient.registerCreateUrlRideHistoryMutationConditionalResponse(sequenceId, [
+    await fakeClient.registerCreateUrlRideHistoryMutation(sequenceId, [
         {
             condition: {
                 type: "variables",
@@ -46,7 +46,7 @@ export async function demonstrateTypeSafety() {
     ]);
 
     // ✅ Correct usage - query sequence response
-    await fakeClient.registerListRideHistoriesQuerySequenceResponse(sequenceId, [
+    await fakeClient.registerListRideHistoriesQuery(sequenceId, [
         {
             rideHistories: [{ id: "1", destination: { id: "1", name: "Tokyo" } }],
         },
@@ -56,7 +56,7 @@ export async function demonstrateTypeSafety() {
     ]);
 
     // Wrong variable type - conditional with wrong field
-    await fakeClient.registerListDestinationCandidatesQueryConditionalResponse(sequenceId, [
+    await fakeClient.registerListDestinationCandidatesQuery(sequenceId, [
         {
             condition: {
                 type: "variables",
@@ -70,7 +70,7 @@ export async function demonstrateTypeSafety() {
     ]);
 
     // Wrong variable type for mutation
-    await fakeClient.registerCreateUrlRideHistoryMutationConditionalResponse(sequenceId, [
+    await fakeClient.registerCreateUrlRideHistoryMutation(sequenceId, [
         {
             condition: {
                 type: "variables",

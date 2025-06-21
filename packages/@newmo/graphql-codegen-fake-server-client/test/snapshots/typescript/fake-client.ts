@@ -57,61 +57,53 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
   return {
-    async registerListDestinationCandidatesQuerySingleResponse(sequenceId: string, queryResponse: ListDestinationCandidatesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "single",
-                operationName: "ListDestinationCandidates",
-                data: queryResponse
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerListDestinationCandidatesQuerySequenceResponse(sequenceId: string, queryResponses: ListDestinationCandidatesQuery[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "sequence",
-                operationName: "ListDestinationCandidates",
-                data: queryResponses
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerListDestinationCandidatesQueryConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<ListDestinationCandidatesQueryVariables>; data: ListDestinationCandidatesQuery | ListDestinationCandidatesQuery[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "conditional",
-                operationName: "ListDestinationCandidates",
-                conditions: conditions
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerListDestinationCandidatesQueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerListDestinationCandidatesQuery(
+        sequenceId: string, 
+        data: ListDestinationCandidatesQuery | ListDestinationCandidatesQuery[] | Array<{ condition: FakeClientConditionRule<ListDestinationCandidatesQueryVariables>; data: ListDestinationCandidatesQuery | ListDestinationCandidatesQuery[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "ListDestinationCandidates",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's conditional responses
+        else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+            requestBody = {
+                type: "conditional",
+                operationName: "ListDestinationCandidates",
+                conditions: data
+            };
+        }
+        // Check if it's sequence responses (array of queries)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "sequence",
+                operationName: "ListDestinationCandidates",
+                data: data
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "single",
+                operationName: "ListDestinationCandidates",
+                data: data
+            };
+        }
+    
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledListDestinationCandidatesQuery(sequenceId:string): Promise<{
@@ -160,61 +152,53 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerListRideHistoriesQuerySingleResponse(sequenceId: string, queryResponse: ListRideHistoriesQuery): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "single",
-                operationName: "ListRideHistories",
-                data: queryResponse
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerListRideHistoriesQuerySequenceResponse(sequenceId: string, queryResponses: ListRideHistoriesQuery[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "sequence",
-                operationName: "ListRideHistories",
-                data: queryResponses
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerListRideHistoriesQueryConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<ListRideHistoriesQueryVariables>; data: ListRideHistoriesQuery | ListRideHistoriesQuery[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "conditional",
-                operationName: "ListRideHistories",
-                conditions: conditions
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerListRideHistoriesQueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerListRideHistoriesQuery(
+        sequenceId: string, 
+        data: ListRideHistoriesQuery | ListRideHistoriesQuery[] | Array<{ condition: FakeClientConditionRule<ListRideHistoriesQueryVariables>; data: ListRideHistoriesQuery | ListRideHistoriesQuery[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "ListRideHistories",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's conditional responses
+        else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+            requestBody = {
+                type: "conditional",
+                operationName: "ListRideHistories",
+                conditions: data
+            };
+        }
+        // Check if it's sequence responses (array of queries)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "sequence",
+                operationName: "ListRideHistories",
+                data: data
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "single",
+                operationName: "ListRideHistories",
+                data: data
+            };
+        }
+    
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledListRideHistoriesQuery(sequenceId:string): Promise<{
@@ -263,61 +247,53 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateUrlRideHistoryMutationSingleResponse(sequenceId: string, mutationResponse: CreateUrlRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "single",
-                operationName: "CreateUrlRideHistory",
-                data: mutationResponse
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateUrlRideHistoryMutationSequenceResponse(sequenceId: string, mutationResponses: CreateUrlRideHistoryMutation[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "sequence",
-                operationName: "CreateUrlRideHistory",
-                data: mutationResponses
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateUrlRideHistoryMutationConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<CreateUrlRideHistoryMutationVariables>; data: CreateUrlRideHistoryMutation | CreateUrlRideHistoryMutation[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "conditional",
-                operationName: "CreateUrlRideHistory",
-                conditions: conditions
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerCreateUrlRideHistoryMutation(
+        sequenceId: string, 
+        data: CreateUrlRideHistoryMutation | CreateUrlRideHistoryMutation[] | Array<{ condition: FakeClientConditionRule<CreateUrlRideHistoryMutationVariables>; data: CreateUrlRideHistoryMutation | CreateUrlRideHistoryMutation[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "CreateUrlRideHistory",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's conditional responses
+        else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateUrlRideHistory",
+                conditions: data
+            };
+        }
+        // Check if it's sequence responses (array of mutations)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "sequence",
+                operationName: "CreateUrlRideHistory",
+                data: data
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "single",
+                operationName: "CreateUrlRideHistory",
+                data: data
+            };
+        }
+    
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledCreateUrlRideHistoryMutation(sequenceId:string): Promise<{
@@ -368,61 +344,53 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlRideHistoryMutationSingleResponse(sequenceId: string, mutationResponse: CreateFooUrlRideHistoryMutation): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "single",
-                operationName: "CreateFooUrlRideHistory",
-                data: mutationResponse
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateFooUrlRideHistoryMutationSequenceResponse(sequenceId: string, mutationResponses: CreateFooUrlRideHistoryMutation[]): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "sequence",
-                operationName: "CreateFooUrlRideHistory",
-                data: mutationResponses
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateFooUrlRideHistoryMutationConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<CreateFooUrlRideHistoryMutationVariables>; data: CreateFooUrlRideHistoryMutation | CreateFooUrlRideHistoryMutation[] }>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "conditional",
-                operationName: "CreateFooUrlRideHistory",
-                conditions: conditions
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
-    },
-    async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
+    async registerCreateFooUrlRideHistoryMutation(
+        sequenceId: string, 
+        data: CreateFooUrlRideHistoryMutation | CreateFooUrlRideHistoryMutation[] | Array<{ condition: FakeClientConditionRule<CreateFooUrlRideHistoryMutationVariables>; data: CreateFooUrlRideHistoryMutation | CreateFooUrlRideHistoryMutation[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+    ): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        let requestBody: any;
+        
+        // Check if it's a network error
+        if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+            requestBody = {
                 type: "network-error",
                 operationName: "CreateFooUrlRideHistory",
-                responseStatusCode,
-                errors
-            }),
+                responseStatusCode: data.responseStatusCode,
+                errors: data.errors
+            };
+        }
+        // Check if it's conditional responses
+        else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+            requestBody = {
+                type: "conditional",
+                operationName: "CreateFooUrlRideHistory",
+                conditions: data
+            };
+        }
+        // Check if it's sequence responses (array of mutations)
+        else if (Array.isArray(data)) {
+            requestBody = {
+                type: "sequence",
+                operationName: "CreateFooUrlRideHistory",
+                data: data
+            };
+        }
+        // Single response
+        else {
+            requestBody = {
+                type: "single",
+                operationName: "CreateFooUrlRideHistory",
+                data: data
+            };
+        }
+    
+        return await fetch(options.fakeServerEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'sequence-id': sequenceId
+            },
+            body: JSON.stringify(requestBody),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
     async calledCreateFooUrlRideHistoryMutation(sequenceId:string): Promise<{

@@ -86,19 +86,7 @@ ${exportsFunctions
             return [
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterSingleQueryMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateRegisterSequenceQueryMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateRegisterConditionalQueryMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateRegisterQueryErrorMethod(fn.name, "options.fakeServerEndpoint"),
+                    generateRegisterQueryMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
@@ -110,22 +98,7 @@ ${exportsFunctions
             return [
                 indentEachLine(
                     `${indent}${indent}`,
-                    generateRegisterSingleMutationMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateRegisterSequenceMutationMethod(fn.name, "options.fakeServerEndpoint"),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateRegisterConditionalMutationMethod(
-                        fn.name,
-                        "options.fakeServerEndpoint",
-                    ),
-                ),
-                indentEachLine(
-                    `${indent}${indent}`,
-                    generateRegisterMutationErrorMethod(fn.name, "options.fakeServerEndpoint"),
+                    generateRegisterMutationMethod(fn.name, "options.fakeServerEndpoint"),
                 ),
                 indentEachLine(
                     `${indent}${indent}`,
@@ -140,177 +113,114 @@ ${exportsFunctions
 }`;
         };
 
-        // Single response registration for Query
-        const generateRegisterSingleQueryMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            return `async register${name}QuerySingleResponse(sequenceId: string, queryResponse: ${name}Query): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "single",
-            operationName: "${name}",
-            data: queryResponse
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
-        };
-
-        // Array-based sequence registration for Query
-        const generateRegisterSequenceQueryMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            return `async register${name}QuerySequenceResponse(sequenceId: string, queryResponses: ${name}Query[]): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "sequence",
-            operationName: "${name}",
-            data: queryResponses
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
-        };
-
-        // Conditional response registration for Query
-        const generateRegisterConditionalQueryMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
+        // Unified query registration method
+        const generateRegisterQueryMethod = (name: string, fakeEndpointVariableName: string) => {
             const variablesType = `${convertName(name, config)}QueryVariables`;
-            return `async register${name}QueryConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Query | ${name}Query[] }>): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "conditional",
-            operationName: "${name}",
-            conditions: conditions
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
-        };
-
-        // Network error registration for Query
-        const generateRegisterQueryErrorMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            return `async register${name}QueryErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
+            return `async register${name}Query(
+    sequenceId: string, 
+    data: ${name}Query | ${name}Query[] | Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Query | ${name}Query[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+): Promise<${registerOperationResponseType}> {
+    let requestBody: any;
+    
+    // Check if it's a network error
+    if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+        requestBody = {
             type: "network-error",
             operationName: "${name}",
-            responseStatusCode,
-            errors
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
+            responseStatusCode: data.responseStatusCode,
+            errors: data.errors
         };
-
-        // Single response registration for Mutation
-        const generateRegisterSingleMutationMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            return `async register${name}MutationSingleResponse(sequenceId: string, mutationResponse: ${name}Mutation): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "single",
+    }
+    // Check if it's conditional responses
+    else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+        requestBody = {
+            type: "conditional",
             operationName: "${name}",
-            data: mutationResponse
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
+            conditions: data
         };
-
-        // Array-based sequence registration for Mutation
-        const generateRegisterSequenceMutationMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            return `async register${name}MutationSequenceResponse(sequenceId: string, mutationResponses: ${name}Mutation[]): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
+    }
+    // Check if it's sequence responses (array of queries)
+    else if (Array.isArray(data)) {
+        requestBody = {
             type: "sequence",
             operationName: "${name}",
-            data: mutationResponses
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
+            data: data
         };
-
-        // Conditional response registration for Mutation
-        const generateRegisterConditionalMutationMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            const variablesType = `${convertName(name, config)}MutationVariables`;
-            return `async register${name}MutationConditionalResponse(sequenceId: string, conditions: Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Mutation | ${name}Mutation[] }>): Promise<${registerOperationResponseType}> {
-    return await fetch(${fakeEndpointVariableName}, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'sequence-id': sequenceId
-        },
-        body: JSON.stringify({
-            type: "conditional",
+    }
+    // Single response
+    else {
+        requestBody = {
+            type: "single",
             operationName: "${name}",
-            conditions: conditions
-        }),
-    }).then((res) => res.json()) as ${registerOperationResponseType};
-}`;
+            data: data
         };
+    }
 
-        // Network error registration for Mutation
-        const generateRegisterMutationErrorMethod = (
-            name: string,
-            fakeEndpointVariableName: string,
-        ) => {
-            return `async register${name}MutationErrorResponse(sequenceId: string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<${registerOperationResponseType}> {
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'sequence-id': sequenceId
         },
-        body: JSON.stringify({
+        body: JSON.stringify(requestBody),
+    }).then((res) => res.json()) as ${registerOperationResponseType};
+}`;
+        };
+
+        // Unified mutation registration method
+        const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
+            const variablesType = `${convertName(name, config)}MutationVariables`;
+            return `async register${name}Mutation(
+    sequenceId: string, 
+    data: ${name}Mutation | ${name}Mutation[] | Array<{ condition: FakeClientConditionRule<${variablesType}>; data: ${name}Mutation | ${name}Mutation[] }> | { errors: Record<string, unknown>[]; responseStatusCode: number }
+): Promise<${registerOperationResponseType}> {
+    let requestBody: any;
+    
+    // Check if it's a network error
+    if (typeof data === 'object' && data !== null && 'errors' in data && 'responseStatusCode' in data) {
+        requestBody = {
             type: "network-error",
             operationName: "${name}",
-            responseStatusCode,
-            errors
-        }),
+            responseStatusCode: data.responseStatusCode,
+            errors: data.errors
+        };
+    }
+    // Check if it's conditional responses
+    else if (Array.isArray(data) && data.length > 0 && data[0] && 'condition' in data[0]) {
+        requestBody = {
+            type: "conditional",
+            operationName: "${name}",
+            conditions: data
+        };
+    }
+    // Check if it's sequence responses (array of mutations)
+    else if (Array.isArray(data)) {
+        requestBody = {
+            type: "sequence",
+            operationName: "${name}",
+            data: data
+        };
+    }
+    // Single response
+    else {
+        requestBody = {
+            type: "single",
+            operationName: "${name}",
+            data: data
+        };
+    }
+
+    return await fetch(${fakeEndpointVariableName}, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'sequence-id': sequenceId
+        },
+        body: JSON.stringify(requestBody),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
         };
+
         const generateCalledQuery = (name: string, calledEndpoint: string) => {
             return `async called${name}Query(sequenceId:string): Promise<{
   ok: true;
