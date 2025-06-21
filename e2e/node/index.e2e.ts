@@ -728,7 +728,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "count", value: 1 },
+                    requestCondition: { type: "count", value: 1 },
                     data: {
                         books: [{ id: "book-1", title: "First Call Book" }],
                     },
@@ -745,7 +745,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "count", value: 2 },
+                    requestCondition: { type: "count", value: 2 },
                     data: {
                         books: [{ id: "book-2", title: "Second Call Book" }],
                     },
@@ -785,7 +785,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "CreateBook",
-                    condition: {
+                    requestCondition: {
                         type: "variables",
                         value: {
                             input: {
@@ -813,7 +813,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "CreateBook",
-                    condition: {
+                    requestCondition: {
                         type: "variables",
                         value: {
                             input: {
@@ -886,7 +886,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "count", value: 1 },
+                    requestCondition: { type: "count", value: 1 },
                     data: {
                         books: [{ id: "count-book", title: "Count Book" }],
                     },
@@ -895,7 +895,7 @@ describe("integration test", async () => {
             expect(countResponse.ok).toBe(false);
             const errorResult = (await countResponse.json()) as { errors: string[] };
             expect(errorResult.errors).toContain(
-                "Cannot mix count conditions with default (no condition) for the same operation",
+                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
             );
         });
 
@@ -912,7 +912,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "variables", value: { filter: "fiction" } },
+                    requestCondition: { type: "variables", value: { filter: "fiction" } },
                     data: {
                         books: [{ id: "fiction-book", title: "Fiction Book" }],
                     },
@@ -930,7 +930,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "count", value: 1 },
+                    requestCondition: { type: "count", value: 1 },
                     data: {
                         books: [{ id: "count-book", title: "Count Book" }],
                     },
@@ -939,7 +939,7 @@ describe("integration test", async () => {
             expect(countResponse.ok).toBe(false);
             const errorResult = (await countResponse.json()) as { errors: string[] };
             expect(errorResult.errors).toContain(
-                "Cannot mix count conditions with variables conditions for the same operation",
+                "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
             );
         });
 
@@ -973,7 +973,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "variables", value: { filter: "special" } },
+                    requestCondition: { type: "variables", value: { filter: "special" } },
                     data: {
                         books: [{ id: "special-book", title: "Special Book" }],
                     },
@@ -1002,7 +1002,7 @@ describe("integration test", async () => {
                 body: JSON.stringify({
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: { type: "count", value: 1 },
+                    requestCondition: { type: "count", value: 1 },
                     data: {
                         books: [{ id: "count-book", title: "Count Book" }],
                     },
@@ -1012,7 +1012,7 @@ describe("integration test", async () => {
             expect(countResponse.ok).toBe(false);
             const errorResult = (await countResponse.json()) as { errors: string[] };
             expect(errorResult.errors).toContain(
-                "Cannot mix count conditions with default (no condition) for the same operation",
+                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
             );
         });
     });

@@ -15,7 +15,7 @@ async function setupCountBasedFake() {
         body: JSON.stringify({
             type: "operation",
             operationName: "GetBooks",
-            condition: { type: "count", value: 1 },
+            requestCondition: { type: "count", value: 1 },
             data: {
                 books: [{ id: "book-1", title: "First Call Book" }],
             },
@@ -32,7 +32,7 @@ async function setupCountBasedFake() {
         body: JSON.stringify({
             type: "operation",
             operationName: "GetBooks",
-            condition: { type: "count", value: 2 },
+            requestCondition: { type: "count", value: 2 },
             data: {
                 books: [{ id: "book-2", title: "Second Call Book" }],
             },
@@ -54,7 +54,7 @@ async function setupVariablesBasedFake() {
         body: JSON.stringify({
             type: "operation",
             operationName: "downloadUrlsResponseToUploadedFiles",
-            condition: {
+            requestCondition: {
                 type: "variables",
                 value: {
                     input: {
@@ -82,7 +82,7 @@ async function setupVariablesBasedFake() {
         body: JSON.stringify({
             type: "operation",
             operationName: "downloadUrlsResponseToUploadedFiles",
-            condition: {
+            requestCondition: {
                 type: "variables",
                 value: {
                     input: {
@@ -115,7 +115,7 @@ async function setupComplexConditionFake() {
         body: JSON.stringify({
             type: "operation",
             operationName: "GetUserData",
-            condition: {
+            requestCondition: {
                 type: "and",
                 conditions: [
                     { type: "count", value: 1 },
@@ -138,7 +138,7 @@ async function setupComplexConditionFake() {
         body: JSON.stringify({
             type: "operation",
             operationName: "GetUserData",
-            condition: {
+            requestCondition: {
                 type: "or",
                 conditions: [
                     { type: "variables", value: { userId: "admin" } },

@@ -1337,7 +1337,7 @@ describe("graphql-fake-server", () => {
                 const firstCallFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: firstCallCondition,
+                    requestCondition: firstCallCondition,
                     data: {
                         books: [{ id: "book-1", title: "First Call Book" }],
                     },
@@ -1357,7 +1357,7 @@ describe("graphql-fake-server", () => {
                 const secondCallFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetBooks",
-                    condition: secondCallCondition,
+                    requestCondition: secondCallCondition,
                     data: {
                         books: [{ id: "book-2", title: "Second Call Book" }],
                     },
@@ -1490,7 +1490,7 @@ describe("graphql-fake-server", () => {
                 const typeAFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "downloadUrlsResponseToUploadedFiles",
-                    condition: typeACondition,
+                    requestCondition: typeACondition,
                     data: {
                         downloadUrlsResponseToUploadedFiles: {
                             payload: {
@@ -1521,7 +1521,7 @@ describe("graphql-fake-server", () => {
                 const typeBFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "downloadUrlsResponseToUploadedFiles",
-                    condition: typeBCondition,
+                    requestCondition: typeBCondition,
                     data: {
                         downloadUrlsResponseToUploadedFiles: {
                             payload: {
@@ -1656,7 +1656,7 @@ describe("graphql-fake-server", () => {
                 const countFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetUser",
-                    condition: { type: "count", value: 1 },
+                    requestCondition: { type: "count", value: 1 },
                     data: {
                         user: {
                             id: "count-user",
@@ -1677,7 +1677,7 @@ describe("graphql-fake-server", () => {
                 const result = (await response.json()) as any;
                 expect(result.ok).toBe(false);
                 expect(result.errors).toContain(
-                    "Cannot mix count conditions with default (no condition) for the same operation",
+                    "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
                 );
             });
 
@@ -1703,7 +1703,7 @@ describe("graphql-fake-server", () => {
                 const variablesFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetUser",
-                    condition: { type: "variables", value: { id: "user123" } },
+                    requestCondition: { type: "variables", value: { id: "user123" } },
                     data: {
                         user: {
                             id: "vars-user",
@@ -1725,7 +1725,7 @@ describe("graphql-fake-server", () => {
                 const countFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetUser",
-                    condition: { type: "count", value: 1 },
+                    requestCondition: { type: "count", value: 1 },
                     data: {
                         user: {
                             id: "count-user",
@@ -1746,7 +1746,7 @@ describe("graphql-fake-server", () => {
                 const result = (await response.json()) as any;
                 expect(result.ok).toBe(false);
                 expect(result.errors).toContain(
-                    "Cannot mix count conditions with variables conditions for the same operation",
+                    "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
                 );
             });
 
@@ -1796,7 +1796,7 @@ describe("graphql-fake-server", () => {
                 const variablesFake: RegisterSequenceOptions = {
                     type: "operation",
                     operationName: "GetUser",
-                    condition: { type: "variables", value: { id: "special" } },
+                    requestCondition: { type: "variables", value: { id: "special" } },
                     data: {
                         user: {
                             id: "special-user",

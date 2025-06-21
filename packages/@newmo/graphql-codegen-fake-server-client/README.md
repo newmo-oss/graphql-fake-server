@@ -112,7 +112,7 @@ it("register conditional fake responses", async () => {
       books: [{ id: "1", title: "First Call" }],
     },
     {
-      condition: { type: "count", value: 1 },
+      requestCondition: { type: "count", value: 1 },
     }
   );
 
@@ -123,7 +123,7 @@ it("register conditional fake responses", async () => {
       books: [{ id: "2", title: "Second Call" }],
     },
     {
-      condition: { type: "count", value: 2 },
+      requestCondition: { type: "count", value: 2 },
     }
   );
 
@@ -135,7 +135,7 @@ it("register conditional fake responses", async () => {
       destinationCandidates: [{ id: "3", name: "Tokyo Station" }],
     },
     {
-      condition: {
+      requestCondition: {
         type: "variables",
         value: { text: "tokyo" }, // ✅ Type-safe! Must match ListDestinationCandidatesQueryVariables
       },
@@ -149,7 +149,7 @@ it("register conditional fake responses", async () => {
       createURLRideHistory: { id: "4", name: "Specific Variables" },
     },
     {
-      condition: {
+      requestCondition: {
         type: "variables",
         value: { desinationName: "Shibuya" }, // ✅ Type-safe for this mutation!
       },

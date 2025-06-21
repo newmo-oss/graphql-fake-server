@@ -11,7 +11,7 @@ const plugin: CodegenPlugin<RawPluginConfig> = {
 export type CountConditionRule = { type: "count"; value: number };
 export type VariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
 export type ConditionRule<TVariables = Record<string, any>> = CountConditionRule | VariablesConditionRule<TVariables>;
-export type RegisterSequenceOptions<TVariables = Record<string, any>> = { condition?: ConditionRule<TVariables> };`;
+export type RegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: ConditionRule<TVariables> };`;
         type GenerateFakeFunction =
             | {
                   type: "query";
@@ -98,7 +98,7 @@ ${exportsFunctions
             type: "operation",
             operationName: "${name}",
             data: queryResponse,
-            ...(sequenceOptions?.condition && { condition: sequenceOptions.condition })
+            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;
@@ -136,7 +136,7 @@ ${exportsFunctions
             type: "operation",
             operationName: "${name}",
             data: mutationResponse,
-            ...(sequenceOptions?.condition && { condition: sequenceOptions.condition })
+            ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
         }),
     }).then((res) => res.json()) as ${registerOperationResponseType};
 }`;

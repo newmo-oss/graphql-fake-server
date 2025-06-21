@@ -127,7 +127,7 @@ await fetch(`${urls.fakeServer}/fake`, {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetUser",
-    condition: {
+    requestCondition: {
       type: "count",
       value: 2,
     },
@@ -154,7 +154,7 @@ await fetch(`${urls.fakeServer}/fake`, {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetUser",
-    condition: {
+    requestCondition: {
       type: "variables",
       value: { id: "admin", role: "admin" },
     },
@@ -190,7 +190,7 @@ To ensure predictable behavior, the following condition combinations are not all
 // 1. Register default response
 await fetch("/fake", { body: { operationName: "GetUser", data: {...} } });
 // 2. Try to register count condition - ERROR!
-await fetch("/fake", { body: { operationName: "GetUser", condition: { type: "count", value: 1 }, data: {...} } });
+await fetch("/fake", { body: { operationName: "GetUser", requestCondition: { type: "count", value: 1 }, data: {...} } });
 ```
 
 ## Config

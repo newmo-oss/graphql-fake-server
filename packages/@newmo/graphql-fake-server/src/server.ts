@@ -151,20 +151,20 @@ export type RegisterSequenceNetworkError = {
     operationName: string;
     responseStatusCode: number;
     errors: Record<string, unknown>[];
-    // Add condition
-    condition?: ConditionRule;
+    // Add request condition
+    requestCondition?: ConditionRule;
 };
 export type RegisterSequenceOperation = {
     type: "operation";
     operationName: string;
     data: Record<string, unknown>;
-    // Add condition
-    condition?: ConditionRule;
+    // Add request condition
+    requestCondition?: ConditionRule;
 };
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 
 /**
- * Check if two condition types are conflicting
+ * Check if two condition types are conflicting and return specific error message
  * Only the following combinations are allowed:
  * - count + count
  * - variables + variables
@@ -173,34 +173,75 @@ export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSeq
  * All other combinations are conflicting
  */
 const areConditionTypesConflicting = (
-    conditionType1: string | undefined,
-    conditionType2: string | undefined,
-): boolean => {
-    // Define allowed combinations
-    const allowedCombinations = new Set([
+    conditionType1: ConditionRule["type"] | undefined,
+    conditionType2: ConditionRule["type"] | undefined,
+): { isConflicting: boolean; errorMessage?: string } => {
+    // Define allowed combinations with their descriptions
+    const allowedCombinations = new Map<string, string>([
         // Multiple count conditions for the same operation (e.g., 1st call, 2nd call)
-        "count,count",
+        ["count,count", "Multiple count-based conditions are allowed for different call counts"],
         // Multiple variables conditions for the same operation (e.g., different variable sets)
-        "variables,variables",
+        [
+            "variables,variables",
+            "Multiple variable-based conditions are allowed for different variable sets",
+        ],
         // Variables condition can coexist with default fallback
-        "variables,undefined",
+        ["variables,undefined", "Variable-based condition can coexist with default fallback"],
         // Default fallback can coexist with variables condition
-        "undefined,variables",
+        ["undefined,variables", "Default fallback can coexist with variable-based condition"],
         // Multiple default conditions - overwrite with the last one
-        "undefined,undefined",
+        ["undefined,undefined", "Multiple default conditions are allowed (latest will be used)"],
     ]);
 
     const combinationKey = `${conditionType1 ?? "undefined"},${conditionType2 ?? "undefined"}`;
 
-    // If the combination is not in the allowed list, it's conflicting
-    return !allowedCombinations.has(combinationKey);
+    // If the combination is allowed, return no conflict
+    if (allowedCombinations.has(combinationKey)) {
+        return { isConflicting: false };
+    }
+
+    // Generate specific error message for conflicting combinations
+    const getTypeDescription = (type: ConditionRule["type"] | undefined): string => {
+        switch (type) {
+            case "count":
+                return "count-based condition (e.g., { type: 'count', value: 1 })";
+            case "variables":
+                return "variables-based condition (e.g., { type: 'variables', value: {...} })";
+            case undefined:
+                return "default condition (no requestCondition specified)";
+            default:
+                return `unknown condition type: ${type}`;
+        }
+    };
+
+    const type1Desc = getTypeDescription(conditionType1);
+    const type2Desc = getTypeDescription(conditionType2);
+
+    let errorMessage: string;
+
+    // Specific error messages for common problematic combinations
+    if (
+        (conditionType1 === "count" && conditionType2 === "variables") ||
+        (conditionType1 === "variables" && conditionType2 === "count")
+    ) {
+        errorMessage =
+            "Cannot mix count-based and variables-based conditions for the same operation. " +
+            "Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), " +
+            `but not both. Current conflict: ${type1Desc} vs ${type2Desc}`;
+    } else {
+        errorMessage =
+            `Conflicting condition types detected: ${type1Desc} vs ${type2Desc}. ` +
+            "Allowed combinations are: count+count, variables+variables, variables+default, or default+default.";
+    }
+
+    return { isConflicting: true, errorMessage };
 };
 
 /**
  * Get condition type from a RegisterSequenceOptions
  */
-const getConditionType = (fake: RegisterSequenceOptions): string | undefined => {
-    return fake.condition?.type;
+const getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] | undefined => {
+    return fake.requestCondition?.type;
 };
 
 /**
@@ -217,22 +258,24 @@ const checkConditionConflicts = (
     // Check conflicts with existing conditional fakes
     for (const existingFake of existingConditionalFakes) {
         const existingConditionType = getConditionType(existingFake);
-        if (areConditionTypesConflicting(newConditionType, existingConditionType)) {
-            errors.push(
-                `Cannot mix count conditions with ${
-                    existingConditionType || "default"
-                } conditions for the same operation`,
-            );
+        const conflictResult = areConditionTypesConflicting(
+            newConditionType,
+            existingConditionType,
+        );
+        if (conflictResult.isConflicting) {
+            errors.push(conflictResult.errorMessage!);
         }
     }
 
     // Check conflicts with existing default fake (no condition)
     if (existingDefaultFake) {
         const existingConditionType = getConditionType(existingDefaultFake);
-        if (areConditionTypesConflicting(newConditionType, existingConditionType)) {
-            errors.push(
-                "Cannot mix count conditions with default (no condition) for the same operation",
-            );
+        const conflictResult = areConditionTypesConflicting(
+            newConditionType,
+            existingConditionType,
+        );
+        if (conflictResult.isConflicting) {
+            errors.push(conflictResult.errorMessage!);
         }
     }
 
@@ -274,9 +317,9 @@ const validateConditionRule = (condition: any): condition is ConditionRule => {
 const validateSequenceRegistration = (data: unknown): data is RegisterSequenceOptions => {
     if (typeof data !== "object" || data === null) return false;
 
-    // Validate condition
-    if ("condition" in data && data.condition !== undefined) {
-        if (!validateConditionRule(data.condition)) return false;
+    // Validate request condition
+    if ("requestCondition" in data && data.requestCondition !== undefined) {
+        if (!validateConditionRule(data.requestCondition)) return false;
     }
 
     if ("type" in data && typeof data.type === "string") {
@@ -550,7 +593,7 @@ const createRoutingServer = async ({
         logger.debug("/fake got body type", {
             sequenceId,
             type: body.type,
-            condition: body.condition,
+            requestCondition: body.requestCondition,
         });
 
         const baseKey = createMapKey({
@@ -577,14 +620,14 @@ const createRoutingServer = async ({
             );
         }
 
-        // Register as conditional fake if condition exists
-        if (body.condition) {
+        // Register as conditional fake if request condition exists
+        if (body.requestCondition) {
             const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
             // Overwrite if same condition exists, otherwise add new
             const existingIndex = existingConditionalFakes.findIndex(
                 (fake) =>
-                    fake.condition &&
-                    JSON.stringify(fake.condition) === JSON.stringify(body.condition),
+                    fake.requestCondition &&
+                    JSON.stringify(fake.requestCondition) === JSON.stringify(body.requestCondition),
             );
 
             if (existingIndex >= 0) {
@@ -595,8 +638,12 @@ const createRoutingServer = async ({
 
             // Sort by condition specificity (evaluate more specific conditions first)
             existingConditionalFakes.sort((a, b) => {
-                const scoreA = a.condition ? calculateConditionSpecificity(a.condition) : 0;
-                const scoreB = b.condition ? calculateConditionSpecificity(b.condition) : 0;
+                const scoreA = a.requestCondition
+                    ? calculateConditionSpecificity(a.requestCondition)
+                    : 0;
+                const scoreB = b.requestCondition
+                    ? calculateConditionSpecificity(b.requestCondition)
+                    : 0;
                 return scoreB - scoreA; // Descending order
             });
 
@@ -732,18 +779,18 @@ const createRoutingServer = async ({
         if (conditionalFakes && conditionalFakes.length > 0) {
             // Find matching fake (already sorted by specificity in descending order)
             for (const fake of conditionalFakes) {
-                if (fake.condition) {
+                if (fake.requestCondition) {
                     const context = {
                         callCount: currentCallCount,
                         ...(requestVariables && { variables: requestVariables }),
                     };
 
-                    if (evaluateCondition(fake.condition, context)) {
+                    if (evaluateCondition(fake.requestCondition, context)) {
                         matchedFake = fake;
                         logger.debug("fakeGraphQLQuery: matched conditional fake", {
                             sequenceId,
                             operationName: requestOperationName,
-                            condition: fake.condition,
+                            requestCondition: fake.requestCondition,
                             callCount: currentCallCount,
                             variables: requestVariables,
                         });

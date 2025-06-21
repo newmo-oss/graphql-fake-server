@@ -424,7 +424,7 @@ fetch("http://127.0.0.1:4000/fake", {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetBooks",
-    condition: {
+    requestCondition: {
       type: "count",
       value: 2, // Only match on the 2nd call
     },
@@ -453,7 +453,7 @@ fetch("http://127.0.0.1:4000/fake", {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetUser",
-    condition: {
+    requestCondition: {
       type: "variables",
       value: { id: "admin", role: "admin" }, // Only match when variables exactly match
     },
@@ -483,7 +483,7 @@ Count-based conditions allow you to return specific responses on the nth call to
 {
   type: "operation",
   operationName: "GetBooks",
-  condition: {
+  requestCondition: {
     type: "count",
     value: 3 // Only return this response on the 3rd call
   },
@@ -505,7 +505,7 @@ Variables-based conditions allow you to return specific responses when the Graph
 {
   type: "operation",
   operationName: "GetUser",
-  condition: {
+  requestCondition: {
     type: "variables",
     value: { id: "admin", role: "admin" } // Only match when variables exactly match
   },
@@ -538,7 +538,7 @@ fetch("http://127.0.0.1:4000/fake", {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetBooks",
-    condition: { type: "count", value: 1 },
+    requestCondition: { type: "count", value: 1 },
     data: { books: [{ id: "1", title: "First Book" }] },
   }),
 });
@@ -550,7 +550,7 @@ fetch("http://127.0.0.1:4000/fake", {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetBooks",
-    condition: { type: "count", value: 2 },
+    requestCondition: { type: "count", value: 2 },
     data: { books: [{ id: "2", title: "Second Book" }] },
   }),
 });
@@ -562,7 +562,7 @@ fetch("http://127.0.0.1:4000/fake", {
   body: JSON.stringify({
     type: "operation",
     operationName: "GetBooks",
-    condition: { type: "variables", value: { userRole: "admin" } },
+    requestCondition: { type: "variables", value: { userRole: "admin" } },
     data: { books: [{ id: "admin", title: "Admin Only Book" }] },
   }),
 });
