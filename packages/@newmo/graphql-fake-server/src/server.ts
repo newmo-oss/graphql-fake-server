@@ -163,15 +163,15 @@ export type RegisterSequenceNetworkError = {
     operationName: string;
     responseStatusCode: number;
     errors: Record<string, unknown>[];
-    // Add request condition
-    requestCondition?: ConditionRule;
+    // Request condition is now required (defaults to "always" if not specified)
+    requestCondition: ConditionRule;
 };
 export type RegisterSequenceOperation = {
     type: "operation";
     operationName: string;
     data: Record<string, unknown> | Record<string, unknown>[];
-    // Add request condition
-    requestCondition?: ConditionRule;
+    // Request condition is now required (defaults to "always" if not specified)
+    requestCondition: ConditionRule;
 };
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 
@@ -186,54 +186,41 @@ export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSeq
  * - Single response and array response cannot coexist with the same conditions
  */
 const areConditionTypesConflicting = (
-    conditionType1: ConditionRule["type"] | undefined,
-    conditionType2: ConditionRule["type"] | undefined,
+    conditionType1: ConditionRule["type"],
+    conditionType2: ConditionRule["type"],
     responseType1: "single" | "array",
     responseType2: "single" | "array",
 ): { isConflicting: boolean; errorMessage?: string } => {
-    // Normalize undefined condition types to "always"
-    const type1 = conditionType1 ?? "always";
-    const type2 = conditionType2 ?? "always";
-
-    // Check for incompatible condition type combinations
-    if (type1 === "count" && type2 === "always") {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-        };
-    }
-
-    if (type1 === "always" && type2 === "count") {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
-        };
-    }
-
-    if (type1 === "count" && type2 === "variables") {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
-        };
-    }
-
-    if (type1 === "variables" && type2 === "count") {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
-        };
-    }
-
     // Check if response types conflict with same conditions
-    if (responseType1 !== responseType2 && type1 === type2) {
+    if (responseType1 !== responseType2 && conditionType1 === conditionType2) {
         return {
             isConflicting: true,
             errorMessage:
                 "Cannot mix single response and array response with the same requestCondition for the same sequenceId x operationName",
+        };
+    }
+
+    // Count and always conflict
+    if (
+        (conditionType1 === "count" && conditionType2 === "always") ||
+        (conditionType1 === "always" && conditionType2 === "count")
+    ) {
+        return {
+            isConflicting: true,
+            errorMessage:
+                "Conflicting condition types detected: count-based condition (e.g., { type: 'count', value: 1 }) vs default condition (no requestCondition specified). Allowed combinations are: count+count, variables+variables, variables+default, or default+default.",
+        };
+    }
+
+    // Count and variables conflict
+    if (
+        (conditionType1 === "count" && conditionType2 === "variables") ||
+        (conditionType1 === "variables" && conditionType2 === "count")
+    ) {
+        return {
+            isConflicting: true,
+            errorMessage:
+                "Cannot mix count-based and variables-based conditions for the same operation. Use either multiple count conditions (for different call numbers) or multiple variables conditions (for different variable sets), but not both. Current conflict: count-based condition (e.g., { type: 'count', value: 1 }) vs variables-based condition (e.g., { type: 'variables', value: {...} })",
         };
     }
 
@@ -243,8 +230,8 @@ const areConditionTypesConflicting = (
 /**
  * Get condition type from a RegisterSequenceOptions
  */
-const getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] | undefined => {
-    return fake.requestCondition?.type;
+const getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] => {
+    return fake.requestCondition.type;
 };
 
 /**
@@ -375,8 +362,9 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
         return { ok: false, error: "Request body must be an object" };
     }
 
-    // Validate request condition (only singular form now)
-    const requestCondition = "requestCondition" in data ? data.requestCondition : undefined;
+    // Validate request condition (default to "always" if not provided)
+    const requestCondition =
+        "requestCondition" in data ? data.requestCondition : { type: "always" };
 
     if (requestCondition !== undefined) {
         const conditionResult = validateConditionRule(requestCondition);
@@ -387,7 +375,7 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
             };
         }
         // Normalize to requestCondition for internal use
-        (data as Record<string, unknown>)["requestCondition"] = requestCondition;
+        (data as Record<string, unknown>)["requestCondition"] = conditionResult.data;
     }
 
     if (!("type" in data) || typeof data.type !== "string") {
@@ -627,10 +615,6 @@ const createRoutingServer = async ({
     const sequenceIndexMap = new LRUMap<string, number>({
         maxSize: maxRegisteredSequences,
     });
-    // Track call count for count-based conditions (1-indexed)
-    const sequenceCallCountMap = new LRUMap<string, number>({
-        maxSize: maxRegisteredSequences,
-    });
     // sequenceId x operationName -> Called Result
     // CalledResult is first request is index 0, second request is index 1 and so on
     const sequenceCalledResultLruMap = new LRUMap<string, CalledResult[]>({
@@ -700,19 +684,16 @@ const createRoutingServer = async ({
             );
         }
 
-        // Determine if this has conditions (if not, treat as "always")
-        const hasConditions =
-            validationResult.data.requestCondition &&
-            validationResult.data.requestCondition.type !== "always";
+        // Determine if this has specific conditions (not just "always")
+        const hasSpecificConditions = validationResult.data.requestCondition.type !== "always";
 
-        if (hasConditions) {
+        if (hasSpecificConditions) {
             const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
             // Overwrite if same condition exists, otherwise add new
             const existingIndex = existingConditionalFakes.findIndex(
                 (fake) =>
-                    fake.requestCondition &&
                     JSON.stringify(fake.requestCondition) ===
-                        JSON.stringify(validationResult.data.requestCondition),
+                    JSON.stringify(validationResult.data.requestCondition),
             );
 
             if (existingIndex >= 0) {
@@ -721,26 +702,13 @@ const createRoutingServer = async ({
                 existingConditionalFakes.push(validationResult.data);
             }
 
-            // Sort by condition specificity and count value for deterministic ordering
+            // Sort by condition specificity for deterministic ordering
             existingConditionalFakes.sort((a, b) => {
-                const scoreA = a.requestCondition
-                    ? calculateConditionSpecificity(a.requestCondition)
-                    : 0;
-                const scoreB = b.requestCondition
-                    ? calculateConditionSpecificity(b.requestCondition)
-                    : 0;
+                const scoreA = calculateConditionSpecificity(a.requestCondition);
+                const scoreB = calculateConditionSpecificity(b.requestCondition);
 
-                // First sort by specificity (descending)
-                if (scoreA !== scoreB) {
-                    return scoreB - scoreA;
-                }
-
-                // For same specificity, sort count conditions by value (ascending)
-                if (a.requestCondition?.type === "count" && b.requestCondition?.type === "count") {
-                    return a.requestCondition.value - b.requestCondition.value;
-                }
-
-                return 0; // Keep original order for other conditions with same specificity
+                // Sort by specificity (descending)
+                return scoreB - scoreA;
             });
 
             conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
@@ -864,19 +832,11 @@ const createRoutingServer = async ({
                 ? (requestBody.variables as Record<string, unknown>)
                 : undefined;
 
-        // Track and update call count for this operation
-        const currentCallCount = (sequenceCallCountMap.get(baseKey) || 0) + 1;
-        sequenceCallCountMap.set(baseKey, currentCallCount);
-
-        logger.debug("fakeGraphQLQuery: callCount tracking", {
-            sequenceId,
-            operationName: requestOperationName,
-            baseKey,
-            currentCallCount,
-        });
-
         // Check conditional fakes first
         const conditionalFakes = conditionalFakeResponseMap.get(baseKey);
+
+        // Get current call count for this sequenceId + operationName (1-indexed)
+        const currentCallCount = (sequenceIndexMap.get(baseKey) || 0) + 1;
 
         logger.debug("fakeGraphQLQuery: conditional fakes check", {
             sequenceId,
@@ -886,10 +846,10 @@ const createRoutingServer = async ({
                 type: fake.type,
                 requestCondition: fake.requestCondition,
             })),
-            currentCallCount,
             requestVariables,
+            callCount: currentCallCount,
         });
-        // Find the first matching conditional fake based on variables and call count
+        // Find the first matching conditional fake based on variables
         // If no conditional fake matches, use the default fake from sequenceFakeResponseLruMap
         const matchedFake: RegisterSequenceOptions | undefined =
             findMatchedConditionalFake({
@@ -1007,12 +967,9 @@ const createRoutingServer = async ({
 
         if (Array.isArray(fakeData)) {
             // Handle array response - use sequence index to select which response to return
-            const currentSequenceIndex = sequenceIndexMap.get(baseKey) || 0;
+            // For array responses, we use the current call count as the index
+            const currentSequenceIndex = currentCallCount - 1; // Convert to 0-indexed for array access
             const selectedData = fakeData[currentSequenceIndex] || fakeData[fakeData.length - 1];
-
-            // Update sequence index for next call, but don't exceed array length
-            const nextIndex = Math.min(currentSequenceIndex + 1, fakeData.length - 1);
-            sequenceIndexMap.set(baseKey, nextIndex);
 
             merged = {
                 ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
@@ -1021,7 +978,7 @@ const createRoutingServer = async ({
 
             logger.debug(`fakeGraphQLQuery: used array response at index ${currentSequenceIndex}`, {
                 selectedData,
-                nextIndex: nextIndex,
+                currentCallCount,
             });
         } else {
             // Handle single response
@@ -1052,6 +1009,9 @@ const createRoutingServer = async ({
                 },
             },
         ]);
+
+        // Increment call count for conditional fake tracking
+        sequenceIndexMap.set(baseKey, currentCallCount);
 
         logger.debug("fakeGraphQLQuery: merge completed, returning response");
         // Let the server automatically calculate Content-Length to avoid issues with multi-byte characters
@@ -1219,7 +1179,7 @@ const calculateConditionSpecificity = (condition: ConditionRule): number => {
 };
 
 /**
- * Find a matching conditional fake based on the request variables and call count
+ * Find a matching conditional fake based on the request variables
  */
 const findMatchedConditionalFake = ({
     conditionalFakes,
@@ -1239,24 +1199,13 @@ const findMatchedConditionalFake = ({
     if (conditionalFakes && conditionalFakes.length > 0) {
         // Find matching fake (already sorted by specificity in descending order)
         for (const fake of conditionalFakes) {
-            if (fake.requestCondition) {
-                const context = {
-                    ...(requestVariables && { variables: requestVariables }),
-                    callCount,
-                };
+            const context = {
+                ...(requestVariables && { variables: requestVariables }),
+                callCount,
+            };
 
-                if (evaluateCondition(fake.requestCondition, context)) {
-                    logger.debug("fakeGraphQLQuery: matched conditional fake", {
-                        sequenceId,
-                        operationName: requestOperationName,
-                        requestCondition: fake.requestCondition,
-                        variables: requestVariables,
-                        callCount,
-                        evaluationContext: context,
-                    });
-                    return fake;
-                }
-                logger.debug("fakeGraphQLQuery: conditional fake did not match", {
+            if (evaluateCondition(fake.requestCondition, context)) {
+                logger.debug("fakeGraphQLQuery: matched conditional fake", {
                     sequenceId,
                     operationName: requestOperationName,
                     requestCondition: fake.requestCondition,
@@ -1264,7 +1213,16 @@ const findMatchedConditionalFake = ({
                     callCount,
                     evaluationContext: context,
                 });
+                return fake;
             }
+            logger.debug("fakeGraphQLQuery: conditional fake did not match", {
+                sequenceId,
+                operationName: requestOperationName,
+                requestCondition: fake.requestCondition,
+                variables: requestVariables,
+                callCount,
+                evaluationContext: context,
+            });
         }
     }
     return undefined;

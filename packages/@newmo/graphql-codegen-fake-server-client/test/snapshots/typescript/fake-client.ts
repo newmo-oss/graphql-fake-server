@@ -22,6 +22,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
   }
   return {
     async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery | ListDestinationCandidatesQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -32,7 +33,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "ListDestinationCandidates",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -98,6 +99,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     };
     },
     async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery | ListRideHistoriesQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -108,7 +110,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "ListRideHistories",
                 data: queryResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -174,6 +176,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     };
     },
     async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation | CreateUrlRideHistoryMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -184,7 +187,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateUrlRideHistory",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
@@ -252,6 +255,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     }
     },
     async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation | CreateFooUrlRideHistoryMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
             headers: {
@@ -262,7 +266,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 type: "operation",
                 operationName: "CreateFooUrlRideHistory",
                 data: mutationResponse,
-                ...(sequenceOptions?.requestCondition && { requestCondition: sequenceOptions.requestCondition })
+                requestCondition: requestCondition
             }),
         }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
     },
