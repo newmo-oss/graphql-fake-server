@@ -1819,4 +1819,364 @@ describe("graphql-fake-server", () => {
             });
         });
     });
+    describe("Condition validation", () => {
+        it("should reject count condition with value 0", async () => {
+            const schema = `
+                    type Book {
+                        id: ID! @exampleID(value: "book-id")
+                        title: String! @exampleString(value: "Default Book")
+                    }
+                    type Query {
+                        books: [Book!]!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with count: 0 - should fail
+            const invalidCountFake: RegisterSequenceOptions = {
+                type: "operation",
+                operationName: "GetBooks",
+                requestCondition: { type: "count", value: 0 },
+                data: {
+                    books: [{ id: "book-1", title: "Zero Count Book" }],
+                },
+            };
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(invalidCountFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject count condition with negative value", async () => {
+            const schema = `
+                    type Book {
+                        id: ID! @exampleID(value: "book-id")
+                        title: String! @exampleString(value: "Default Book")
+                    }
+                    type Query {
+                        books: [Book!]!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with negative count - should fail
+            const negativeCountFake: RegisterSequenceOptions = {
+                type: "operation",
+                operationName: "GetBooks",
+                requestCondition: { type: "count", value: -1 },
+                data: {
+                    books: [{ id: "book-1", title: "Negative Count Book" }],
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(negativeCountFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject count condition with non-number value", async () => {
+            const schema = `
+                    type Book {
+                        id: ID! @exampleID(value: "book-id")
+                        title: String! @exampleString(value: "Default Book")
+                    }
+                    type Query {
+                        books: [Book!]!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with string count - should fail
+            const stringCountFake = {
+                type: "operation",
+                operationName: "GetBooks",
+                requestCondition: { type: "count", value: "1" }, // string instead of number
+                data: {
+                    books: [{ id: "book-1", title: "String Count Book" }],
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(stringCountFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject variables condition with null value", async () => {
+            const schema = `
+                    type User {
+                        id: ID! @exampleID(value: "user-id")
+                        name: String! @exampleString(value: "Default User")
+                    }
+                    type Query {
+                        user(id: ID!): User!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with null variables - should fail
+            const nullVariablesFake = {
+                type: "operation",
+                operationName: "GetUser",
+                requestCondition: { type: "variables", value: null },
+                data: {
+                    user: { id: "user-1", name: "Null Variables User" },
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(nullVariablesFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject variables condition with array value", async () => {
+            const schema = `
+                    type User {
+                        id: ID! @exampleID(value: "user-id")
+                        name: String! @exampleString(value: "Default User")
+                    }
+                    type Query {
+                        user(id: ID!): User!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with array variables - should fail
+            const arrayVariablesFake = {
+                type: "operation",
+                operationName: "GetUser",
+                requestCondition: { type: "variables", value: ["id", "name"] }, // array instead of object
+                data: {
+                    user: { id: "user-1", name: "Array Variables User" },
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(arrayVariablesFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject unknown condition type", async () => {
+            const schema = `
+                    type Book {
+                        id: ID! @exampleID(value: "book-id")
+                        title: String! @exampleString(value: "Default Book")
+                    }
+                    type Query {
+                        books: [Book!]!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with unknown condition type - should fail
+            const unknownConditionFake = {
+                type: "operation",
+                operationName: "GetBooks",
+                requestCondition: { type: "unknown", value: "test" }, // unknown condition type
+                data: {
+                    books: [{ id: "book-1", title: "Unknown Condition Book" }],
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(unknownConditionFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject condition without type field", async () => {
+            const schema = `
+                    type Book {
+                        id: ID! @exampleID(value: "book-id")
+                        title: String! @exampleString(value: "Default Book")
+                    }
+                    type Query {
+                        books: [Book!]!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with condition missing type - should fail
+            const noTypeFake = {
+                type: "operation",
+                operationName: "GetBooks",
+                requestCondition: { value: 1 }, // missing type field
+                data: {
+                    books: [{ id: "book-1", title: "No Type Condition Book" }],
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(noTypeFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+
+        it("should reject condition without value field", async () => {
+            const schema = `
+                    type Book {
+                        id: ID! @exampleID(value: "book-id")
+                        title: String! @exampleString(value: "Default Book")
+                    }
+                    type Query {
+                        books: [Book!]!
+                    }
+                `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({
+                schemaString: schema,
+                ports,
+            });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+
+            // Try to register fake with condition missing value - should fail
+            const noValueFake = {
+                type: "operation",
+                operationName: "GetBooks",
+                requestCondition: { type: "count" }, // missing value field
+                data: {
+                    books: [{ id: "book-1", title: "No Value Condition Book" }],
+                },
+            };
+
+            const response = await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify(noValueFake),
+            });
+
+            const result = (await response.json()) as any;
+            expect(response.status).toBe(400);
+            expect(result.ok).toBe(false);
+            expect(result.errors).toContain("invalid fake body");
+
+            await server.stop();
+        });
+    });
 });

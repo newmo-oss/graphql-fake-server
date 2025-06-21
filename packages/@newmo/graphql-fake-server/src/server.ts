@@ -567,10 +567,10 @@ const createRoutingServer = async ({
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
             return Response.json(
-                JSON.stringify({
+                {
                     ok: false,
                     errors: ["sequence-id is required"],
-                }),
+                },
                 {
                     status: 400,
                 },
@@ -582,9 +582,12 @@ const createRoutingServer = async ({
             body,
         });
         if (!validateSequenceRegistration(body)) {
-            return Response.json(JSON.stringify({ ok: false, errors: ["invalid fake body"] }), {
-                status: 400,
-            });
+            return Response.json(
+                { ok: false, errors: ["invalid fake body"] },
+                {
+                    status: 400,
+                },
+            );
         }
         const operationName = body.operationName;
         logger.debug("/fake got body type", {
@@ -661,10 +664,10 @@ const createRoutingServer = async ({
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
             return Response.json(
-                JSON.stringify({
+                {
                     ok: false,
                     errors: ["sequence-id is required"],
-                }),
+                },
                 {
                     status: 400,
                 },
@@ -675,10 +678,10 @@ const createRoutingServer = async ({
         const operationName = body.operationName;
         if (!operationName) {
             return Response.json(
-                JSON.stringify({
+                {
                     ok: false,
                     errors: ["operationName is required"],
-                }),
+                },
                 {
                     status: 400,
                 },
@@ -822,11 +825,11 @@ const createRoutingServer = async ({
         if (requestOperationName !== matchedFake.operationName) {
             logger.debug("fakeGraphQLQuery: operationName mismatch, returning error");
             return Response.json(
-                JSON.stringify({
+                {
                     errors: [
                         `operationName does not match. operationName: ${requestOperationName} sequenceId: ${sequenceId}`,
                     ],
-                }),
+                },
                 {
                     status: 400,
                 },
