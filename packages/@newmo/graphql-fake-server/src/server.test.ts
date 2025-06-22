@@ -675,8 +675,11 @@ describe("graphql-fake-server", () => {
                             message: "Network Error",
                         },
                     ],
+                    requestCondition: {
+                        type: "always",
+                    },
                     responseStatusCode: 400,
-                } as RegisterSequenceNetworkError),
+                } satisfies RegisterSequenceNetworkError),
             });
             expect(regiRes.status).toBe(200);
             // request with sequence-id
@@ -739,8 +742,11 @@ describe("graphql-fake-server", () => {
                             message: "Network Error",
                         },
                     ],
+                    requestCondition: {
+                        type: "always",
+                    },
                     responseStatusCode: 400,
-                } as RegisterSequenceNetworkError),
+                } satisfies RegisterSequenceNetworkError),
             });
             expect(regiRes.status).toBe(200);
             // request with sequence-id
@@ -797,8 +803,11 @@ describe("graphql-fake-server", () => {
                             message: "Network Error",
                         },
                     ],
+                    requestCondition: {
+                        type: "always",
+                    },
                     responseStatusCode: 400,
-                } as RegisterSequenceNetworkError),
+                } satisfies RegisterSequenceNetworkError),
             });
             expect(regiRes.status).toBe(200);
             // request with sequence-id
@@ -855,8 +864,11 @@ describe("graphql-fake-server", () => {
                             message: "Network Error",
                         },
                     ],
+                    requestCondition: {
+                        type: "always",
+                    },
                     responseStatusCode: 400,
-                } as RegisterSequenceNetworkError),
+                } satisfies RegisterSequenceNetworkError),
             });
             expect(regiRes.status).toBe(200);
             // request with sequence-id
@@ -1424,7 +1436,7 @@ describe("graphql-fake-server", () => {
                 assert.ok(secondResult.data?.books?.[0], "Second book should exist");
                 expect(secondResult.data?.books?.[0]?.title).toBe("Second Call Book");
 
-                // Third call should repeat last response in sequence
+                // Third call should fall back to Apollo's default response (since array is exhausted)
                 const thirdResponse = await fetch(`${urls.fakeServer}/query`, {
                     method: "POST",
                     headers: {
@@ -1446,7 +1458,33 @@ describe("graphql-fake-server", () => {
 
                 const thirdResult = (await thirdResponse.json()) as GraphQLTestResponse;
                 assert.ok(thirdResult.data?.books?.[0], "Third book should exist");
-                expect(thirdResult.data?.books?.[0]?.title).toBe("Second Call Book");
+                // Should return Apollo's default fake data (from @example directives)
+                expect(thirdResult.data?.books?.[0]?.title).toBe("Default Book");
+
+                // Fourth call should also return Apollo's default response
+                const fourthResponse = await fetch(`${urls.fakeServer}/query`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "sequence-id": sequenceId,
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            query GetBooks {
+                                books {
+                                    id
+                                    title
+                                }
+                            }
+                        `,
+                        operationName: "GetBooks",
+                    }),
+                });
+
+                const fourthResult = (await fourthResponse.json()) as GraphQLTestResponse;
+                assert.ok(fourthResult.data?.books?.[0], "Fourth book should exist");
+                // Should return Apollo's default fake data (from @example directives)
+                expect(fourthResult.data?.books?.[0]?.title).toBe("Default Book");
 
                 await server.stop();
             });
@@ -1481,8 +1519,11 @@ describe("graphql-fake-server", () => {
                             message: "Network Error",
                         },
                     ],
+                    requestCondition: {
+                        type: "always",
+                    },
                     responseStatusCode: 400,
-                } as RegisterSequenceNetworkError),
+                } satisfies RegisterSequenceNetworkError),
             });
 
             // request with sequence-id should trigger error response
@@ -1836,6 +1877,7 @@ describe("graphql-fake-server", () => {
                         name: "Default User",
                     },
                 },
+                requestCondition: { type: "always" },
             };
 
             const defaultResponse = await fetch(`${urls.fakeServer}/fake`, {

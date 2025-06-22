@@ -27,6 +27,37 @@ loadErrorMessages();
 const fakeClient = createFakeClient({
     fakeServerEndpoint: "http://127.0.0.1:4000/fake",
 });
+
+// Utility function to create Apollo Client with cache disabled
+const createApolloClient = (options: {
+    uri: string;
+    sequenceId?: string;
+    errorLink?: ApolloLink;
+}): ApolloClient<unknown> => {
+    const { uri, sequenceId, errorLink } = options;
+
+    const httpLink = new HttpLink({
+        uri,
+        fetch,
+        headers: sequenceId ? { "sequence-id": sequenceId } : {},
+    });
+
+    const links = errorLink ? [errorLink, httpLink] : [httpLink];
+
+    return new ApolloClient({
+        link: ApolloLink.from(links),
+        cache: new InMemoryCache(),
+        defaultOptions: {
+            query: {
+                fetchPolicy: "no-cache",
+            },
+            mutate: {
+                fetchPolicy: "no-cache",
+            },
+        },
+    });
+};
+
 describe("integration test", async () => {
     let server: Awaited<ReturnType<typeof createFakeServer>>;
     let fakeServerUrl = "";
@@ -55,12 +86,8 @@ describe("integration test", async () => {
     describe("without fake", () => {
         it("should work createFooURL mutation", async () => {
             // request to server
-            const client = new ApolloClient({
-                link: new HttpLink({
-                    uri: `${fakeServerUrl}/graphql`,
-                    fetch,
-                }),
-                cache: new InMemoryCache(),
+            const client = createApolloClient({
+                uri: `${fakeServerUrl}/graphql`,
             });
             const response = await client.mutate<CreateBookInput>({
                 mutation: CreateFooUrlDocument,
@@ -373,15 +400,9 @@ describe("integration test", async () => {
               }
             `);
             // request to server
-            const client = new ApolloClient({
-                link: new HttpLink({
-                    uri: `${fakeServerUrl}/graphql`,
-                    headers: {
-                        "sequence-id": sequenceId,
-                    },
-                    fetch,
-                }),
-                cache: new InMemoryCache(),
+            const client = createApolloClient({
+                uri: `${fakeServerUrl}/graphql`,
+                sequenceId,
             });
             // get fake response
             const response = await client.mutate<CreateBookInput>({
@@ -559,15 +580,9 @@ describe("integration test", async () => {
                     },
                 );
             // request to server
-            const client = new ApolloClient({
-                link: new HttpLink({
-                    uri: `${fakeServerUrl}/graphql`,
-                    headers: {
-                        "sequence-id": sequenceId,
-                    },
-                    fetch,
-                }),
-                cache: new InMemoryCache(),
+            const client = createApolloClient({
+                uri: `${fakeServerUrl}/graphql`,
+                sequenceId,
             });
             const response = await client.mutate<UseMutationErrorPatternMutationMutation>({
                 mutation: UseMutationErrorPatternMutationDocument,
@@ -606,18 +621,10 @@ describe("integration test", async () => {
             const spy = vi.fn();
             const errorLink = apolloOnError(spy);
             // request to server
-            const client = new ApolloClient({
-                link: ApolloLink.from([
-                    errorLink,
-                    new HttpLink({
-                        uri: `${fakeServerUrl}/graphql`,
-                        headers: {
-                            "sequence-id": sequenceId,
-                        },
-                        fetch,
-                    }),
-                ]),
-                cache: new InMemoryCache(),
+            const client = createApolloClient({
+                uri: `${fakeServerUrl}/graphql`,
+                sequenceId,
+                errorLink,
             });
             try {
                 await client.query({
@@ -648,20 +655,10 @@ describe("integration test", async () => {
                     name: "dog name",
                 },
             });
-            const spy = vi.fn();
-            const _errorLink = apolloOnError(spy);
             // request to server
-            const client = new ApolloClient({
-                link: ApolloLink.from([
-                    new HttpLink({
-                        uri: `${fakeServerUrl}/graphql`,
-                        headers: {
-                            "sequence-id": sequenceId,
-                        },
-                        fetch,
-                    }),
-                ]),
-                cache: new InMemoryCache(),
+            const client = createApolloClient({
+                uri: `${fakeServerUrl}/graphql`,
+                sequenceId,
             });
             const response = await client.query({
                 query: GetDogDocument,
@@ -925,69 +922,102 @@ describe("integration test", async () => {
               }
             `);
 
-            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
-                headers: {
-                    "sequence-id": sequenceId,
-                },
+            // apollo client to make requests
+            const client = createApolloClient({
+                uri: `${fakeServerUrl}/graphql`,
+                sequenceId,
             });
 
             // First call should return first response
-            const response1 = await client.request(GetBooksDocument);
+            const response1 = await client.query({
+                query: GetBooksDocument,
+            });
             expect(response1).toMatchInlineSnapshot(`
               {
-                "__typename": "Query",
-                "books": [
-                  {
-                    "__typename": "Book",
-                    "id": "1",
-                    "title": "First Call",
-                  },
-                ],
+                "data": {
+                  "__typename": "Query",
+                  "books": [
+                    {
+                      "__typename": "Book",
+                      "id": "1",
+                      "title": "First Call",
+                    },
+                  ],
+                },
+                "loading": false,
+                "networkStatus": 7,
               }
             `);
 
             // Second call should return second response
-            const response2 = await client.request(GetBooksDocument);
+            const response2 = await client.query({
+                query: GetBooksDocument,
+            });
             expect(response2).toMatchInlineSnapshot(`
               {
-                "__typename": "Query",
-                "books": [
-                  {
-                    "__typename": "Book",
-                    "id": "2",
-                    "title": "Second Call",
-                  },
-                ],
+                "data": {
+                  "__typename": "Query",
+                  "books": [
+                    {
+                      "__typename": "Book",
+                      "id": "2",
+                      "title": "Second Call",
+                    },
+                  ],
+                },
+                "loading": false,
+                "networkStatus": 7,
               }
             `);
 
             // Third call should return third response
-            const response3 = await client.request(GetBooksDocument);
+            const response3 = await client.query({
+                query: GetBooksDocument,
+            });
             expect(response3).toMatchInlineSnapshot(`
               {
-                "__typename": "Query",
-                "books": [
-                  {
-                    "__typename": "Book",
-                    "id": "3",
-                    "title": "Third Call",
-                  },
-                ],
+                "data": {
+                  "__typename": "Query",
+                  "books": [
+                    {
+                      "__typename": "Book",
+                      "id": "3",
+                      "title": "Third Call",
+                    },
+                  ],
+                },
+                "loading": false,
+                "networkStatus": 7,
               }
             `);
 
-            // Fourth call should return last response (third) again
-            const response4 = await client.request(GetBooksDocument);
+            // Fourth call should return default response because we exhausted the array
+            const response4 = await client.query({
+                query: GetBooksDocument,
+            });
             expect(response4).toMatchInlineSnapshot(`
               {
-                "__typename": "Query",
-                "books": [
-                  {
-                    "__typename": "Book",
-                    "id": "3",
-                    "title": "Third Call",
-                  },
-                ],
+                "data": {
+                  "books": [
+                    {
+                      "__typename": "Book",
+                      "id": "book-id_g1857_d1_c1085",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "__typename": "Book",
+                      "id": "book-id_g2018_d1_c1206",
+                      "title": "The Great Gatsby",
+                    },
+                    {
+                      "__typename": "Book",
+                      "id": "book-id_g2179_d1_c1327",
+                      "title": "The Great Gatsby",
+                    },
+                  ],
+                },
+                "loading": false,
+                "networkStatus": 7,
               }
             `);
         });
@@ -997,6 +1027,7 @@ describe("integration test", async () => {
 
             // Register array of mutation responses
             const resRegister = await fakeClient.registerCreateBookMutationResponse(sequenceId, [
+                // first response
                 {
                     __typename: "Mutation",
                     createBook: {
@@ -1005,6 +1036,7 @@ describe("integration test", async () => {
                         title: "Created First",
                     },
                 },
+                // second response
                 {
                     __typename: "Mutation",
                     createBook: {

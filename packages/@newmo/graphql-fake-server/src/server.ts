@@ -630,8 +630,6 @@ const createRoutingServer = async ({
             sequenceId,
             type: validationResult.data.type,
             requestCondition: validationResult.data.requestCondition,
-            originalRequestCondition:
-                "requestCondition" in body ? body.requestCondition : "MISSING",
         });
 
         const baseKey = createMapKey({
@@ -755,9 +753,7 @@ const createRoutingServer = async ({
          * 2. Does it contain a sequence id?
          *    - if Yes: type is network error → return an error
          *    - if No: Pass through to Apollo Server -> exit
-         * 3. Send a request to Apollo Server
-         * 4. Merge the registration data with the response from 3
-         * 5. Return the merged data
+         * 3. Return the fake data directly
          */
         const sequenceId = c.req.header("sequence-id");
 
@@ -901,54 +897,35 @@ const createRoutingServer = async ({
             );
         }
 
-        // 3. Send a request to Apollo Server
-        logger.debug("fakeGraphQLQuery: sending request to apollo server", {
-            sequenceId,
-        });
-
-        const proxyResponse = await proxy(`http://${ENV_HOSTNAME}:${ports.apolloServer}/graphql`, {
-            raw: c.req.raw,
-            headers: {
-                ...c.req.header(),
-            },
-        });
-
-        logger.debug("fakeGraphQLQuery: apollo server response completed", {
-            sequenceId,
-            status: proxyResponse.status,
-            headers: Object.fromEntries(proxyResponse.headers),
-        });
-
-        if (proxyResponse.status === 101) return proxyResponse;
-
-        // 4. Get response body
-        logger.debug("fakeGraphQLQuery: getting response body");
-        const responseBody = (await proxyResponse.json()) as Record<string, unknown>;
-        logger.debug("fakeGraphQLQuery: parsed response body", {
-            responseBody,
-        });
-
-        // 5. Merge the registration data with the response
+        // 3. Return the fake data directly (no need to call Apollo Server)
         const fakeData = matchedFake.data;
-        logger.debug(`fakeGraphQLQuery: starting data merge sequence-id: ${sequenceId}`, {
+        logger.debug(`fakeGraphQLQuery: returning fake data sequence-id: ${sequenceId}`, {
             fakeData,
-            responseBody,
         });
 
-        // Use bracket notation for properties from index signature
-        const responseData = responseBody["data"] as unknown;
-        let merged: Record<string, unknown>;
+        let responseData: Record<string, unknown>;
 
         if (Array.isArray(fakeData)) {
             // Handle array response - use sequence index to select which response to return
             // For array responses, we use the current call count as the index
             const currentSequenceIndex = currentCallCount - 1; // Convert to 0-indexed for array access
-            const selectedData = fakeData[currentSequenceIndex] || fakeData[fakeData.length - 1];
+            const selectedData = fakeData[currentSequenceIndex];
 
-            merged = {
-                ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
-                ...selectedData,
-            };
+            // If we've exhausted the array, pass through to Apollo Server
+            if (selectedData === undefined) {
+                logger.debug(
+                    `fakeGraphQLQuery: array exhausted at index ${currentSequenceIndex}, passing to Apollo`,
+                    {
+                        arrayLength: fakeData.length,
+                        currentCallCount,
+                        sequenceId,
+                        operationName: requestOperationName,
+                    },
+                );
+                return passToApollo(c);
+            }
+
+            responseData = selectedData;
 
             logger.debug(`fakeGraphQLQuery: used array response at index ${currentSequenceIndex}`, {
                 selectedData,
@@ -956,10 +933,7 @@ const createRoutingServer = async ({
             });
         } else {
             // Handle single response
-            merged = {
-                ...(typeof responseData === "object" && responseData !== null ? responseData : {}),
-                ...fakeData,
-            };
+            responseData = fakeData;
         }
 
         const cacheKey = createMapKey({
@@ -975,10 +949,10 @@ const createRoutingServer = async ({
                     body: requestBody as Record<string, unknown>,
                 },
                 response: {
-                    status: proxyResponse.status,
-                    headers: Object.fromEntries(proxyResponse.headers),
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
                     body: {
-                        data: merged,
+                        data: responseData,
                     },
                 },
             },
@@ -987,11 +961,11 @@ const createRoutingServer = async ({
         // Increment call count for conditional fake tracking
         sequenceIndexMap.set(baseKey, currentCallCount);
 
-        logger.debug("fakeGraphQLQuery: merge completed, returning response");
+        logger.debug("fakeGraphQLQuery: returning fake response");
         // Let the server automatically calculate Content-Length to avoid issues with multi-byte characters
-        const responseJson = JSON.stringify({ data: merged });
+        const responseJson = JSON.stringify({ data: responseData });
         return new Response(responseJson, {
-            status: proxyResponse.status,
+            status: 200,
             headers: {
                 "Content-Type": "application/json",
             },
@@ -1028,7 +1002,7 @@ const createRoutingServer = async ({
     );
     app.use("/graphql", fakeGraphQLQuery);
     app.use("/query", fakeGraphQLQuery);
-    app.all("*", passToApollo);
+    app.all("*", (c) => passToApollo(c));
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
