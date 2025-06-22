@@ -664,14 +664,15 @@ describe("integration test", async () => {
                 query: GetDogDocument,
             });
             expect(response.data).toMatchInlineSnapshot(`
-        {
-          "dog": {
-            "__typename": "Dog",
-            "id": "dog id",
-            "name": "dog name",
-          },
-        }
-      `);
+              {
+                "__typename": "Query",
+                "dog": {
+                  "__typename": "Dog",
+                  "id": "dog id",
+                  "name": "dog name",
+                },
+              }
+            `);
         });
     });
     describe("@error", () => {
