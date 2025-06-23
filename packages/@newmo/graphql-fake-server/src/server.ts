@@ -165,97 +165,17 @@ export type RegisterSequenceNetworkError = {
 export type RegisterSequenceOperation = {
     type: "operation";
     operationName: string;
-    data: Record<string, unknown> | Record<string, unknown>[];
+    data: Record<string, unknown>;
     // Request condition is now required (defaults to "always" if not specified)
     requestCondition: ConditionRule;
 };
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 
 /**
- * Check if two condition types are conflicting and return specific error message
- * With the new API design:
- * - Multiple different variable conditions are allowed
- * - always and variables can coexist
- * - Single response and array response cannot coexist with the same conditions
- */
-const areConditionTypesConflicting = (
-    conditionType1: ConditionRule["type"],
-    conditionType2: ConditionRule["type"],
-    responseType1: "single" | "array",
-    responseType2: "single" | "array",
-): { isConflicting: boolean; errorMessage?: string } => {
-    // Check if response types conflict with same conditions
-    if (responseType1 !== responseType2 && conditionType1 === conditionType2) {
-        return {
-            isConflicting: true,
-            errorMessage:
-                "Cannot mix single response and array response with the same requestCondition for the same sequenceId x operationName",
-        };
-    }
-
-    return { isConflicting: false };
-};
-
-/**
  * Get condition type from a RegisterSequenceOptions
  */
-const getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] => {
+const _getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] => {
     return fake.requestCondition.type;
-};
-
-/**
- * Get response type from a RegisterSequenceOptions
- */
-const getResponseType = (fake: RegisterSequenceOptions): "single" | "array" => {
-    if (fake.type === "operation") {
-        return Array.isArray(fake.data) ? "array" : "single";
-    }
-    return "single"; // network-error is always single
-};
-
-/**
- * Check for condition conflicts in existing fakes for the same operation
- */
-const checkConditionConflicts = (
-    newFake: RegisterSequenceOptions,
-    existingConditionalFakes: RegisterSequenceOptions[],
-    existingDefaultFake: RegisterSequenceOptions | undefined,
-): string[] => {
-    const errors: string[] = [];
-    const newConditionType = getConditionType(newFake);
-    const newResponseType = getResponseType(newFake);
-
-    // Check conflicts with existing conditional fakes
-    for (const existingFake of existingConditionalFakes) {
-        const existingConditionType = getConditionType(existingFake);
-        const existingResponseType = getResponseType(existingFake);
-        const conflictResult = areConditionTypesConflicting(
-            newConditionType,
-            existingConditionType,
-            newResponseType,
-            existingResponseType,
-        );
-        if (conflictResult.isConflicting && conflictResult.errorMessage) {
-            errors.push(conflictResult.errorMessage);
-        }
-    }
-
-    // Check conflicts with existing default fake (no condition)
-    if (existingDefaultFake) {
-        const existingConditionType = getConditionType(existingDefaultFake);
-        const existingResponseType = getResponseType(existingDefaultFake);
-        const conflictResult = areConditionTypesConflicting(
-            newConditionType,
-            existingConditionType,
-            newResponseType,
-            existingResponseType,
-        );
-        if (conflictResult.isConflicting && conflictResult.errorMessage) {
-            errors.push(conflictResult.errorMessage);
-        }
-    }
-
-    return errors;
 };
 
 /**
@@ -302,18 +222,6 @@ const validateConditionRule = (condition: unknown): ValidationResult<ConditionRu
                 return {
                     ok: false,
                     error: "Variables condition value must be an object, not an array",
-                };
-            }
-            return { ok: true, data: condition as ConditionRule };
-
-        case "count":
-            if (!("value" in condition)) {
-                return { ok: false, error: "Count condition must have a 'value' field" };
-            }
-            if (typeof condition.value !== "number" || condition.value < 1) {
-                return {
-                    ok: false,
-                    error: "Count condition value must be a positive integer (1-indexed)",
                 };
             }
             return { ok: true, data: condition as ConditionRule };
@@ -386,7 +294,13 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
         if (!("data" in data) || typeof data.data !== "object" || data.data === null) {
             return {
                 ok: false,
-                error: "Operation type must have a 'data' field of type object or array",
+                error: "Operation type must have a 'data' field of type object",
+            };
+        }
+        if (Array.isArray(data.data)) {
+            return {
+                ok: false,
+                error: "Array-based sequential responses are no longer supported. Use single object responses instead.",
             };
         }
         return { ok: true, data: data as RegisterSequenceOptions };
@@ -638,23 +552,8 @@ const createRoutingServer = async ({
         });
 
         // Check for condition conflicts before registration
-        const existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
-        const existingDefaultFake = sequenceFakeResponseLruMap.get(baseKey);
-
-        const conflictErrors = checkConditionConflicts(
-            validationResult.data,
-            existingConditionalFakes,
-            existingDefaultFake,
-        );
-
-        if (conflictErrors.length > 0) {
-            return Response.json(
-                { ok: false, errors: conflictErrors },
-                {
-                    status: 400,
-                },
-            );
-        }
+        const _existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
+        const _existingDefaultFake = sequenceFakeResponseLruMap.get(baseKey);
 
         // Determine if this has specific conditions (not just "always")
         const hasSpecificConditions = validationResult.data.requestCondition.type !== "always";
@@ -903,38 +802,8 @@ const createRoutingServer = async ({
             fakeData,
         });
 
-        let responseData: Record<string, unknown>;
-
-        if (Array.isArray(fakeData)) {
-            // Handle array response - use sequence index to select which response to return
-            // For array responses, we use the current call count as the index
-            const currentSequenceIndex = currentCallCount - 1; // Convert to 0-indexed for array access
-            const selectedData = fakeData[currentSequenceIndex];
-
-            // If we've exhausted the array, pass through to Apollo Server
-            if (selectedData === undefined) {
-                logger.debug(
-                    `fakeGraphQLQuery: array exhausted at index ${currentSequenceIndex}, passing to Apollo`,
-                    {
-                        arrayLength: fakeData.length,
-                        currentCallCount,
-                        sequenceId,
-                        operationName: requestOperationName,
-                    },
-                );
-                return passToApollo(c);
-            }
-
-            responseData = selectedData;
-
-            logger.debug(`fakeGraphQLQuery: used array response at index ${currentSequenceIndex}`, {
-                selectedData,
-                currentCallCount,
-            });
-        } else {
-            // Handle single response
-            responseData = fakeData;
-        }
+        // Handle single response
+        const responseData = fakeData;
 
         const cacheKey = createMapKey({
             sequenceId,
