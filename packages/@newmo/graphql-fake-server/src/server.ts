@@ -499,7 +499,7 @@ const createRoutingServer = async ({
     const conditionalFakeResponseMap = new LRUMap<string, RegisterSequenceOptions[]>({
         maxSize: maxRegisteredSequences,
     });
-    // Track sequence index for array responses and call count for count conditions
+    // Track call count for count conditions
     const sequenceIndexMap = new LRUMap<string, number>({
         maxSize: maxRegisteredSequences,
     });

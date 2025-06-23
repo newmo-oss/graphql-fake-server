@@ -27,7 +27,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
   return {
-    async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery | GetBooksQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetBooksQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetBooksQueryResponse(sequenceId:string, queryResponse: GetBooksQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetBooksQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -104,7 +104,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery | GetBookWithFragmentsQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetBookWithFragmentsQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetBookWithFragmentsQueryResponse(sequenceId:string, queryResponse: GetBookWithFragmentsQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetBookWithFragmentsQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -181,7 +181,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery | GetDogQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetDogQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetDogQueryResponse(sequenceId:string, queryResponse: GetDogQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetDogQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -258,7 +258,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery | GotUnionUserQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GotUnionUserQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGotUnionUserQueryResponse(sequenceId:string, queryResponse: GotUnionUserQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GotUnionUserQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -335,7 +335,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery | GetUserNamesArrayExampleQuery[], sequenceOptions?: FakeClientRegisterSequenceOptions<GetUserNamesArrayExampleQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerGetUserNamesArrayExampleQueryResponse(sequenceId:string, queryResponse: GetUserNamesArrayExampleQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetUserNamesArrayExampleQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -412,7 +412,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     };
     },
-    async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation | CreateBookMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateBookMutationResponse(sequenceId:string, mutationResponse: CreateBookMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -491,7 +491,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation | CreateBookInlineMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookInlineMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateBookInlineMutationResponse(sequenceId:string, mutationResponse: CreateBookInlineMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateBookInlineMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -570,7 +570,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation | UseMutationErrorPatternMutationMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<UseMutationErrorPatternMutationMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerUseMutationErrorPatternMutationMutationResponse(sequenceId:string, mutationResponse: UseMutationErrorPatternMutationMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<UseMutationErrorPatternMutationMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',
@@ -649,7 +649,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
       }[];
     }
     },
-    async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation | CreateFooUrlMutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
         return await fetch(options.fakeServerEndpoint, {
             method: 'POST',

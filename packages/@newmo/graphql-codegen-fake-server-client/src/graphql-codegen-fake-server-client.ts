@@ -87,7 +87,7 @@ ${exportsFunctions
             fakeEndpointVariableName: string,
         ) => {
             const variablesType = `${convertName(name, config)}QueryVariables`;
-            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query | ${name}Query[], sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+            return `async register${name}QueryResponse(sequenceId:string, queryResponse: ${name}Query, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
@@ -126,7 +126,7 @@ ${exportsFunctions
         };
         const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
             const variablesType = `${convertName(name, config)}MutationVariables`;
-            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation | ${name}Mutation[], sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
+            return `async register${name}MutationResponse(sequenceId:string, mutationResponse: ${name}Mutation, sequenceOptions?: FakeClientRegisterSequenceOptions<${variablesType}>): Promise<${registerOperationResponseType}> {
     const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
     return await fetch(${fakeEndpointVariableName}, {
         method: 'POST',
