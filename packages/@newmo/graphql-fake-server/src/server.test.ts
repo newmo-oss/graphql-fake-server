@@ -1692,6 +1692,56 @@ describe("graphql-fake-server", () => {
             const variablesResult = (await variablesResponse.json()) as GraphQLTestResponse;
             expect(variablesResult.ok).toBe(true);
 
+            // Test GraphQL requests to verify both conditions work
+            const query = `
+                query GetUser($id: ID!) {
+                    user(id: $id) {
+                        id
+                        name
+                    }
+                }
+            `;
+
+            // Request with special variables - should match variables condition
+            const specialRequest = await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    query,
+                    operationName: "GetUser",
+                    variables: { id: "special" },
+                }),
+            });
+
+            const specialResult = (await specialRequest.json()) as {
+                data: { user: { id: string; name: string } };
+            };
+            expect(specialResult.data?.user?.id).toBe("special-user");
+            expect(specialResult.data?.user?.name).toBe("Special User");
+
+            // Request with different variables - should match always condition (default)
+            const fallbackRequest = await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    query,
+                    operationName: "GetUser",
+                    variables: { id: "regular" },
+                }),
+            });
+
+            const fallbackResult = (await fallbackRequest.json()) as {
+                data: { user: { id: string; name: string } };
+            };
+            expect(fallbackResult.data?.user?.id).toBe("default-user");
+            expect(fallbackResult.data?.user?.name).toBe("Default User");
+
             await server.stop();
         });
     });

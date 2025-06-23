@@ -172,13 +172,6 @@ export type RegisterSequenceOperation = {
 export type RegisterSequenceOptions = RegisterSequenceNetworkError | RegisterSequenceOperation;
 
 /**
- * Get condition type from a RegisterSequenceOptions
- */
-const _getConditionType = (fake: RegisterSequenceOptions): ConditionRule["type"] => {
-    return fake.requestCondition.type;
-};
-
-/**
  * Validate condition rule structure
  */
 const validateConditionRule = (condition: unknown): ValidationResult<ConditionRule> => {
@@ -499,10 +492,6 @@ const createRoutingServer = async ({
     const conditionalFakeResponseMap = new LRUMap<string, RegisterSequenceOptions[]>({
         maxSize: maxRegisteredSequences,
     });
-    // Track call count for count conditions
-    const sequenceIndexMap = new LRUMap<string, number>({
-        maxSize: maxRegisteredSequences,
-    });
     // sequenceId x operationName -> Called Result
     // CalledResult is first request is index 0, second request is index 1 and so on
     const sequenceCalledResultLruMap = new LRUMap<string, CalledResult[]>({
@@ -704,9 +693,6 @@ const createRoutingServer = async ({
         // Check conditional fakes first
         const conditionalFakes = conditionalFakeResponseMap.get(baseKey);
 
-        // Get current call count for this sequenceId + operationName (1-indexed)
-        const currentCallCount = (sequenceIndexMap.get(baseKey) || 0) + 1;
-
         logger.debug("fakeGraphQLQuery: conditional fakes check", {
             sequenceId,
             operationName: requestOperationName,
@@ -716,7 +702,6 @@ const createRoutingServer = async ({
                 requestCondition: fake.requestCondition,
             })),
             requestVariables,
-            callCount: currentCallCount,
         });
         // Find the first matching conditional fake based on variables
         // If no conditional fake matches, use the default fake from sequenceFakeResponseLruMap
@@ -724,7 +709,6 @@ const createRoutingServer = async ({
             findMatchedConditionalFake({
                 conditionalFakes: conditionalFakes,
                 requestVariables: requestVariables,
-                callCount: currentCallCount,
                 logger: logger,
                 sequenceId: sequenceId,
                 requestOperationName: requestOperationName,
@@ -828,7 +812,7 @@ const createRoutingServer = async ({
         ]);
 
         // Increment call count for conditional fake tracking
-        sequenceIndexMap.set(baseKey, currentCallCount);
+        // (No longer needed - count conditions removed)
 
         logger.debug("fakeGraphQLQuery: returning fake response");
         // Let the server automatically calculate Content-Length to avoid issues with multi-byte characters
@@ -956,7 +940,6 @@ const evaluateCondition = (
     condition: ConditionRule,
     context: {
         variables?: Record<string, unknown>;
-        callCount?: number;
     },
 ): boolean => {
     switch (condition.type) {
@@ -994,14 +977,12 @@ const calculateConditionSpecificity = (condition: ConditionRule): number => {
 const findMatchedConditionalFake = ({
     conditionalFakes,
     requestVariables,
-    callCount,
     logger,
     sequenceId,
     requestOperationName,
 }: {
     conditionalFakes: RegisterSequenceOptions[] | undefined;
     requestVariables: Record<string, unknown> | undefined;
-    callCount: number;
     logger: ReturnType<typeof createLogger>;
     sequenceId: string;
     requestOperationName: string;
@@ -1011,7 +992,6 @@ const findMatchedConditionalFake = ({
         for (const fake of conditionalFakes) {
             const context = {
                 ...(requestVariables && { variables: requestVariables }),
-                callCount,
             };
 
             if (evaluateCondition(fake.requestCondition, context)) {
@@ -1020,7 +1000,6 @@ const findMatchedConditionalFake = ({
                     operationName: requestOperationName,
                     requestCondition: fake.requestCondition,
                     variables: requestVariables,
-                    callCount,
                     evaluationContext: context,
                 });
                 return fake;
@@ -1030,7 +1009,6 @@ const findMatchedConditionalFake = ({
                 operationName: requestOperationName,
                 requestCondition: fake.requestCondition,
                 variables: requestVariables,
-                callCount,
                 evaluationContext: context,
             });
         }
