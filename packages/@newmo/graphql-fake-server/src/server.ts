@@ -293,7 +293,7 @@ const validateSequenceRegistration = (data: unknown): ValidationResult<RegisterS
         if (Array.isArray(data.data)) {
             return {
                 ok: false,
-                error: "Array-based sequential responses are no longer supported. Use single object responses instead.",
+                error: "Array responses are no longer supported. Use single object responses instead.",
             };
         }
         return { ok: true, data: data as RegisterSequenceOptions };
@@ -539,10 +539,6 @@ const createRoutingServer = async ({
             sequenceId,
             operationName,
         });
-
-        // Check for condition conflicts before registration
-        const _existingConditionalFakes = conditionalFakeResponseMap.get(baseKey) || [];
-        const _existingDefaultFake = sequenceFakeResponseLruMap.get(baseKey);
 
         // Determine if this has specific conditions (not just "always")
         const hasSpecificConditions = validationResult.data.requestCondition.type !== "always";
@@ -810,9 +806,6 @@ const createRoutingServer = async ({
                 },
             },
         ]);
-
-        // Increment call count for conditional fake tracking
-        // (No longer needed - count conditions removed)
 
         logger.debug("fakeGraphQLQuery: returning fake response");
         // Let the server automatically calculate Content-Length to avoid issues with multi-byte characters
