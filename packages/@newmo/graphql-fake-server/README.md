@@ -109,37 +109,9 @@ You can register fake responses with conditions that determine when they should 
 
 #### Supported Conditions
 
-- **Count condition**: Return a specific response on the nth call
 - **Variables condition**: Return a specific response when variables match exactly
 
 #### Examples
-
-**Count-based condition:**
-
-```js
-// Register a fake that only returns on the 2nd call
-await fetch(`${urls.fakeServer}/fake`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "sequence-id": sequenceId,
-  },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetUser",
-    requestCondition: {
-      type: "count",
-      value: 2,
-    },
-    data: {
-      user: {
-        id: "user123",
-        name: "Second Call User",
-      },
-    },
-  }),
-});
-```
 
 **Variables-based condition:**
 
@@ -172,26 +144,12 @@ When no condition matches, the server falls back to the declarative fake data de
 
 #### Condition Restrictions
 
-To ensure predictable behavior, the following condition combinations are not allowed for the same operation within a sequence:
-
-- **Count + Default**: Cannot mix count conditions with default (no condition) responses
-- **Count + Variables**: Cannot mix count conditions with variables conditions
+To ensure predictable behavior, variables-based conditions and default (no condition) responses can coexist for the same operation within a sequence.
 
 ✅ **Allowed combinations:**
 
 - Variables + Default: You can have both variables-specific responses and a default fallback
 - Multiple Variables: Different variables conditions can coexist
-- Multiple Count: Different count values can coexist
-
-❌ **Rejected combinations:**
-
-```js
-// This will be rejected with an error response
-// 1. Register default response
-await fetch("/fake", { body: { operationName: "GetUser", data: {...} } });
-// 2. Try to register count condition - ERROR!
-await fetch("/fake", { body: { operationName: "GetUser", requestCondition: { type: "count", value: 1 }, data: {...} } });
-```
 
 ## Config
 

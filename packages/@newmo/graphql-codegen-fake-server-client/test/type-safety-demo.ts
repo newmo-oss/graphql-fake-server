@@ -9,6 +9,23 @@ const fakeClient = createFakeClient({
 export async function demonstrateTypeSafety() {
     const sequenceId = "test-sequence";
 
+    // ✅ Correct usage - always response
+    await fakeClient.registerListDestinationCandidatesQueryResponse(
+        sequenceId,
+        {
+            destinationCandidates: [{ id: "1", name: "Tokyo" }],
+        },
+        {
+            requestCondition: {
+                type: "always",
+            },
+        },
+    );
+    // ✅ Correct usage - shorthand for always response
+    await fakeClient.registerListDestinationCandidatesQueryResponse(sequenceId, {
+        destinationCandidates: [{ id: "1", name: "Tokyo" }],
+    });
+
     // ✅ Correct usage - type-safe variables
     await fakeClient.registerListDestinationCandidatesQueryResponse(
         sequenceId,

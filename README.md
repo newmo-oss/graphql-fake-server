@@ -411,35 +411,6 @@ console.log(json);
 
 You can register fake responses with conditions to return different results based on request characteristics:
 
-**Count-based conditions** - Return specific responses on the nth call:
-
-```ts
-// Return different response on the 2nd call
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "sequence-id": sequenceId,
-  },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: {
-      type: "count",
-      value: 2, // Only match on the 2nd call
-    },
-    data: {
-      books: [
-        {
-          id: "book-id01",
-          title: "Second Call Book",
-        },
-      ],
-    },
-  }),
-});
-```
-
 **Variables-based conditions** - Return specific responses when variables match exactly:
 
 ```ts
@@ -475,27 +446,22 @@ The `condition` property in fake data registration allows you to control when sp
 
 #### Supported Condition Types
 
-**Count-based Conditions (`type: "count"`)**
+**Always Conditions (`type: "always"`)**
 
-Count-based conditions allow you to return specific responses on the nth call to an operation:
+Always conditions provide a default response that matches all requests:
 
 ```ts
 {
   type: "operation",
   operationName: "GetBooks",
   requestCondition: {
-    type: "count",
-    value: 3 // Only return this response on the 3rd call
+    type: "always"
   },
   data: { /* response data */ }
 }
 ```
 
-This is useful for testing scenarios like:
-
-- Simulating different states after multiple operations
-- Testing pagination where the first call returns data and subsequent calls return empty results
-- Simulating rate limiting where the nth call returns an error
+This is useful for providing fallback responses when no specific conditions are met.
 
 **Variables-based Conditions (`type: "variables"`)**
 
@@ -522,38 +488,16 @@ This is useful for testing scenarios like:
 #### Condition Matching Rules
 
 - **Exact Match**: For variables-based conditions, the variables must match exactly (deep equality)
-- **Call Count**: For count-based conditions, the condition matches only on the specified call number (1-indexed)
-- **Priority**: If multiple fake responses are registered for the same operation, they are checked in registration order
+- **Priority**: If multiple fake responses are registered for the same operation, they are matched based on condition specificity:
+  - **Variables conditions** (`type: "variables"`): Higher priority (specificity score: 20)
+  - **Always conditions** (`type: "always"`): Lower priority (specificity score: 0)
+  - When conditions have the same specificity, the most recently registered fake response is used
 - **Fallback**: When no condition matches, the server falls back to declarative fake data defined in the GraphQL schema
 
 #### Example: Complex Testing Scenario
 
 ```ts
 const sequenceId = "test-scenario-1";
-
-// First call returns normal data
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: { type: "count", value: 1 },
-    data: { books: [{ id: "1", title: "First Book" }] },
-  }),
-});
-
-// Second call returns different data
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: { type: "count", value: 2 },
-    data: { books: [{ id: "2", title: "Second Book" }] },
-  }),
-});
 
 // Admin user gets special data
 fetch("http://127.0.0.1:4000/fake", {
