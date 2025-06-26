@@ -174,6 +174,7 @@ ${exportsFunctions
         operationName: string;
         query: string;
       };
+      variables: ${convertName(name, config)}QueryVariables;
     };
     response: {
         statusCode: number;
