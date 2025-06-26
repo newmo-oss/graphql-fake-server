@@ -173,6 +173,7 @@ ${exportsFunctions
       body: {
         operationName: string;
         query: string;
+        variables: ${convertName(name, config)}QueryVariables;
       };
     };
     response: {
@@ -200,6 +201,7 @@ ${exportsFunctions
       body: {
         operationName: string;
         query: string;
+        variables: ${convertName(name, config)}QueryVariables;
       };
     };
     response: {

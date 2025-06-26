@@ -34,7 +34,8 @@
     "lint": "tsc --noEmit",
     "test": "npm run build && npm run codegen && npm run typecheck",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
-    "codegen": "graphql-codegen --config graphql-codegen.ts"
+    "codegen": "graphql-codegen --config graphql-codegen.ts",
+    "updateSnapshot": "pnpm run codegen"
   },
   "dependencies": {
     "@graphql-codegen/plugin-helpers": "^5.1.1",

@@ -8,7 +8,7 @@
         "codegen": "graphql-codegen --config graphql-codegen.ts",
         "lint": "tsc",
         "test": "vitest run",
-        "updateSnapshot": "vitest run -u"
+        "updateSnapshot": "vitest run -u && pnpm run codegen"
     },
     "engines": {
         "node": ">=18.0.0"
