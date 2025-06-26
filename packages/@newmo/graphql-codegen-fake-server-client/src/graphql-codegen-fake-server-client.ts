@@ -173,8 +173,8 @@ ${exportsFunctions
       body: {
         operationName: string;
         query: string;
+        variables: ${convertName(name, config)}QueryVariables;
       };
-      variables: ${convertName(name, config)}QueryVariables;
     };
     response: {
         statusCode: number;
@@ -201,6 +201,7 @@ ${exportsFunctions
       body: {
         operationName: string;
         query: string;
+        variables: ${convertName(name, config)}QueryVariables;
       };
     };
     response: {

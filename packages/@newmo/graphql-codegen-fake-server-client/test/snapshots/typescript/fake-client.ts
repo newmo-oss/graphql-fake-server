@@ -61,6 +61,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: ListDestinationCandidatesQueryVariables;
           };
         };
         response: {
@@ -88,6 +89,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: ListDestinationCandidatesQueryVariables;
           };
         };
         response: {
@@ -138,6 +140,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: ListRideHistoriesQueryVariables;
           };
         };
         response: {
@@ -165,6 +168,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: ListRideHistoriesQueryVariables;
           };
         };
         response: {

@@ -67,6 +67,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetBooksQueryVariables;
           };
         };
         response: {
@@ -94,6 +95,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetBooksQueryVariables;
           };
         };
         response: {
@@ -144,6 +146,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetBookWithFragmentsQueryVariables;
           };
         };
         response: {
@@ -171,6 +174,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetBookWithFragmentsQueryVariables;
           };
         };
         response: {
@@ -221,6 +225,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetDogQueryVariables;
           };
         };
         response: {
@@ -248,6 +253,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetDogQueryVariables;
           };
         };
         response: {
@@ -298,6 +304,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GotUnionUserQueryVariables;
           };
         };
         response: {
@@ -325,6 +332,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GotUnionUserQueryVariables;
           };
         };
         response: {
@@ -375,6 +383,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetUserNamesArrayExampleQueryVariables;
           };
         };
         response: {
@@ -402,6 +411,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           body: {
             operationName: string;
             query: string;
+            variables: GetUserNamesArrayExampleQueryVariables;
           };
         };
         response: {

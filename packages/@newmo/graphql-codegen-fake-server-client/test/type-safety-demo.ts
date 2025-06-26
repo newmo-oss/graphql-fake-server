@@ -1,4 +1,5 @@
 // Type safety demonstration
+import assert from "node:assert";
 import { createFakeClient } from "./snapshots/typescript/fake-client";
 
 const fakeClient = createFakeClient({
@@ -9,6 +10,10 @@ const fakeClient = createFakeClient({
 export async function demonstrateTypeSafety() {
     const sequenceId = "test-sequence";
 
+    // Query should have variables
+    const calledListRideHistoriesQuery = await fakeClient.calledListRideHistoriesQuery(sequenceId);
+    assert.ok(calledListRideHistoriesQuery.ok);
+    console.log(calledListRideHistoriesQuery.data[0]?.request.body.variables);
     // ✅ Correct usage - always response
     await fakeClient.registerListDestinationCandidatesQueryResponse(
         sequenceId,
