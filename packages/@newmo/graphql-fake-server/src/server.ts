@@ -22,6 +22,17 @@ import { createLogger, type LogLevel } from "./logger.js";
 
 // @ts-expect-error -- biome error
 const ENV_HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+
+// Default localhost addresses
+const DEFAULT_LOCALHOST_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]", "0.0.0.0"];
+
+// Private IP ranges (RFC 1918)
+const PRIVATE_IP_RANGES = [
+    /^192\.168\.\d{1,3}\.\d{1,3}$/, // 192.168.0.0/16
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // 10.0.0.0/8
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
+];
+
 export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
     allowedCORSOrigins: string[];
@@ -46,11 +57,15 @@ type FakeServerInternal = {
 /**
  * Generate allowed hosts based on server port and CORS origins
  */
-export const generateAllowedHosts = (
-    serverPort: number,
-    allowedCORSOrigins: string[] = [],
-    allowedHosts: string[] | "auto" = "auto",
-): Set<string> => {
+export const generateAllowedHosts = ({
+    serverPort,
+    allowedCORSOrigins = [],
+    allowedHosts = "auto",
+}: {
+    serverPort: number;
+    allowedCORSOrigins?: string[];
+    allowedHosts?: string[] | "auto";
+}): Set<string> => {
     if (allowedHosts !== "auto") {
         // Use explicitly specified hosts
         return new Set(allowedHosts);
@@ -59,12 +74,13 @@ export const generateAllowedHosts = (
     // "auto" mode: generate from default localhost addresses and CORS origins
     const hosts = new Set<string>();
 
-    // Default localhost addresses with server port
-    hosts.add(`localhost:${serverPort}`);
-    hosts.add(`127.0.0.1:${serverPort}`);
-    hosts.add(`[::1]:${serverPort}`);
-    hosts.add(`0.0.0.0:${serverPort}`);
-    if (ENV_HOSTNAME && ENV_HOSTNAME !== "0.0.0.0") {
+    // Add default localhost addresses with server port
+    DEFAULT_LOCALHOST_HOSTNAMES.forEach((hostname) => {
+        hosts.add(`${hostname}:${serverPort}`);
+    });
+
+    // Add ENV_HOSTNAME if it's different from default
+    if (ENV_HOSTNAME && !DEFAULT_LOCALHOST_HOSTNAMES.includes(ENV_HOSTNAME)) {
         hosts.add(`${ENV_HOSTNAME}:${serverPort}`);
     }
 
@@ -114,7 +130,11 @@ const startStandaloneServerWithCORS = async (
 
     // Generate allowed hosts
     const port = options.listen.port ?? 4000;
-    const validHosts = generateAllowedHosts(port, allowedCORSOrigins, allowedHosts);
+    const validHosts = generateAllowedHosts({
+        serverPort: port,
+        allowedCORSOrigins: allowedCORSOrigins,
+        allowedHosts: allowedHosts,
+    });
 
     // Host header validation middleware
     app.use((req, res, next) => {
@@ -424,13 +444,6 @@ const createMapKey = ({
     return `${sequenceId}.${operationName}`;
 };
 
-// Private IP address ranges defined in RFC 1918
-// See: https://www.rfc-editor.org/rfc/rfc1918
-const privateIPRanges = [
-    /^192\.168\.\d{1,3}\.\d{1,3}$/, // 192.168.0.0/16
-    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // 10.0.0.0/8
-    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
-];
 /**
  * Check if the origin is a local address
  * @param origin
@@ -440,11 +453,19 @@ const isLocalRequest = (origin: string | null): boolean => {
     try {
         const url = new URL(origin);
         const hostname = url.hostname;
-        // localhost and 127.0.0.1 are standard local addresses
-        if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === ENV_HOSTNAME) {
+
+        // Check if it's a default localhost address
+        if (DEFAULT_LOCALHOST_HOSTNAMES.includes(hostname)) {
             return true;
         }
-        return privateIPRanges.some((range) => range.test(hostname));
+
+        // Check ENV_HOSTNAME
+        if (hostname === ENV_HOSTNAME) {
+            return true;
+        }
+
+        // Check if it's a private IP range
+        return PRIVATE_IP_RANGES.some((range) => range.test(hostname));
     } catch {
         return false;
     }
@@ -470,7 +491,11 @@ const createRoutingServer = async ({
     const app = new Hono();
 
     // Generate allowed hosts for validation
-    const validHosts = generateAllowedHosts(ports.fakeServer, allowedCORSOrigins, allowedHosts);
+    const validHosts = generateAllowedHosts({
+        serverPort: ports.fakeServer,
+        allowedCORSOrigins: allowedCORSOrigins,
+        allowedHosts: allowedHosts,
+    });
 
     // Global middleware for Host header validation
     app.use("*", async (c, next) => {

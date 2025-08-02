@@ -2000,7 +2000,11 @@ describe("Condition validation", () => {
 describe("Host Header Validation", () => {
     describe("generateAllowedHosts", () => {
         it("should generate default localhost hosts in auto mode", () => {
-            const hosts = generateAllowedHosts(4000, [], "auto");
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: [],
+                allowedHosts: "auto",
+            });
 
             expect(hosts.has("localhost:4000")).toBe(true);
             expect(hosts.has("127.0.0.1:4000")).toBe(true);
@@ -2009,11 +2013,11 @@ describe("Host Header Validation", () => {
         });
 
         it("should add hosts from CORS origins in auto mode", () => {
-            const hosts = generateAllowedHosts(
-                4000,
-                ["http://frontend.local:3000", "https://example.com"],
-                "auto",
-            );
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: ["http://frontend.local:3000", "https://example.com"],
+                allowedHosts: "auto",
+            });
 
             // Default hosts
             expect(hosts.has("localhost:4000")).toBe(true);
@@ -2026,7 +2030,11 @@ describe("Host Header Validation", () => {
         });
 
         it("should use explicit hosts when provided", () => {
-            const hosts = generateAllowedHosts(4000, [], ["custom:8080", "special.local:9000"]);
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: [],
+                allowedHosts: ["custom:8080", "special.local:9000"],
+            });
 
             expect(hosts.size).toBe(2);
             expect(hosts.has("custom:8080")).toBe(true);
@@ -2037,11 +2045,11 @@ describe("Host Header Validation", () => {
         });
 
         it("should handle invalid CORS origins gracefully", () => {
-            const hosts = generateAllowedHosts(
-                4000,
-                ["not-a-url", "http://valid.com:3000"],
-                "auto",
-            );
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: ["not-a-url", "http://valid.com:3000"],
+                allowedHosts: "auto",
+            });
 
             // Should still have default hosts
             expect(hosts.has("localhost:4000")).toBe(true);
