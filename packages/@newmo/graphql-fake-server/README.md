@@ -179,6 +179,15 @@ export default {
    * @example ["https://example.com", "https://app.example.com"]
    */
   allowedCORSOrigins: undefined,
+  /**
+   * @type {string[] | "auto" | undefined}
+   * Allowed Host headers for the fake server to prevent DNS rebinding attacks
+   * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
+   * - string[]: Explicit list of allowed Host headers
+   * - undefined: Same as "auto"
+   * @example ["localhost:4000", "myapp.local:4000"]
+   */
+  allowedHosts: undefined,
 };
 ```
 
@@ -201,8 +210,45 @@ type RequiredFakeServerConfig = {
    * @example ["https://example.com", "https://app.example.com"]
    */
   allowedCORSOrigins?: string[] | undefined;
+  /**
+   * Allowed Host headers for the fake server to prevent DNS rebinding attacks
+   * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
+   * - string[]: Explicit list of allowed Host headers
+   * @example ["localhost:4000", "myapp.local:4000"]
+   */
+  allowedHosts?: string[] | "auto" | undefined;
 };
 ```
+
+## Security
+
+### Host Header Validation
+
+The fake server implements Host header validation to prevent DNS rebinding attacks. This security feature:
+
+- **Validates all incoming requests** to ensure the Host header matches allowed values
+- **Defaults to "auto" mode** which automatically generates allowed hosts from:
+  - Standard localhost addresses (localhost, 127.0.0.1, [::1], 0.0.0.0)
+  - Hosts extracted from configured CORS origins
+  - Both original ports and server ports for each hostname
+- **Supports manual configuration** for special deployment scenarios
+- **Displays security configuration on startup** for transparency
+
+Example output on server startup:
+```
+🚀 Apollo Server started at http://0.0.0.0:4002
+🔒 Security Configuration:
+   - Allowed Hosts: auto (generated from CORS origins)
+     • localhost:4002
+     • 127.0.0.1:4002
+     • [::1]:4002
+     • 0.0.0.0:4002
+     • frontend.local:3000
+     • frontend.local:4002
+   - CORS Origins: http://frontend.local:3000
+```
+
+This prevents attackers from bypassing same-origin policy through DNS rebinding attacks, similar to protections implemented in webpack-dev-server (CVE-2018-14732).
 
 ## Tests
 
