@@ -25,6 +25,7 @@ const ENV_HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
 export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
     allowedCORSOrigins: string[];
+    allowedHosts?: string[] | "auto";
 };
 
 type FakeServerInternal = {
@@ -39,6 +40,52 @@ type FakeServerInternal = {
     maxRegisteredSequences: number;
     logLevel: LogLevel;
     allowedCORSOrigins: string[];
+    allowedHosts: string[] | "auto";
+};
+
+/**
+ * Generate allowed hosts based on server port and CORS origins
+ */
+export const generateAllowedHosts = (
+    serverPort: number,
+    allowedCORSOrigins: string[] = [],
+    allowedHosts: string[] | "auto" = "auto",
+): Set<string> => {
+    if (allowedHosts !== "auto") {
+        // Use explicitly specified hosts
+        return new Set(allowedHosts);
+    }
+
+    // "auto" mode: generate from default localhost addresses and CORS origins
+    const hosts = new Set<string>();
+
+    // Default localhost addresses with server port
+    hosts.add(`localhost:${serverPort}`);
+    hosts.add(`127.0.0.1:${serverPort}`);
+    hosts.add(`[::1]:${serverPort}`);
+    hosts.add(`0.0.0.0:${serverPort}`);
+    if (ENV_HOSTNAME && ENV_HOSTNAME !== "0.0.0.0") {
+        hosts.add(`${ENV_HOSTNAME}:${serverPort}`);
+    }
+
+    // Extract hosts from CORS origins
+    allowedCORSOrigins.forEach((origin) => {
+        try {
+            const url = new URL(origin);
+            // Add original host:port from CORS origin
+            hosts.add(url.host);
+
+            // Also add same hostname with server port
+            // (for cases where frontend and backend use different ports)
+            if (url.port !== String(serverPort)) {
+                hosts.add(`${url.hostname}:${serverPort}`);
+            }
+        } catch (_e) {
+            // Invalid URL, skip
+        }
+    });
+
+    return hosts;
 };
 
 /**
@@ -49,18 +96,38 @@ const startStandaloneServerWithCORS = async (
     server: ApolloServer,
     options: {
         listen: { port: number };
+        logLevel?: LogLevel;
     },
     allowedCORSOrigins: string[] = [],
+    allowedHosts: string[] | "auto" = "auto",
 ) => {
     // Create Express app with custom CORS configuration
     const app = express();
     const httpServer = http.createServer(app);
+    const logger = createLogger(options.logLevel || "info");
 
     // Add drain plugin for graceful shutdown
     server.addPlugin(ApolloServerPluginDrainHttpServer({ httpServer }));
 
     // Ensure server is started
     await server.start();
+
+    // Generate allowed hosts
+    const port = options.listen.port ?? 4000;
+    const validHosts = generateAllowedHosts(port, allowedCORSOrigins, allowedHosts);
+
+    // Host header validation middleware
+    app.use((req, res, next) => {
+        const hostHeader = req.headers.host;
+
+        if (!hostHeader || !validHosts.has(hostHeader)) {
+            logger.warn(`Rejected request with invalid Host header: ${hostHeader}`);
+            logger.debug(`Allowed hosts: ${Array.from(validHosts).join(", ")}`);
+            return res.status(400).send("Bad Request: Invalid Host header");
+        }
+
+        next();
+    });
 
     // Set up Express middleware with strict CORS that only allows localhost
     app.use(
@@ -92,8 +159,20 @@ const startStandaloneServerWithCORS = async (
     );
 
     // Start the server
-    const port = options.listen.port ?? 4000;
     await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
+
+    // Display security configuration on startup
+    logger.info(`🚀 Apollo Server started at http://${ENV_HOSTNAME}:${port}`);
+    logger.info("🔒 Security Configuration:");
+    logger.info(
+        `   - Allowed Hosts: ${allowedHosts === "auto" ? "auto (generated from CORS origins)" : "custom"}`,
+    );
+    validHosts.forEach((host) => {
+        logger.info(`     • ${host}`);
+    });
+    logger.info(
+        `   - CORS Origins: ${allowedCORSOrigins.length > 0 ? allowedCORSOrigins.join(", ") : "Local only"}`,
+    );
 
     return {
         url: `http://${ENV_HOSTNAME}:${port}`,
@@ -375,6 +454,7 @@ const createRoutingServer = async ({
     ports,
     maxRegisteredSequences,
     allowedCORSOrigins,
+    allowedHosts = "auto",
 }: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
@@ -383,9 +463,27 @@ const createRoutingServer = async ({
         apolloServer: number;
     };
     allowedCORSOrigins: string[];
+    allowedHosts?: string[] | "auto";
 }) => {
     const logger = createLogger(logLevel);
     const app = new Hono();
+
+    // Generate allowed hosts for validation
+    const validHosts = generateAllowedHosts(ports.fakeServer, allowedCORSOrigins, allowedHosts);
+
+    // Global middleware for Host header validation
+    app.use("*", async (c, next) => {
+        const hostHeader = c.req.header("host");
+
+        if (!hostHeader || !validHosts.has(hostHeader)) {
+            logger.warn(`Rejected request with invalid Host header: ${hostHeader}`);
+            logger.debug(`Allowed hosts: ${Array.from(validHosts).join(", ")}`);
+            return c.text("Bad Request: Invalid Host header", 400);
+        }
+
+        await next();
+    });
+
     // pass through to apollo server
     const passToApollo = async (c: Context) => {
         logger.debug("passToApollo: starting");
@@ -861,6 +959,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         schemaFilePath,
         defaultValues,
         allowedCORSOrigins,
+        allowedHosts = "auto",
     } = options;
     const logger = createLogger(logLevel);
     const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
@@ -886,6 +985,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         maxRegisteredSequences,
         logLevel: logLevel ?? "info",
         allowedCORSOrigins,
+        allowedHosts,
     });
 };
 
@@ -896,6 +996,7 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
         ports: options.ports,
         maxRegisteredSequences: options.maxRegisteredSequences,
         allowedCORSOrigins: options.allowedCORSOrigins,
+        allowedHosts: options.allowedHosts,
     });
     let routerServer: ReturnType<typeof serve> | null = null;
     return {
@@ -905,13 +1006,16 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
                 apolloServer,
                 {
                     listen: { port: options.ports.apolloServer },
+                    logLevel: options.logLevel,
                 },
                 options.allowedCORSOrigins,
+                options.allowedHosts,
             );
             routerServer = serve({
                 fetch: routingServer.fetch,
                 port: options.ports.fakeServer,
             });
+
             return {
                 urls: {
                     fakeServer: `http://${ENV_HOSTNAME}:${options.ports.fakeServer}`,
