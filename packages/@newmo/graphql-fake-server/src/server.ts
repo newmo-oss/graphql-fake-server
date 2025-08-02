@@ -136,7 +136,8 @@ const startStandaloneServerWithCORS = async (
         allowedHosts: allowedHosts,
     });
 
-    // Host header validation middleware
+    // Security middleware: Host header validation and CORS
+    // 1. Host header validation (DNS rebinding protection)
     app.use((req, res, next) => {
         const hostHeader = req.headers.host;
 
@@ -150,30 +151,33 @@ const startStandaloneServerWithCORS = async (
         next();
     });
 
-    // Set up Express middleware with strict CORS that only allows localhost
+    // 2. CORS configuration (origin validation)
+    const corsOptions: corsExpress.CorsOptions = {
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps, curl, etc)
+            if (!origin) return callback(null, true);
+
+            // Allow localhost, loopback addresses, and explicitly allowed origins
+            if (isLocalRequest(origin)) {
+                return callback(null, true);
+            }
+
+            // Allow explicitly allowed origins from configuration
+            if (allowedCORSOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            // Deny all other origins
+            return callback(new Error("Not allowed by CORS"), false);
+        },
+        methods: ["POST", "GET", "OPTIONS"],
+        credentials: false,
+    };
+
+    // Apply middleware stack
     app.use(
         "/",
-        corsExpress({
-            origin: (origin, callback) => {
-                // Allow requests with no origin (like mobile apps, curl, etc)
-                if (!origin) return callback(null, true);
-
-                // Allow localhost, loopback addresses, and explicitly allowed origins
-                if (isLocalRequest(origin)) {
-                    return callback(null, true);
-                }
-
-                // Allow explicitly allowed origins from configuration
-                if (allowedCORSOrigins.includes(origin)) {
-                    return callback(null, true);
-                }
-
-                // Deny all other origins
-                return callback(new Error("Not allowed by CORS"), false);
-            },
-            methods: ["POST", "GET", "OPTIONS"],
-            credentials: false,
-        }),
+        corsExpress(corsOptions),
         express.json({ limit: "50mb" }),
         // @ts-expect-error -- express 5 types are not compatible with apollo-server
         expressMiddleware(server, options),
@@ -448,7 +452,7 @@ const createMapKey = ({
  * Check if the origin is a local address
  * @param origin
  */
-const isLocalRequest = (origin: string | null): boolean => {
+const isLocalRequest = (origin: string | null | undefined): boolean => {
     if (!origin) return false;
     try {
         const url = new URL(origin);
@@ -490,14 +494,14 @@ const createRoutingServer = async ({
     const logger = createLogger(logLevel);
     const app = new Hono();
 
-    // Generate allowed hosts for validation
+    // Security configuration
     const validHosts = generateAllowedHosts({
         serverPort: ports.fakeServer,
         allowedCORSOrigins: allowedCORSOrigins,
         allowedHosts: allowedHosts,
     });
 
-    // Global middleware for Host header validation
+    // Security middleware: Host header validation (must be before CORS)
     app.use("*", async (c, next) => {
         const hostHeader = c.req.header("host");
 
@@ -941,37 +945,22 @@ const createRoutingServer = async ({
             },
         });
     };
-    // graphql api is for browser and need to support CORS
-    app.use(
-        "/graphql",
-        cors({
-            origin: (origin) => {
-                if (isLocalRequest(origin)) {
-                    return origin;
-                }
-                if (origin && allowedCORSOrigins.includes(origin)) {
-                    return origin;
-                }
-                return null;
-            },
-        }),
-    );
-    app.use(
-        "/query",
-        cors({
-            origin: (origin) => {
-                if (isLocalRequest(origin)) {
-                    return origin;
-                }
-                if (origin && allowedCORSOrigins.includes(origin)) {
-                    return origin;
-                }
-                return null;
-            },
-        }),
-    );
-    app.use("/graphql", fakeGraphQLQuery);
-    app.use("/query", fakeGraphQLQuery);
+    // CORS configuration for GraphQL endpoints
+    const corsOptions = {
+        origin: (origin: string | undefined) => {
+            if (isLocalRequest(origin)) {
+                return origin;
+            }
+            if (origin && allowedCORSOrigins.includes(origin)) {
+                return origin;
+            }
+            return null;
+        },
+    };
+
+    // Apply CORS and route handlers to GraphQL endpoints
+    app.use("/graphql", cors(corsOptions), fakeGraphQLQuery);
+    app.use("/query", cors(corsOptions), fakeGraphQLQuery);
     app.all("*", (c) => passToApollo(c));
     return app;
 };
