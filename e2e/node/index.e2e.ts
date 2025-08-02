@@ -881,45 +881,48 @@ describe("integration test", async () => {
     });
 
     describe("Host Header Validation", () => {
-        it("should reject requests with invalid Host header using custom fetch", async () => {
-            // Apollo Client doesn't allow overriding Host header directly,
-            // so we'll use a custom fetch implementation
-            const sequenceId = crypto.randomUUID();
+        it("should reject requests with invalid Host header", async () => {
+            // Use Node's http module to have full control over Host header
+            const http = await import("node:http");
+            const url = new URL(`${fakeServerUrl}/graphql`);
 
-            const customFetch: typeof fetch = async (input, init) => {
-                // Try to simulate DNS rebinding by modifying the request
-                const url = typeof input === "string" ? input : input.url;
-                const headers = new Headers(init?.headers);
+            const response = await new Promise<{ statusCode: number; body: string }>((resolve) => {
+                const req = http.request(
+                    {
+                        hostname: url.hostname,
+                        port: url.port,
+                        path: url.pathname,
+                        method: "POST",
+                        headers: {
+                            Host: "evil.com:4000", // Invalid host header
+                            "Content-Type": "application/json",
+                        },
+                    },
+                    (res) => {
+                        let body = "";
+                        res.on("data", (chunk) => {
+                            body += chunk;
+                        });
+                        res.on("end", () => resolve({ statusCode: res.statusCode ?? 0, body }));
+                    },
+                );
 
-                // This won't actually override the Host header in Node.js fetch,
-                // but demonstrates the protection is in place
-                headers.set("Host", "evil.com:4000");
-
-                return fetch(url, {
-                    ...init,
-                    headers,
+                req.on("error", (err) => {
+                    throw err;
                 });
-            };
 
-            const httpLink = new HttpLink({
-                uri: `${fakeServerUrl}/graphql`,
-                fetch: customFetch,
-                headers: { "sequence-id": sequenceId },
+                // Send a GraphQL query
+                req.write(
+                    JSON.stringify({
+                        query: "{ books { id } }",
+                    }),
+                );
+                req.end();
             });
 
-            const client = new ApolloClient({
-                link: httpLink,
-                cache: new InMemoryCache(),
-            });
-
-            // The request should succeed because Node.js fetch ignores Host header override
-            // The server-side protection is what matters
-            const result = await client.query({
-                query: GetBooksDocument,
-            });
-
-            // The query succeeds because the actual Host header sent by fetch is correct
-            expect(result.data).toBeDefined();
+            // Should be rejected by Host header validation
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toContain("Bad Request: Invalid Host header");
         });
 
         it("should accept requests with valid Host header", async () => {
