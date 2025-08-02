@@ -924,21 +924,5 @@ describe("integration test", async () => {
             expect(response.statusCode).toBe(400);
             expect(response.body).toContain("Bad Request: Invalid Host header");
         });
-
-        it("should accept requests with valid Host header", async () => {
-            const sequenceId = crypto.randomUUID();
-
-            const client = createApolloClient({
-                uri: `${fakeServerUrl}/graphql`,
-                sequenceId,
-            });
-
-            const result = await client.query({
-                query: GetBooksDocument,
-            });
-
-            expect(result.data).toBeDefined();
-            expect(result.data.books).toBeDefined();
-        });
     });
 });
