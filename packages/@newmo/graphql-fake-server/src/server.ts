@@ -185,20 +185,6 @@ const startStandaloneServerWithCORS = async (
 
     // Start the server
     await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
-
-    // Display security configuration on startup
-    logger.info(`🚀 Apollo Server started at http://${ENV_HOSTNAME}:${port}`);
-    logger.info("🔒 Security Configuration:");
-    logger.info(
-        `   - Allowed Hosts: ${allowedHosts === "auto" ? "auto (generated from CORS origins)" : "custom"}`,
-    );
-    validHosts.forEach((host) => {
-        logger.info(`     • ${host}`);
-    });
-    logger.info(
-        `   - CORS Origins: ${allowedCORSOrigins.length > 0 ? allowedCORSOrigins.join(", ") : "Local only"}`,
-    );
-
     return {
         url: `http://${ENV_HOSTNAME}:${port}`,
         httpServer,
