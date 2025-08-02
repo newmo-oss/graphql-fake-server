@@ -123,7 +123,8 @@ const startStandaloneServerWithCORS = async (
         if (!hostHeader || !validHosts.has(hostHeader)) {
             logger.warn(`Rejected request with invalid Host header: ${hostHeader}`);
             logger.debug(`Allowed hosts: ${Array.from(validHosts).join(", ")}`);
-            return res.status(400).send("Bad Request: Invalid Host header");
+            res.status(400).send("Bad Request: Invalid Host header");
+            return;
         }
 
         next();
@@ -481,7 +482,7 @@ const createRoutingServer = async ({
             return c.text("Bad Request: Invalid Host header", 400);
         }
 
-        await next();
+        return await next();
     });
 
     // pass through to apollo server
