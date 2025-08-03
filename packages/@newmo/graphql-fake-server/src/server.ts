@@ -22,9 +22,21 @@ import { createLogger, type LogLevel } from "./logger.js";
 
 // @ts-expect-error -- biome error
 const ENV_HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+
+// Default localhost addresses
+const DEFAULT_LOCALHOST_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]", "0.0.0.0"];
+
+// Private IP ranges (RFC 1918)
+const PRIVATE_IP_RANGES = [
+    /^192\.168\.\d{1,3}\.\d{1,3}$/, // 192.168.0.0/16
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // 10.0.0.0/8
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
+];
+
 export type CreateFakeServerOptions = RequiredFakeServerConfig & {
     logLevel?: LogLevel;
     allowedCORSOrigins: string[];
+    allowedHosts?: string[] | "auto";
 };
 
 type FakeServerInternal = {
@@ -39,6 +51,57 @@ type FakeServerInternal = {
     maxRegisteredSequences: number;
     logLevel: LogLevel;
     allowedCORSOrigins: string[];
+    allowedHosts: string[] | "auto";
+};
+
+/**
+ * Generate allowed hosts based on server port and CORS origins
+ */
+export const generateAllowedHosts = ({
+    serverPort,
+    allowedCORSOrigins = [],
+    allowedHosts = "auto",
+}: {
+    serverPort: number;
+    allowedCORSOrigins?: string[];
+    allowedHosts?: string[] | "auto";
+}): Set<string> => {
+    if (allowedHosts !== "auto") {
+        // Use explicitly specified hosts
+        return new Set(allowedHosts);
+    }
+
+    // "auto" mode: generate from default localhost addresses and CORS origins
+    const hosts = new Set<string>();
+
+    // Add default localhost addresses with server port
+    DEFAULT_LOCALHOST_HOSTNAMES.forEach((hostname) => {
+        hosts.add(`${hostname}:${serverPort}`);
+    });
+
+    // Add ENV_HOSTNAME if it's different from default
+    if (ENV_HOSTNAME && !DEFAULT_LOCALHOST_HOSTNAMES.includes(ENV_HOSTNAME)) {
+        hosts.add(`${ENV_HOSTNAME}:${serverPort}`);
+    }
+
+    // Extract hosts from CORS origins
+    allowedCORSOrigins.forEach((origin) => {
+        try {
+            const url = new URL(origin);
+            // Add original host:port from CORS origin
+            hosts.add(url.host);
+
+            // Also add same hostname with server port
+            // (for cases where frontend and backend use different ports)
+            if (url.port !== String(serverPort)) {
+                hosts.add(`${url.hostname}:${serverPort}`);
+            }
+        } catch (_e) {
+            // Invalid URL, skip
+        }
+    });
+
+    return hosts;
 };
 
 /**
@@ -49,12 +112,15 @@ const startStandaloneServerWithCORS = async (
     server: ApolloServer,
     options: {
         listen: { port: number };
+        logLevel?: LogLevel;
     },
     allowedCORSOrigins: string[] = [],
+    allowedHosts: string[] | "auto" = "auto",
 ) => {
     // Create Express app with custom CORS configuration
     const app = express();
     const httpServer = http.createServer(app);
+    const logger = createLogger(options.logLevel || "info");
 
     // Add drain plugin for graceful shutdown
     server.addPlugin(ApolloServerPluginDrainHttpServer({ httpServer }));
@@ -62,39 +128,63 @@ const startStandaloneServerWithCORS = async (
     // Ensure server is started
     await server.start();
 
-    // Set up Express middleware with strict CORS that only allows localhost
+    // Generate allowed hosts
+    const port = options.listen.port ?? 4000;
+    const validHosts = generateAllowedHosts({
+        serverPort: port,
+        allowedCORSOrigins: allowedCORSOrigins,
+        allowedHosts: allowedHosts,
+    });
+
+    // Security middleware: Host header validation and CORS
+    // 1. Host header validation (DNS rebinding protection)
+    app.use((req, res, next) => {
+        const hostHeader = req.headers.host;
+
+        if (!hostHeader || !validHosts.has(hostHeader)) {
+            logger.warn(`Rejected request with invalid Host header: ${hostHeader}`);
+            logger.debug(`Allowed hosts: ${Array.from(validHosts).join(", ")}`);
+            res.status(400).send("Bad Request: Invalid Host header");
+            return;
+        }
+
+        next();
+    });
+
+    // 2. CORS configuration (origin validation)
+    const corsOptions: corsExpress.CorsOptions = {
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps, curl, etc)
+            if (!origin) return callback(null, true);
+
+            // Allow localhost, loopback addresses, and explicitly allowed origins
+            if (isLocalRequest(origin)) {
+                return callback(null, true);
+            }
+
+            // Allow explicitly allowed origins from configuration
+            if (allowedCORSOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            // Deny all other origins
+            return callback(new Error("Not allowed by CORS"), false);
+        },
+        methods: ["POST", "GET", "OPTIONS"],
+        credentials: false,
+    };
+
+    // Apply middleware stack
     app.use(
         "/",
-        corsExpress({
-            origin: (origin, callback) => {
-                // Allow requests with no origin (like mobile apps, curl, etc)
-                if (!origin) return callback(null, true);
-
-                // Allow localhost, loopback addresses, and explicitly allowed origins
-                if (isLocalRequest(origin)) {
-                    return callback(null, true);
-                }
-
-                // Allow explicitly allowed origins from configuration
-                if (allowedCORSOrigins.includes(origin)) {
-                    return callback(null, true);
-                }
-
-                // Deny all other origins
-                return callback(new Error("Not allowed by CORS"), false);
-            },
-            methods: ["POST", "GET", "OPTIONS"],
-            credentials: false,
-        }),
+        corsExpress(corsOptions),
         express.json({ limit: "50mb" }),
         // @ts-expect-error -- express 5 types are not compatible with apollo-server
         expressMiddleware(server, options),
     );
 
     // Start the server
-    const port = options.listen.port ?? 4000;
     await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
-
     return {
         url: `http://${ENV_HOSTNAME}:${port}`,
         httpServer,
@@ -344,27 +434,28 @@ const createMapKey = ({
     return `${sequenceId}.${operationName}`;
 };
 
-// Private IP address ranges defined in RFC 1918
-// See: https://www.rfc-editor.org/rfc/rfc1918
-const privateIPRanges = [
-    /^192\.168\.\d{1,3}\.\d{1,3}$/, // 192.168.0.0/16
-    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // 10.0.0.0/8
-    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
-];
 /**
  * Check if the origin is a local address
  * @param origin
  */
-const isLocalRequest = (origin: string | null): boolean => {
+const isLocalRequest = (origin: string | null | undefined): boolean => {
     if (!origin) return false;
     try {
         const url = new URL(origin);
         const hostname = url.hostname;
-        // localhost and 127.0.0.1 are standard local addresses
-        if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === ENV_HOSTNAME) {
+
+        // Check if it's a default localhost address
+        if (DEFAULT_LOCALHOST_HOSTNAMES.includes(hostname)) {
             return true;
         }
-        return privateIPRanges.some((range) => range.test(hostname));
+
+        // Check ENV_HOSTNAME
+        if (hostname === ENV_HOSTNAME) {
+            return true;
+        }
+
+        // Check if it's a private IP range
+        return PRIVATE_IP_RANGES.some((range) => range.test(hostname));
     } catch {
         return false;
     }
@@ -375,6 +466,7 @@ const createRoutingServer = async ({
     ports,
     maxRegisteredSequences,
     allowedCORSOrigins,
+    allowedHosts = "auto",
 }: {
     logLevel: LogLevel;
     maxRegisteredSequences: number;
@@ -383,9 +475,31 @@ const createRoutingServer = async ({
         apolloServer: number;
     };
     allowedCORSOrigins: string[];
+    allowedHosts?: string[] | "auto";
 }) => {
     const logger = createLogger(logLevel);
     const app = new Hono();
+
+    // Security configuration
+    const validHosts = generateAllowedHosts({
+        serverPort: ports.fakeServer,
+        allowedCORSOrigins: allowedCORSOrigins,
+        allowedHosts: allowedHosts,
+    });
+
+    // Security middleware: Host header validation (must be before CORS)
+    app.use("*", async (c, next) => {
+        const hostHeader = c.req.header("host");
+
+        if (!hostHeader || !validHosts.has(hostHeader)) {
+            logger.warn(`Rejected request with invalid Host header: ${hostHeader}`);
+            logger.debug(`Allowed hosts: ${Array.from(validHosts).join(", ")}`);
+            return c.text("Bad Request: Invalid Host header", 400);
+        }
+
+        return await next();
+    });
+
     // pass through to apollo server
     const passToApollo = async (c: Context) => {
         logger.debug("passToApollo: starting");
@@ -817,37 +931,22 @@ const createRoutingServer = async ({
             },
         });
     };
-    // graphql api is for browser and need to support CORS
-    app.use(
-        "/graphql",
-        cors({
-            origin: (origin) => {
-                if (isLocalRequest(origin)) {
-                    return origin;
-                }
-                if (origin && allowedCORSOrigins.includes(origin)) {
-                    return origin;
-                }
-                return null;
-            },
-        }),
-    );
-    app.use(
-        "/query",
-        cors({
-            origin: (origin) => {
-                if (isLocalRequest(origin)) {
-                    return origin;
-                }
-                if (origin && allowedCORSOrigins.includes(origin)) {
-                    return origin;
-                }
-                return null;
-            },
-        }),
-    );
-    app.use("/graphql", fakeGraphQLQuery);
-    app.use("/query", fakeGraphQLQuery);
+    // CORS configuration for GraphQL endpoints
+    const corsOptions = {
+        origin: (origin: string | undefined) => {
+            if (isLocalRequest(origin)) {
+                return origin;
+            }
+            if (origin && allowedCORSOrigins.includes(origin)) {
+                return origin;
+            }
+            return null;
+        },
+    };
+
+    // Apply CORS and route handlers to GraphQL endpoints
+    app.use("/graphql", cors(corsOptions), fakeGraphQLQuery);
+    app.use("/query", cors(corsOptions), fakeGraphQLQuery);
     app.all("*", (c) => passToApollo(c));
     return app;
 };
@@ -861,6 +960,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         schemaFilePath,
         defaultValues,
         allowedCORSOrigins,
+        allowedHosts = "auto",
     } = options;
     const logger = createLogger(logLevel);
     const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
@@ -886,6 +986,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         maxRegisteredSequences,
         logLevel: logLevel ?? "info",
         allowedCORSOrigins,
+        allowedHosts,
     });
 };
 
@@ -896,6 +997,7 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
         ports: options.ports,
         maxRegisteredSequences: options.maxRegisteredSequences,
         allowedCORSOrigins: options.allowedCORSOrigins,
+        allowedHosts: options.allowedHosts,
     });
     let routerServer: ReturnType<typeof serve> | null = null;
     return {
@@ -905,13 +1007,16 @@ export const createFakeServerInternal = async (options: FakeServerInternal) => {
                 apolloServer,
                 {
                     listen: { port: options.ports.apolloServer },
+                    logLevel: options.logLevel,
                 },
                 options.allowedCORSOrigins,
+                options.allowedHosts,
             );
             routerServer = serve({
                 fetch: routingServer.fetch,
                 port: options.ports.fakeServer,
             });
+
             return {
                 urls: {
                     fakeServer: `http://${ENV_HOSTNAME}:${options.ports.fakeServer}`,

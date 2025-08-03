@@ -879,4 +879,50 @@ describe("integration test", async () => {
             expect(variablesResponse.ok).toBe(true);
         });
     });
+
+    describe("Host Header Validation", () => {
+        it("should reject requests with invalid Host header", async () => {
+            // Use Node's http module to have full control over Host header
+            const http = await import("node:http");
+            const url = new URL(`${fakeServerUrl}/graphql`);
+
+            const response = await new Promise<{ statusCode: number; body: string }>((resolve) => {
+                const req = http.request(
+                    {
+                        hostname: url.hostname,
+                        port: url.port,
+                        path: url.pathname,
+                        method: "POST",
+                        headers: {
+                            Host: "evil.com:4000", // Invalid host header
+                            "Content-Type": "application/json",
+                        },
+                    },
+                    (res) => {
+                        let body = "";
+                        res.on("data", (chunk) => {
+                            body += chunk;
+                        });
+                        res.on("end", () => resolve({ statusCode: res.statusCode ?? 0, body }));
+                    },
+                );
+
+                req.on("error", (err) => {
+                    throw err;
+                });
+
+                // Send a GraphQL query
+                req.write(
+                    JSON.stringify({
+                        query: "{ books { id } }",
+                    }),
+                );
+                req.end();
+            });
+
+            // Should be rejected by Host header validation
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toContain("Bad Request: Invalid Host header");
+        });
+    });
 });

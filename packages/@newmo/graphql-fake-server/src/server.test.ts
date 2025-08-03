@@ -6,6 +6,7 @@ import {
     type CalledResultResponse,
     type ConditionRule,
     createFakeServerInternal,
+    generateAllowedHosts,
     type RegisterSequenceNetworkError,
     type RegisterSequenceOptions,
 } from "./server.js";
@@ -22,10 +23,12 @@ const startTestFakeServer = async ({
     schemaString,
     ports,
     allowedCORSOrigins,
+    allowedHosts,
 }: {
     schemaString: string;
     ports: ReturnType<typeof getPorts>;
     allowedCORSOrigins?: string[];
+    allowedHosts?: string[] | "auto";
 }) => {
     const schema = buildSchema(extendSchema(schemaString));
     const logLevel = "info";
@@ -47,6 +50,7 @@ const startTestFakeServer = async ({
         maxFieldRecursionDepth: 4,
         maxRegisteredSequences: 100,
         allowedCORSOrigins: allowedCORSOrigins ?? [],
+        allowedHosts: allowedHosts ?? "auto",
     });
 };
 
@@ -1988,6 +1992,216 @@ describe("Condition validation", () => {
             "Invalid request conditions: Variables condition must have a 'value' field",
           ]
         `);
+
+        await server.stop();
+    });
+});
+
+describe("Host Header Validation", () => {
+    describe("generateAllowedHosts", () => {
+        it("should generate default localhost hosts in auto mode", () => {
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: [],
+                allowedHosts: "auto",
+            });
+
+            expect(hosts.has("localhost:4000")).toBe(true);
+            expect(hosts.has("127.0.0.1:4000")).toBe(true);
+            expect(hosts.has("[::1]:4000")).toBe(true);
+            expect(hosts.has("0.0.0.0:4000")).toBe(true);
+        });
+
+        it("should add hosts from CORS origins in auto mode", () => {
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: ["http://frontend.local:3000", "https://example.com"],
+                allowedHosts: "auto",
+            });
+
+            // Default hosts
+            expect(hosts.has("localhost:4000")).toBe(true);
+
+            // From CORS origins
+            expect(hosts.has("frontend.local:3000")).toBe(true);
+            expect(hosts.has("frontend.local:4000")).toBe(true); // Same hostname with server port
+            expect(hosts.has("example.com")).toBe(true); // URL.host doesn't include default port
+            expect(hosts.has("example.com:4000")).toBe(true); // Same hostname with server port
+        });
+
+        it("should use explicit hosts when provided", () => {
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: [],
+                allowedHosts: ["custom:8080", "special.local:9000"],
+            });
+
+            expect(hosts.size).toBe(2);
+            expect(hosts.has("custom:8080")).toBe(true);
+            expect(hosts.has("special.local:9000")).toBe(true);
+
+            // Should NOT include default localhost
+            expect(hosts.has("localhost:4000")).toBe(false);
+        });
+
+        it("should handle invalid CORS origins gracefully", () => {
+            const hosts = generateAllowedHosts({
+                serverPort: 4000,
+                allowedCORSOrigins: ["not-a-url", "http://valid.com:3000"],
+                allowedHosts: "auto",
+            });
+
+            // Should still have default hosts
+            expect(hosts.has("localhost:4000")).toBe(true);
+
+            // Valid origin should be processed
+            expect(hosts.has("valid.com:3000")).toBe(true);
+            expect(hosts.has("valid.com:4000")).toBe(true);
+        });
+    });
+
+    it("should accept requests with valid Host headers", async () => {
+        const schema = `
+            type Query {
+                hello: String!
+            }
+        `;
+        const ports = getPorts();
+        const server = await startTestFakeServer({
+            schemaString: schema,
+            ports,
+            // allowedHosts defaults to "auto"
+        });
+        const { urls } = await server.start();
+
+        // Normal request (fetch will use the actual host)
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query: "query { hello }",
+            }),
+        });
+
+        expect(response.status).toBe(200);
+        const result = (await response.json()) as GraphQLResponse;
+        expect(result.data).toBeDefined();
+
+        await server.stop();
+    });
+
+    it("should work with CORS origins configuration", async () => {
+        const schema = `
+            type Query {
+                hello: String!
+            }
+        `;
+        const ports = getPorts();
+        const server = await startTestFakeServer({
+            schemaString: schema,
+            ports,
+            allowedCORSOrigins: ["http://localhost:3000"],
+            // This will auto-generate allowed hosts including localhost:3000 and localhost:4000+
+        });
+        const { urls } = await server.start();
+
+        // Normal request should work
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query: "query { hello }",
+            }),
+        });
+
+        expect(response.status).toBe(200);
+
+        await server.stop();
+    });
+
+    it("should work with explicit allowed hosts", async () => {
+        const schema = `
+            type Query {
+                hello: String!
+            }
+        `;
+        const ports = getPorts();
+
+        // Need to include the actual host that will be used
+        const server = await startTestFakeServer({
+            schemaString: schema,
+            ports,
+            allowedHosts: [
+                `0.0.0.0:${ports.fakeServer}`,
+                `0.0.0.0:${ports.apolloServer}`,
+                `localhost:${ports.fakeServer}`,
+            ],
+        });
+        const { urls } = await server.start();
+
+        const response = await fetch(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                query: "query { hello }",
+            }),
+        });
+
+        expect(response.status).toBe(200);
+
+        await server.stop();
+    });
+
+    it("should reject DNS rebinding attack with undici", async () => {
+        // Skip test if undici is not available
+        let undici: typeof import("undici") | null = null;
+        try {
+            undici = await import("undici");
+        } catch {
+            console.log("Skipping DNS rebinding test: undici not available");
+            return;
+        }
+
+        const schema = `
+            type Query {
+                hello: String!
+            }
+        `;
+        const ports = getPorts();
+        const server = await startTestFakeServer({
+            schemaString: schema,
+            ports,
+            // allowedHosts defaults to "auto"
+        });
+        const { urls } = await server.start();
+
+        // Simulate DNS rebinding attack by overriding Host header
+        const { request } = undici;
+        const { statusCode, body } = await request(`${urls.fakeServer}/graphql`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                // Force a malicious Host header
+                Host: "evil.com:4000",
+            },
+            body: JSON.stringify({
+                query: "query { hello }",
+            }),
+        });
+
+        expect(statusCode).toBe(400);
+
+        let responseText = "";
+        for await (const chunk of body) {
+            responseText += chunk;
+        }
+        expect(responseText).toBe("Bad Request: Invalid Host header");
 
         await server.stop();
     });

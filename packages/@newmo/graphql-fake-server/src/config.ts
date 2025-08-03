@@ -61,6 +61,13 @@ export type FakeServerConfig = {
      * This option allows you to specify additional origins to accept.
      */
     allowedCORSOrigins?: string[] | undefined;
+    /**
+     * Allowed Host headers for the fake server to prevent DNS rebinding attacks.
+     * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
+     * - string[]: Explicit list of allowed Host headers (e.g., ["localhost:4000", "myapp.local:4000"])
+     * @default "auto"
+     */
+    allowedHosts?: string[] | "auto" | undefined;
 };
 export type RequiredFakeServerConfig = {
     schemaFilePath: string;
@@ -74,6 +81,7 @@ export type RequiredFakeServerConfig = {
     defaultValues: RawConfig["defaultValues"];
     logLevel: LogLevel;
     allowedCORSOrigins: string[];
+    allowedHosts: string[] | "auto";
 };
 
 export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFakeServerConfig => {
@@ -89,6 +97,7 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
         defaultValues: config.defaultValues ?? {},
         logLevel: config.logLevel ?? "info",
         allowedCORSOrigins: config.allowedCORSOrigins ?? [],
+        allowedHosts: config.allowedHosts ?? "auto",
     };
 };
 export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerConfig => {
@@ -134,6 +143,18 @@ export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerCo
         for (const origin of config.allowedCORSOrigins) {
             if (typeof origin !== "string") {
                 throw new Error("Each allowedCORSOrigin must be a string.");
+            }
+        }
+    }
+    if (config.allowedHosts) {
+        if (config.allowedHosts !== "auto" && !Array.isArray(config.allowedHosts)) {
+            throw new Error("The allowedHosts must be 'auto' or an array of strings.");
+        }
+        if (Array.isArray(config.allowedHosts)) {
+            for (const host of config.allowedHosts) {
+                if (typeof host !== "string") {
+                    throw new Error("Each allowedHost must be a string.");
+                }
             }
         }
     }

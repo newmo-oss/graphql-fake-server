@@ -179,6 +179,15 @@ export default {
    * @example ["https://example.com", "https://app.example.com"]
    */
   allowedCORSOrigins: undefined,
+  /**
+   * @type {string[] | "auto" | undefined}
+   * Allowed Host headers for the fake server to prevent DNS rebinding attacks
+   * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
+   * - string[]: Explicit list of allowed Host headers
+   * - undefined: Same as "auto"
+   * @example ["localhost:4000", "myapp.local:4000"]
+   */
+  allowedHosts: undefined,
 };
 ```
 
@@ -201,8 +210,40 @@ type RequiredFakeServerConfig = {
    * @example ["https://example.com", "https://app.example.com"]
    */
   allowedCORSOrigins?: string[] | undefined;
+  /**
+   * Allowed Host headers for the fake server to prevent DNS rebinding attacks
+   * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
+   * - string[]: Explicit list of allowed Host headers
+   * @example ["localhost:4000", "myapp.local:4000"]
+   */
+  allowedHosts?: string[] | "auto" | undefined;
 };
 ```
+
+## Security
+
+GraphQL Fake Server implements security features to prevent DNS rebinding and cross-origin attacks:
+
+### Host Header Validation
+
+- **Purpose**: Prevents DNS rebinding attacks
+- **Default**: `"auto"` - automatically generates allowed hosts from CORS origins and localhost addresses
+- **Configuration**: `allowedHosts` option accepts `"auto"`, `string[]`, or `undefined`
+
+### CORS Configuration
+
+- **Purpose**: Controls cross-origin requests
+- **Default**: Allows only localhost and internal network connections
+- **Configuration**: `allowedCORSOrigins` option accepts `string[]` or `undefined`
+
+### Auto-generation Feature
+
+When `allowedHosts` is `"auto"` (default), the server automatically:
+- Extracts hostnames from configured CORS origins
+- Adds standard localhost addresses (localhost, 127.0.0.1, [::1], 0.0.0.0)
+- Allows both original and server ports for each hostname
+
+This integration ensures consistent security policies and reduces configuration errors.
 
 ## Tests
 
