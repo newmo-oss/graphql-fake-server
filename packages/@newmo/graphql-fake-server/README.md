@@ -222,33 +222,28 @@ type RequiredFakeServerConfig = {
 
 ## Security
 
+GraphQL Fake Server implements security features to prevent DNS rebinding and cross-origin attacks:
+
 ### Host Header Validation
 
-The fake server implements Host header validation to prevent DNS rebinding attacks. This security feature:
+- **Purpose**: Prevents DNS rebinding attacks
+- **Default**: `"auto"` - automatically generates allowed hosts from CORS origins and localhost addresses
+- **Configuration**: `allowedHosts` option accepts `"auto"`, `string[]`, or `undefined`
 
-- **Validates all incoming requests** to ensure the Host header matches allowed values
-- **Defaults to "auto" mode** which automatically generates allowed hosts from:
-  - Standard localhost addresses (localhost, 127.0.0.1, [::1], 0.0.0.0)
-  - Hosts extracted from configured CORS origins
-  - Both original ports and server ports for each hostname
-- **Supports manual configuration** for special deployment scenarios
-- **Displays security configuration on startup** for transparency
+### CORS Configuration
 
-Example output on server startup:
-```
-🚀 Apollo Server started at http://0.0.0.0:4002
-🔒 Security Configuration:
-   - Allowed Hosts: auto (generated from CORS origins)
-     • localhost:4002
-     • 127.0.0.1:4002
-     • [::1]:4002
-     • 0.0.0.0:4002
-     • frontend.local:3000
-     • frontend.local:4002
-   - CORS Origins: http://frontend.local:3000
-```
+- **Purpose**: Controls cross-origin requests
+- **Default**: Allows only localhost and internal network connections
+- **Configuration**: `allowedCORSOrigins` option accepts `string[]` or `undefined`
 
-This prevents attackers from bypassing same-origin policy through DNS rebinding attacks, similar to protections implemented in webpack-dev-server (CVE-2018-14732).
+### Auto-generation Feature
+
+When `allowedHosts` is `"auto"` (default), the server automatically:
+- Extracts hostnames from configured CORS origins
+- Adds standard localhost addresses (localhost, 127.0.0.1, [::1], 0.0.0.0)
+- Allows both original and server ports for each hostname
+
+This integration ensures consistent security policies and reduces configuration errors.
 
 ## Tests
 
