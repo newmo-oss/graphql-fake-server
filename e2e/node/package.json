@@ -1,31 +1,31 @@
 {
-    "private": true,
-    "name": "e2e-node",
-    "version": "0.22.0",
-    "type": "module",
-    "scripts": {
-        "start": "npm exec @newmo/graphql-fake-server -- --config=./graphql-fake.config.mjs",
-        "codegen": "graphql-codegen --config graphql-codegen.ts",
-        "lint": "tsc",
-        "test": "vitest run",
-        "test:benchmark": "vitest bench",
-        "updateSnapshot": "vitest run -u && pnpm run codegen"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "dependencies": {
-        "@newmo/graphql-codegen-fake-server-client": "workspace:*",
-        "@newmo/graphql-fake-server": "workspace:*"
-    },
-    "devDependencies": {
-        "@apollo/client": "^3.13.8",
-        "@graphql-codegen/cli": "^5.0.7",
-        "@graphql-codegen/typescript": "^4.1.6",
-        "@tsconfig/node18": "^18.2.0",
-        "@tsconfig/strictest": "^2.0.1",
-        "graphql-request": "^7.2.0",
-        "vitest": "^3.2.4",
-        "vitest-github-actions-reporter": "^0.11.1"
-    }
+  "private": true,
+  "name": "e2e-node",
+  "version": "0.22.0",
+  "type": "module",
+  "scripts": {
+    "start": "npm exec @newmo/graphql-fake-server -- --config=./graphql-fake.config.mjs",
+    "codegen": "graphql-codegen --config graphql-codegen.ts",
+    "lint": "tsc",
+    "test": "vitest run",
+    "test:benchmark": "vitest bench",
+    "updateSnapshot": "vitest run -u && pnpm run codegen"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@newmo/graphql-codegen-fake-server-client": "workspace:*",
+    "@newmo/graphql-fake-server": "workspace:*"
+  },
+  "devDependencies": {
+    "@apollo/client": "^3.13.8",
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@tsconfig/node18": "^18.2.0",
+    "@tsconfig/strictest": "^2.0.1",
+    "graphql-request": "^7.2.0",
+    "vitest": "^3.2.4",
+    "vitest-github-actions-reporter": "^0.11.1"
+  }
 }
