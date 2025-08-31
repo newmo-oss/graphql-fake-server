@@ -18,12 +18,13 @@
     "@newmo/graphql-fake-server": "workspace:*"
   },
   "devDependencies": {
-    "@apollo/client": "^3.13.8",
+    "@apollo/client": "^4.0.0",
     "@graphql-codegen/cli": "^5.0.7",
     "@graphql-codegen/typescript": "^4.1.6",
     "@tsconfig/node18": "^18.2.0",
     "@tsconfig/strictest": "^2.0.1",
     "graphql-request": "^7.2.0",
+    "rxjs": "^7.8.1",
     "vitest": "^3.2.4",
     "vitest-github-actions-reporter": "^0.11.1"
   }
