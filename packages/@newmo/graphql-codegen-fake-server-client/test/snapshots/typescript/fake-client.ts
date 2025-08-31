@@ -20,24 +20,24 @@ export type CreateFakeClientOptions = {
 
 // Request queue implementation for rate limiting
 class RequestQueue {
-  private queue: Array<() => Promise<any>> = [];
-  private running = 0;
-  private maxConcurrent: number = 10; // Reduced default for better stability
-  private requestDelay: number = 10; // Small delay to prevent overwhelming the server
-  private lastRequestTime = 0;
+  #queue: Array<() => Promise<unknown>> = [];
+  #running = 0;
+  #maxConcurrent: number = 10; // Reduced default for better stability
+  #requestDelay: number = 10; // Small delay to prevent overwhelming the server
+  #lastRequestTime = 0;
 
   async add<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
-      this.queue.push(async () => {
+      this.#queue.push(async () => {
         try {
           // Apply request delay if configured
-          if (this.requestDelay > 0) {
+          if (this.#requestDelay > 0) {
             const now = Date.now();
-            const timeSinceLastRequest = now - this.lastRequestTime;
-            if (timeSinceLastRequest < this.requestDelay) {
-              await new Promise(r => setTimeout(r, this.requestDelay - timeSinceLastRequest));
+            const timeSinceLastRequest = now - this.#lastRequestTime;
+            if (timeSinceLastRequest < this.#requestDelay) {
+              await new Promise(r => setTimeout(r, this.#requestDelay - timeSinceLastRequest));
             }
-            this.lastRequestTime = Date.now();
+            this.#lastRequestTime = Date.now();
           }
 
           const result = await fn();
@@ -46,21 +46,21 @@ class RequestQueue {
           reject(error);
         }
       });
-      this.process();
+      this.#process();
     });
   }
 
-  private async process() {
-    if (this.running >= this.maxConcurrent || this.queue.length === 0) {
+  async #process() {
+    if (this.#running >= this.#maxConcurrent || this.#queue.length === 0) {
       return;
     }
 
-    this.running++;
-    const fn = this.queue.shift();
+    this.#running++;
+    const fn = this.#queue.shift();
     if (fn) {
       await fn();
-      this.running--;
-      this.process();
+      this.#running--;
+      this.#process();
     }
   }
 }
