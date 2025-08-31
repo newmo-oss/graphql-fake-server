@@ -8,6 +8,7 @@
         "codegen": "graphql-codegen --config graphql-codegen.ts",
         "lint": "tsc",
         "test": "vitest run",
+        "test:benchmark": "vitest bench",
         "updateSnapshot": "vitest run -u && pnpm run codegen"
     },
     "engines": {
