@@ -26,6 +26,9 @@ describe("Fake Registration Benchmark", () => {
             }),
         );
 
+        // Start the server
+        await server.start();
+
         // Create fake client
         fakeClient = createFakeClient({
             fakeServerEndpoint: `http://127.0.0.1:${TEST_PORT}/fake`,

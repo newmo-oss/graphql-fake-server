@@ -26,8 +26,8 @@ describe("ECONNRESET Fix Verification", () => {
             }),
         );
 
-        // Wait a bit for server to fully start
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Start the server
+        await server.start();
 
         // Create fake client with the new implementation
         fakeClient = createFakeClient({
