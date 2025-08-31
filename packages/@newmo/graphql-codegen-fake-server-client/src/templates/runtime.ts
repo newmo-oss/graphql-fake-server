@@ -16,7 +16,7 @@ export type CreateFakeClientOptions = {
 class RequestQueue {
   private queue: Array<() => Promise<any>> = [];
   private running = 0;
-  private maxConcurrent: number = 5; // Reduced default for better stability
+  private maxConcurrent: number = 10; // Reduced default for better stability
   private requestDelay: number = 10; // Small delay to prevent overwhelming the server
   private lastRequestTime = 0;
 
