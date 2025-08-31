@@ -40,7 +40,7 @@ describe("stress test", () => {
         await server?.stop();
     });
 
-    it("should handle 1000 concurrent fake registrations without ECONNRESET", async () => {
+    it("should handle 5000 concurrent fake registrations without ECONNRESET", async () => {
         const sequenceId = `test-${Date.now()}`;
         const promises: Promise<any>[] = [];
 
@@ -56,7 +56,7 @@ describe("stress test", () => {
         };
 
         // Register 100 fakes concurrently
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 5000; i++) {
             const uniqueSequenceId = `${sequenceId}-${i}`;
             promises.push(fakeClient.registerGetBooksQueryResponse(uniqueSequenceId, fakeResponse));
         }
@@ -68,7 +68,7 @@ describe("stress test", () => {
 
         // Log any failures for debugging
         if (failures.length > 0) {
-            console.error(`Failed registrations: ${failures.length}/1000`);
+            console.error(`Failed registrations: ${failures.length}/5000`);
             failures.forEach((failure, index) => {
                 const error = (failure as PromiseRejectedResult).reason;
                 console.error(`Failure ${index + 1}:`, error.message || error);
@@ -76,7 +76,7 @@ describe("stress test", () => {
         }
 
         // Assert all succeeded
-        expect(successes.length).toBe(1000);
+        expect(successes.length).toBe(5000);
         expect(failures.length).toBe(0);
     });
 });
