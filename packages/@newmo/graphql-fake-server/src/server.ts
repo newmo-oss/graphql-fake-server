@@ -738,7 +738,7 @@ const createRoutingServer = async ({
             });
 
             conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
-            logger.info("[/fake] Registered conditional fake response:", {
+            logger.debug("[/fake] Registered conditional fake response:", {
                 sequenceId,
                 operationName,
                 conditionType: validationResult.data.requestCondition.type,
@@ -747,7 +747,7 @@ const createRoutingServer = async ({
         } else {
             // Without condition or with "always" condition, use traditional approach
             sequenceFakeResponseLruMap.set(baseKey, validationResult.data);
-            logger.info("[/fake] Registered fake response:", {
+            logger.debug("[/fake] Registered fake response:", {
                 sequenceId,
                 operationName,
                 type: validationResult.data.type,
