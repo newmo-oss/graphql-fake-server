@@ -30,7 +30,7 @@
     "prepare": "git config --local core.hooksPath .githooks"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
+    "@biomejs/biome": "^2.2.2",
     "@lerna-lite/cli": "^4.4.1",
     "@lerna-lite/publish": "^4.4.1",
     "@lerna-lite/version": "^4.4.1",
