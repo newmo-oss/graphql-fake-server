@@ -18,6 +18,13 @@ export type CreateFakeClientOptions = {
   fakeServerEndpoint: string;
 };
 
+// Simple logger for FakeClient
+const logger = {
+  error: (...args: unknown[]) => {
+    console.error('[FakeClient]', ...args);
+  }
+};
+
 // Request queue implementation for rate limiting
 class RequestQueue {
   #queue: Array<() => Promise<unknown>> = [];
@@ -109,14 +116,13 @@ async function fetchWithRetry(
           sequenceId: (options.headers as any)?.['sequence-id'],
         };
         
-        console.error(`[FakeClient] Server error, will retry:`, requestInfo);
+        logger.error('Server error, will retry:', requestInfo);
         
         // Calculate delay with exponential backoff and jitter
         const baseDelay = Math.min(initialDelay * Math.pow(backoffFactor, attempt), maxDelay);
         const jitter = Math.random() * 0.1 * baseDelay; // 10% jitter
         const delay = baseDelay + jitter;
         
-        console.log(`[FakeClient] Retrying in ${Math.round(delay)}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -151,7 +157,7 @@ async function fetchWithRetry(
         sequenceId: (options.headers as any)?.['sequence-id'],
       };
       
-      console.error(`[FakeClient] Request failed:`, requestInfo);
+      logger.error('Request failed:', requestInfo);
       
       if (shouldRetry && attempt < maxAttempts - 1) {
         // Calculate delay with exponential backoff and jitter
@@ -159,7 +165,6 @@ async function fetchWithRetry(
         const jitter = Math.random() * 0.1 * baseDelay; // 10% jitter
         const delay = baseDelay + jitter;
         
-        console.log(`[FakeClient] Retrying in ${Math.round(delay)}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
