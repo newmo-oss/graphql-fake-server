@@ -9,48 +9,232 @@ export type FakeClientAlwaysConditionRule = { type: "always" };
 export type FakeClientVariablesConditionRule<TVariables = Record<string, any>> = { type: "variables"; value: TVariables };
 export type FakeClientConditionRule<TVariables = Record<string, any>> = FakeClientAlwaysConditionRule | FakeClientVariablesConditionRule<TVariables>;
 export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> = { requestCondition?: FakeClientConditionRule<TVariables> };
+// Runtime utilities for generated fake client
 export type CreateFakeClientOptions = {
-  /** 
+  /**
    * The URL of the fake server
    * @example 'http://localhost:4000/fake'
    */
   fakeServerEndpoint: string;
 };
+
+// Request queue implementation for rate limiting
+class RequestQueue {
+  private queue: Array<() => Promise<any>> = [];
+  private running = 0;
+  private maxConcurrent: number = 10; // Reduced default for better stability
+  private requestDelay: number = 10; // Small delay to prevent overwhelming the server
+  private lastRequestTime = 0;
+
+  async add<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          // Apply request delay if configured
+          if (this.requestDelay > 0) {
+            const now = Date.now();
+            const timeSinceLastRequest = now - this.lastRequestTime;
+            if (timeSinceLastRequest < this.requestDelay) {
+              await new Promise(r => setTimeout(r, this.requestDelay - timeSinceLastRequest));
+            }
+            this.lastRequestTime = Date.now();
+          }
+
+          const result = await fn();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      this.process();
+    });
+  }
+
+  private async process() {
+    if (this.running >= this.maxConcurrent || this.queue.length === 0) {
+      return;
+    }
+
+    this.running++;
+    const fn = this.queue.shift();
+    if (fn) {
+      await fn();
+      this.running--;
+      this.process();
+    }
+  }
+}
+
+// Retry helper function with exponential backoff
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit
+): Promise<Response> {
+  const maxAttempts = 3;
+  const initialDelay = 100;
+  const maxDelay = 2000;
+  const backoffFactor = 2;
+
+  // Apply HTTP options with sensible defaults
+  const fetchOptions: RequestInit = {
+    ...options,
+    // Enable keepalive for connection reuse
+    keepalive: true,
+    // Set a reasonable timeout (30 seconds)
+    signal: AbortSignal.timeout(30000),
+  };
+
+  let lastError: Error | undefined;
+  let lastResponse: Response | undefined;
+  
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, fetchOptions);
+      lastResponse = response;
+      
+      // Success (2xx) or client error (4xx) - don't retry
+      if (response.status < 500) {
+        return response;
+      }
+      
+      // Server error (5xx) - should retry
+      if (attempt < maxAttempts - 1) {
+        const requestInfo = {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          attempt: attempt + 1,
+          maxAttempts,
+          operationName: JSON.parse(options.body as string)?.operationName,
+          sequenceId: (options.headers as any)?.['sequence-id'],
+        };
+        
+        console.error(`[FakeClient] Server error, will retry:`, requestInfo);
+        
+        // Calculate delay with exponential backoff and jitter
+        const baseDelay = Math.min(initialDelay * Math.pow(backoffFactor, attempt), maxDelay);
+        const jitter = Math.random() * 0.1 * baseDelay; // 10% jitter
+        const delay = baseDelay + jitter;
+        
+        console.log(`[FakeClient] Retrying in ${Math.round(delay)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      // Last attempt and still server error
+      return response;
+      
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Determine if error is retryable
+      let shouldRetry = false;
+      let errorType = 'unknown';
+      
+      if (error instanceof TypeError) {
+        // Network errors from fetch (connection failures)
+        shouldRetry = true;
+        errorType = 'network';
+      } else if (error instanceof Error && error.name === 'AbortError') {
+        // Timeout errors
+        shouldRetry = true;
+        errorType = 'timeout';
+      }
+      
+      const requestInfo = {
+        url,
+        errorType,
+        error: error instanceof Error ? error.message : String(error),
+        attempt: attempt + 1,
+        maxAttempts,
+        operationName: JSON.parse(options.body as string)?.operationName,
+        sequenceId: (options.headers as any)?.['sequence-id'],
+      };
+      
+      console.error(`[FakeClient] Request failed:`, requestInfo);
+      
+      if (shouldRetry && attempt < maxAttempts - 1) {
+        // Calculate delay with exponential backoff and jitter
+        const baseDelay = Math.min(initialDelay * Math.pow(backoffFactor, attempt), maxDelay);
+        const jitter = Math.random() * 0.1 * baseDelay; // 10% jitter
+        const delay = baseDelay + jitter;
+        
+        console.log(`[FakeClient] Retrying in ${Math.round(delay)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      // Not retryable or max attempts reached
+      throw error;
+    }
+  }
+  
+  // Should not reach here, but just in case
+  if (lastResponse) {
+    return lastResponse;
+  }
+  throw new Error('Max retry attempts reached', { cause: lastError });
+}
+
 export function createFakeClient(options: CreateFakeClientOptions) {
   if(!options.fakeServerEndpoint.endsWith('/fake')) {
     throw new Error('fakeServerEndpoint must end with "/fake"');
   }
+  
+  // Create request queue for rate limiting
+  const requestQueue = new RequestQueue();
+  
   return {
-    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListDestinationCandidatesQueryResponse(sequenceId:string, queryResponse: ListDestinationCandidatesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListDestinationCandidatesQueryVariables>): Promise<{ ok: true }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "ListDestinationCandidates",
-                data: queryResponse,
-                requestCondition: requestCondition
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "ListDestinationCandidates",
+                    data: queryResponse,
+                    requestCondition: requestCondition
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
-    async registerListDestinationCandidatesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "network-error",
-                operationName: "ListDestinationCandidates",
-                responseStatusCode,
-                errors
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    async registerListDestinationCandidatesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true }> {
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "ListDestinationCandidates",
+                    responseStatusCode,
+                    errors
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake error response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
     async calledListDestinationCandidatesQuery(sequenceId:string): Promise<{
       ok: true;
@@ -71,65 +255,96 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                operationName: "ListDestinationCandidates"
-            }),
-        }).then((res) => res.json()) as {
-      ok: true;
-      data: {
-        requestTimestamp: number;
-        request: {
-          headers: Record<string, unknown>;
-          body: {
-            operationName: string;
-            query: string;
-            variables: ListDestinationCandidatesQueryVariables;
-          };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint + "/called",
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    operationName: "ListDestinationCandidates"
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to get called data: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+    
+        return result as {
+            ok: true;
+            data: {
+                requestTimestamp: number;
+                request: {
+                    headers: Record<string, unknown>;
+                    body: {
+                        operationName: string;
+                        query: string;
+                        variables: ListDestinationCandidatesQueryVariables;
+                    };
+                };
+                response: {
+                    statusCode: number;
+                    headers: Record<string, unknown>;
+                    body: ListDestinationCandidatesQuery;
+                };
+            }[];
         };
-        response: {
-            statusCode: number;
-            headers: Record<string, unknown>;
-            body: ListDestinationCandidatesQuery;
-        };
-      }[];
-    };
     },
-    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerListRideHistoriesQueryResponse(sequenceId:string, queryResponse: ListRideHistoriesQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<ListRideHistoriesQueryVariables>): Promise<{ ok: true }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "ListRideHistories",
-                data: queryResponse,
-                requestCondition: requestCondition
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "ListRideHistories",
+                    data: queryResponse,
+                    requestCondition: requestCondition
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
-    async registerListRideHistoriesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "network-error",
-                operationName: "ListRideHistories",
-                responseStatusCode,
-                errors
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    async registerListRideHistoriesQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true }> {
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "ListRideHistories",
+                    responseStatusCode,
+                    errors
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake error response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
     async calledListRideHistoriesQuery(sequenceId:string): Promise<{
       ok: true;
@@ -150,65 +365,96 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[]            
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                operationName: "ListRideHistories"
-            }),
-        }).then((res) => res.json()) as {
-      ok: true;
-      data: {
-        requestTimestamp: number;
-        request: {
-          headers: Record<string, unknown>;
-          body: {
-            operationName: string;
-            query: string;
-            variables: ListRideHistoriesQueryVariables;
-          };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint + "/called",
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    operationName: "ListRideHistories"
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to get called data: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+    
+        return result as {
+            ok: true;
+            data: {
+                requestTimestamp: number;
+                request: {
+                    headers: Record<string, unknown>;
+                    body: {
+                        operationName: string;
+                        query: string;
+                        variables: ListRideHistoriesQueryVariables;
+                    };
+                };
+                response: {
+                    statusCode: number;
+                    headers: Record<string, unknown>;
+                    body: ListRideHistoriesQuery;
+                };
+            }[];
         };
-        response: {
-            statusCode: number;
-            headers: Record<string, unknown>;
-            body: ListRideHistoriesQuery;
-        };
-      }[];
-    };
     },
-    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateUrlRideHistoryMutationVariables>): Promise<{ ok: true }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "CreateUrlRideHistory",
-                data: mutationResponse,
-                requestCondition: requestCondition
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "CreateUrlRideHistory",
+                    data: mutationResponse,
+                    requestCondition: requestCondition
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
-    async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "network-error",
-                operationName: "CreateUrlRideHistory",
-                responseStatusCode,
-                errors
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    async registerCreateUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true }> {
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "CreateUrlRideHistory",
+                    responseStatusCode,
+                    errors
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake error response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
     async calledCreateUrlRideHistoryMutation(sequenceId:string): Promise<{
       ok: true;
@@ -229,65 +475,96 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[];
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                operationName: "CreateUrlRideHistory"
-            }),
-        }).then((res) => res.json()) as {
-      ok: true;
-      data: {
-        requestTimestamp: number;
-        request: {
-          headers: Record<string, unknown>;
-          body: {
-            operationName: string;
-            query: string;
-            variables: CreateUrlRideHistoryMutationVariables;
-          };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint + "/called",
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    operationName: "CreateUrlRideHistory"
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to get called data: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+    
+        return result as {
+            ok: true;
+            data: {
+                requestTimestamp: number;
+                request: {
+                    headers: Record<string, unknown>;
+                    body: {
+                        operationName: string;
+                        query: string;
+                        variables: CreateUrlRideHistoryMutationVariables;
+                    };
+                };
+                response: {
+                    statusCode: number;
+                    headers: Record<string, unknown>;
+                    body: CreateUrlRideHistoryMutation;
+                };
+            }[];
         };
-        response: {
-            statusCode: number;
-            headers: Record<string, unknown>;
-            body: CreateUrlRideHistoryMutation;
-        };
-      }[];
-    }
     },
-    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true } | { ok: false; errors: string[] }> {
+    async registerCreateFooUrlRideHistoryMutationResponse(sequenceId:string, mutationResponse: CreateFooUrlRideHistoryMutation, sequenceOptions?: FakeClientRegisterSequenceOptions<CreateFooUrlRideHistoryMutationVariables>): Promise<{ ok: true }> {
         const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "operation",
-                operationName: "CreateFooUrlRideHistory",
-                data: mutationResponse,
-                requestCondition: requestCondition
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "CreateFooUrlRideHistory",
+                    data: mutationResponse,
+                    requestCondition: requestCondition
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
-    async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true } | { ok: false; errors: string[] }> {
-        return await fetch(options.fakeServerEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                type: "network-error",
-                operationName: "CreateFooUrlRideHistory",
-                responseStatusCode,
-                errors
-            }),
-        }).then((res) => res.json()) as { ok: true } | { ok: false; errors: string[] };
+    async registerCreateFooUrlRideHistoryMutationErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true }> {
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "CreateFooUrlRideHistory",
+                    responseStatusCode,
+                    errors
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake error response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
     },
     async calledCreateFooUrlRideHistoryMutation(sequenceId:string): Promise<{
       ok: true;
@@ -308,34 +585,45 @@ export function createFakeClient(options: CreateFakeClientOptions) {
         };
       }[];
     }> {
-        return await fetch(options.fakeServerEndpoint + "/called", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'sequence-id': sequenceId
-            },
-            body: JSON.stringify({
-                operationName: "CreateFooUrlRideHistory"
-            }),
-        }).then((res) => res.json()) as {
-      ok: true;
-      data: {
-        requestTimestamp: number;
-        request: {
-          headers: Record<string, unknown>;
-          body: {
-            operationName: string;
-            query: string;
-            variables: CreateFooUrlRideHistoryMutationVariables;
-          };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint + "/called",
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    operationName: "CreateFooUrlRideHistory"
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to get called data: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+    
+        return result as {
+            ok: true;
+            data: {
+                requestTimestamp: number;
+                request: {
+                    headers: Record<string, unknown>;
+                    body: {
+                        operationName: string;
+                        query: string;
+                        variables: CreateFooUrlRideHistoryMutationVariables;
+                    };
+                };
+                response: {
+                    statusCode: number;
+                    headers: Record<string, unknown>;
+                    body: CreateFooUrlRideHistoryMutation;
+                };
+            }[];
         };
-        response: {
-            statusCode: number;
-            headers: Record<string, unknown>;
-            body: CreateFooUrlRideHistoryMutation;
-        };
-      }[];
-    }
     }
   };
 }

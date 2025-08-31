@@ -1,4 +1,3 @@
-
 """
 @exampleID directive specifies an example value for a ID field.
 This example value is used in the fake data.
@@ -217,9 +216,9 @@ type UserIsBlocked {
     blockedByUser: User
 }
 type UserWithErrors {
-  id: ID!
-  name: String!
-  errors: [GeneralError!]! @error
+    id: ID!
+    name: String!
+    errors: [GeneralError!]! @error
 }
 union UnionUserResult = User | UserSuspended | UserIsBlocked
 
