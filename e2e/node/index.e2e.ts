@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client/core";
 import { loadDevMessages, loadErrorMessages } from "@apollo/client/dev";
-import { onError as apolloOnError } from "@apollo/client/link/error/index.js";
+import { onError as apolloOnError } from "@apollo/client/link/error";
 import { createFakeServer, normalizeFakeServerConfig } from "@newmo/graphql-fake-server";
 import { GraphQLClient } from "graphql-request";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -33,7 +33,7 @@ const createApolloClient = (options: {
     uri: string;
     sequenceId?: string;
     errorLink?: ApolloLink;
-}): ApolloClient<unknown> => {
+}) => {
     const { uri, sequenceId, errorLink } = options;
 
     const httpLink = new HttpLink({
@@ -430,6 +430,12 @@ describe("integration test", async () => {
             expect(calledResult.data[0].requestTimestamp).toBeGreaterThan(0);
             expect(calledResult.data[0].request.body).toMatchInlineSnapshot(`
               {
+                "extensions": {
+                  "clientLibrary": {
+                    "name": "@apollo/client",
+                    "version": "4.0.3",
+                  },
+                },
                 "operationName": "CreateBook",
                 "query": "mutation CreateBook($title: String!) {
                 createBook(input: {title: $title}) {
