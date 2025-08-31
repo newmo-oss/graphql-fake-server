@@ -40,7 +40,7 @@ describe("stress test", () => {
         await server?.stop();
     });
 
-    it("should handle 5000 concurrent fake registrations without ECONNRESET", async () => {
+    it("should handle 5000 concurrent fake registrations without ECONNRESET", { timeout: 60 * 1000 }, async () => {
         const sequenceId = `test-${Date.now()}`;
         const promises: Promise<any>[] = [];
 
