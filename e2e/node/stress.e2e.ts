@@ -47,7 +47,7 @@ describe("stress test", () => {
         },
         async () => {
             const sequenceId = `test-${Date.now()}`;
-            const promises: Promise<any>[] = [];
+            const promises: Promise<unknown>[] = [];
 
             const fakeResponse: GetBooksQuery = {
                 __typename: "Query",

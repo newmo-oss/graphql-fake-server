@@ -177,13 +177,13 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
             return `import type { ${convertName(
                 documentName,
                 config,
-            )}Query, ${convertName(documentName, config)}QueryVariables } from \'${config.typesFile}\';`;
+            )}Query, ${convertName(documentName, config)}QueryVariables } from '${config.typesFile}';`;
         };
         const importMutationIdentifierName = (documentName: string) => {
             return `import type { ${convertName(documentName, config)}Mutation, ${convertName(
                 documentName,
                 config,
-            )}MutationVariables } from \'${config.typesFile}\';`;
+            )}MutationVariables } from '${config.typesFile}';`;
         };
         const importsSection = documents
             .flatMap((document) => {

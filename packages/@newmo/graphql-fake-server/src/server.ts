@@ -191,7 +191,7 @@ const startStandaloneServerWithCORS = async (
             });
 
             // Check for specific network errors
-            const errorCode = (err as any)?.code;
+            const errorCode = (err as { code?: string })?.code;
             if (errorCode === "ECONNRESET") {
                 logger.warn("[ApolloServer] Connection reset by client");
             } else if (errorCode === "EPIPE") {

@@ -263,7 +263,6 @@ interface DisplayableError {
     localizedMessage: String!
 }
 
-
 # CaseSensitive test
 # *URL*
 # Create*
@@ -307,7 +306,10 @@ input CreateBookInput {
 
 type Mutation {
     createBook(input: CreateBookInput!): Book!
-    createBookInline(bookId: ID! @exampleID(value: "id"), bookTitle:String! @exampleString(value: "input title")): Book!
+    createBookInline(
+        bookId: ID! @exampleID(value: "id")
+        bookTitle: String! @exampleString(value: "input title")
+    ): Book!
     useMutationErrorPattern(input: UseMutationErrorPatternInput!): UseMutationErrorPatternPayload!
     createFooURL(input: FooURLInput!): FooURLPayload!
 }

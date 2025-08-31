@@ -111,7 +111,7 @@ async function fetchWithRetry(
           statusText: response.statusText,
           attempt: attempt + 1,
           maxAttempts,
-          operationName: JSON.parse(options.body as string)?.operationName,
+          body: options.body,
           sequenceId: (options.headers as any)?.['sequence-id'],
         };
         
@@ -153,7 +153,7 @@ async function fetchWithRetry(
         error: error instanceof Error ? error.message : String(error),
         attempt: attempt + 1,
         maxAttempts,
-        operationName: JSON.parse(options.body as string)?.operationName,
+        body: options.body,
         sequenceId: (options.headers as any)?.['sequence-id'],
       };
       
