@@ -174,6 +174,34 @@ const startStandaloneServerWithCORS = async (
         credentials: false,
     };
 
+    // Error handling middleware
+    app.use(
+        (
+            err: unknown,
+            req: express.Request,
+            res: express.Response,
+            _next: express.NextFunction,
+        ) => {
+            logger.error("[ApolloServer] Request error:", {
+                error: err instanceof Error ? err.message : err,
+                stack: err instanceof Error ? err.stack : undefined,
+                method: req.method,
+                url: req.url,
+                headers: req.headers,
+            });
+
+            // Check for specific network errors
+            const errorCode = (err as any)?.code;
+            if (errorCode === "ECONNRESET") {
+                logger.warn("[ApolloServer] Connection reset by client");
+            } else if (errorCode === "EPIPE") {
+                logger.warn("[ApolloServer] Broken pipe error");
+            }
+
+            res.status(500).json({ error: "Internal server error" });
+        },
+    );
+
     // Apply middleware stack
     app.use(
         "/",
@@ -553,6 +581,15 @@ const createRoutingServer = async ({
             headers: Object.fromEntries(proxyResponse.headers),
         });
 
+        // Log warning for unsuccessful responses
+        if (proxyResponse.status >= 500) {
+            logger.warn("[passToApollo] Server error from Apollo:", {
+                sequenceId,
+                operationName,
+                status: proxyResponse.status,
+            });
+        }
+
         // log response with pipe
         if (proxyResponse.status === 101) return proxyResponse;
 
@@ -618,6 +655,7 @@ const createRoutingServer = async ({
         logger.debug("/fake");
         const sequenceId = c.req.header("sequence-id");
         if (!sequenceId) {
+            logger.warn("[/fake] Missing sequence-id header");
             return Response.json(
                 {
                     ok: false,
@@ -628,7 +666,25 @@ const createRoutingServer = async ({
                 },
             );
         }
-        const body = await c.req.json();
+
+        let body: unknown;
+        try {
+            body = await c.req.json();
+        } catch (error) {
+            logger.error("[/fake] Failed to parse request body:", {
+                sequenceId,
+                error: error instanceof Error ? error.message : error,
+            });
+            return Response.json(
+                {
+                    ok: false,
+                    errors: ["Invalid JSON in request body"],
+                },
+                {
+                    status: 400,
+                },
+            );
+        }
         logger.debug("/fake: got fake body", {
             sequenceId,
             body,
@@ -682,9 +738,20 @@ const createRoutingServer = async ({
             });
 
             conditionalFakeResponseMap.set(baseKey, existingConditionalFakes);
+            logger.info("[/fake] Registered conditional fake response:", {
+                sequenceId,
+                operationName,
+                conditionType: validationResult.data.requestCondition.type,
+                totalConditions: existingConditionalFakes.length,
+            });
         } else {
             // Without condition or with "always" condition, use traditional approach
             sequenceFakeResponseLruMap.set(baseKey, validationResult.data);
+            logger.info("[/fake] Registered fake response:", {
+                sequenceId,
+                operationName,
+                type: validationResult.data.type,
+            });
         }
         return Response.json(
             { ok: true },
