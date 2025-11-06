@@ -203,9 +203,9 @@ export function generateCalledQuery(params: {
       };
     };
     response: {
-        statusCode: number;
+        status: number;
         headers: Record<string, unknown>;
-        body: ${params.name}Query;
+        body: { data: ${params.name}Query };
     };
   }[]            
 }`,
@@ -242,9 +242,9 @@ return result as {
             };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: ${params.name}Query;
+            body: { data: ${params.name}Query };
         };
     }[];
 };`,
@@ -275,9 +275,9 @@ export function generateCalledMutation(params: {
       };
     };
     response: {
-        statusCode: number;
+        status: number;
         headers: Record<string, unknown>;
-        body: ${params.name}Mutation;
+        body: { data: ${params.name}Mutation };
     };
   }[];
 }`,
@@ -314,9 +314,9 @@ return result as {
             };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: ${params.name}Mutation;
+            body: { data: ${params.name}Mutation };
         };
     }[];
 };`,

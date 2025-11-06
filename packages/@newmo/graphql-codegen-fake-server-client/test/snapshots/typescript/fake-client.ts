@@ -254,9 +254,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: ListDestinationCandidatesQuery;
+            body: { data: ListDestinationCandidatesQuery };
         };
       }[]            
     }> {
@@ -293,9 +293,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: ListDestinationCandidatesQuery;
+                    body: { data: ListDestinationCandidatesQuery };
                 };
             }[];
         };
@@ -364,9 +364,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: ListRideHistoriesQuery;
+            body: { data: ListRideHistoriesQuery };
         };
       }[]            
     }> {
@@ -403,9 +403,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: ListRideHistoriesQuery;
+                    body: { data: ListRideHistoriesQuery };
                 };
             }[];
         };
@@ -474,9 +474,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: CreateUrlRideHistoryMutation;
+            body: { data: CreateUrlRideHistoryMutation };
         };
       }[];
     }> {
@@ -513,9 +513,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: CreateUrlRideHistoryMutation;
+                    body: { data: CreateUrlRideHistoryMutation };
                 };
             }[];
         };
@@ -584,9 +584,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: CreateFooUrlRideHistoryMutation;
+            body: { data: CreateFooUrlRideHistoryMutation };
         };
       }[];
     }> {
@@ -623,9 +623,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: CreateFooUrlRideHistoryMutation;
+                    body: { data: CreateFooUrlRideHistoryMutation };
                 };
             }[];
         };

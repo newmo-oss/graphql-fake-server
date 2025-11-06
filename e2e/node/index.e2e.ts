@@ -680,6 +680,69 @@ describe("integration test", async () => {
               }
             `);
         });
+        it("should validate response structure for Query", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+                __typename: "Query",
+                books: [{ __typename: "Book", id: "test-id", title: "test-title" }],
+            });
+
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`, {
+                headers: { "sequence-id": sequenceId },
+            });
+            await client.request(GetBooksDocument);
+
+            const calledResult = await fakeClient.calledGetBooksQuery(sequenceId);
+            assert(calledResult.data[0]);
+            const response = calledResult.data[0].response;
+
+            // Validate entire structure matches expected format
+            // https://github.com/graphql/graphql-spec/blob/main/spec/Section%207%20--%20Response.md#data
+            // https://github.com/newmo-oss/graphql-fake-server/blob/main/packages/%40newmo/graphql-fake-server/src/server.ts
+            expect(response).toMatchObject({
+                status: expect.any(Number),
+                headers: expect.any(Object),
+                body: {
+                    data: {
+                        __typename: "Query",
+                        books: expect.any(Array),
+                    },
+                },
+            });
+        });
+        it("should validate response structure for Mutation", async () => {
+            const sequenceId = crypto.randomUUID();
+
+            await fakeClient.registerCreateBookMutationResponse(sequenceId, {
+                __typename: "Mutation",
+                createBook: { __typename: "Book", id: "book-1", title: "Test Book" },
+            });
+
+            const client = createApolloClient({ uri: `${fakeServerUrl}/graphql`, sequenceId });
+            await client.mutate({
+                mutation: CreateBookDocument,
+                variables: { title: "Test Book" },
+            });
+
+            const calledResult = await fakeClient.calledCreateBookMutation(sequenceId);
+            assert(calledResult.data[0]);
+            const response = calledResult.data[0].response;
+
+            // Validate entire structure matches expected format
+            // https://github.com/graphql/graphql-spec/blob/main/spec/Section%207%20--%20Response.md#data
+            // https://github.com/newmo-oss/graphql-fake-server/blob/main/packages/%40newmo/graphql-fake-server/src/server.ts
+            expect(response).toMatchObject({
+                status: expect.any(Number),
+                headers: expect.any(Object),
+                body: {
+                    data: {
+                        __typename: "Mutation",
+                        createBook: expect.any(Object),
+                    },
+                },
+            });
+        });
     });
     describe("@error", () => {
         it("should return empty array for field with @error directive", async () => {

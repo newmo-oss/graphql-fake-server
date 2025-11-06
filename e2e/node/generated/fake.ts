@@ -260,9 +260,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: GetBooksQuery;
+            body: { data: GetBooksQuery };
         };
       }[]            
     }> {
@@ -299,9 +299,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: GetBooksQuery;
+                    body: { data: GetBooksQuery };
                 };
             }[];
         };
@@ -370,9 +370,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: GetBookWithFragmentsQuery;
+            body: { data: GetBookWithFragmentsQuery };
         };
       }[]            
     }> {
@@ -409,9 +409,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: GetBookWithFragmentsQuery;
+                    body: { data: GetBookWithFragmentsQuery };
                 };
             }[];
         };
@@ -480,9 +480,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: GetDogQuery;
+            body: { data: GetDogQuery };
         };
       }[]            
     }> {
@@ -519,9 +519,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: GetDogQuery;
+                    body: { data: GetDogQuery };
                 };
             }[];
         };
@@ -590,9 +590,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: GotUnionUserQuery;
+            body: { data: GotUnionUserQuery };
         };
       }[]            
     }> {
@@ -629,9 +629,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: GotUnionUserQuery;
+                    body: { data: GotUnionUserQuery };
                 };
             }[];
         };
@@ -700,9 +700,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: GetUserNamesArrayExampleQuery;
+            body: { data: GetUserNamesArrayExampleQuery };
         };
       }[]            
     }> {
@@ -739,9 +739,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: GetUserNamesArrayExampleQuery;
+                    body: { data: GetUserNamesArrayExampleQuery };
                 };
             }[];
         };
@@ -810,9 +810,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: CreateBookMutation;
+            body: { data: CreateBookMutation };
         };
       }[];
     }> {
@@ -849,9 +849,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: CreateBookMutation;
+                    body: { data: CreateBookMutation };
                 };
             }[];
         };
@@ -920,9 +920,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: CreateBookInlineMutation;
+            body: { data: CreateBookInlineMutation };
         };
       }[];
     }> {
@@ -959,9 +959,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: CreateBookInlineMutation;
+                    body: { data: CreateBookInlineMutation };
                 };
             }[];
         };
@@ -1030,9 +1030,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: UseMutationErrorPatternMutationMutation;
+            body: { data: UseMutationErrorPatternMutationMutation };
         };
       }[];
     }> {
@@ -1069,9 +1069,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: UseMutationErrorPatternMutationMutation;
+                    body: { data: UseMutationErrorPatternMutationMutation };
                 };
             }[];
         };
@@ -1140,9 +1140,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
           };
         };
         response: {
-            statusCode: number;
+            status: number;
             headers: Record<string, unknown>;
-            body: CreateFooUrlMutation;
+            body: { data: CreateFooUrlMutation };
         };
       }[];
     }> {
@@ -1179,9 +1179,9 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     };
                 };
                 response: {
-                    statusCode: number;
+                    status: number;
                     headers: Record<string, unknown>;
-                    body: CreateFooUrlMutation;
+                    body: { data: CreateFooUrlMutation };
                 };
             }[];
         };
