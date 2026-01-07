@@ -742,6 +742,84 @@ type Book {
               export const SubCategory = createSubCategory();"
             `);
         });
+        it("generates code with maxTypeRecursion: 1", () => {
+            expect(
+                generateCodeFromSchema({
+                    schema: `
+        type Parent {
+            child: Child
+        }
+        type Child {
+            parent: Parent
+        }
+    `,
+                    rawConfig: { maxTypeRecursion: 1 },
+                }),
+            ).toMatchInlineSnapshot(`
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
+              function __id({ name, key }) {
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
+              }
+              export function createParent({ defaultFields, typeVisitCount = {} } = {}) {
+              return {
+                  child: ((typeVisitCount["Child"] ?? 0) < 1 ? createChild({ defaultFields: defaultFields?.child ?? {}, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Parent = createParent();
+              export function createChild({ defaultFields, typeVisitCount = {} } = {}) {
+              return {
+                  parent: ((typeVisitCount["Parent"] ?? 0) < 1 ? createParent({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Child = createChild();"
+            `);
+        });
+        it("generates code with maxTypeRecursion: 3", () => {
+            expect(
+                generateCodeFromSchema({
+                    schema: `
+        type Parent {
+            child: Child
+        }
+        type Child {
+            parent: Parent
+        }
+    `,
+                    rawConfig: { maxTypeRecursion: 3 },
+                }),
+            ).toMatchInlineSnapshot(`
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
+              function __id({ name, key }) {
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
+              }
+              export function createParent({ defaultFields, typeVisitCount = {} } = {}) {
+              return {
+                  child: ((typeVisitCount["Child"] ?? 0) < 3 ? createChild({ defaultFields: defaultFields?.child ?? {}, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Parent = createParent();
+              export function createChild({ defaultFields, typeVisitCount = {} } = {}) {
+              return {
+                  parent: ((typeVisitCount["Parent"] ?? 0) < 3 ? createParent({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Child = createChild();"
+            `);
+        });
     });
     it("can output commonjs code", () => {
         expect(
