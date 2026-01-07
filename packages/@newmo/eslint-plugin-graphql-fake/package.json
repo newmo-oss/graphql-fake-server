@@ -1,6 +1,6 @@
 {
   "name": "@newmo/eslint-plugin-graphql-fake",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "private": false,
   "description": "ESLint plugin for GraphQL fake",
   "keywords": [
