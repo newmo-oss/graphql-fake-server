@@ -85,7 +85,6 @@ jobs:
       - name: Publish
         run: pnpm run ci:release
         env:
-          NPM_CONFIG_PROVENANCE: true
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Git Tag
         run: |
