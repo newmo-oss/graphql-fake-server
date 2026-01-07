@@ -88,14 +88,14 @@ ${indent}};
 `.trim();
     if (config.outputType === "commonjs") {
         return `
-function create${rawName}({ defaultFields, typeVisitCount = {} } = {}) {
+function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }
 exports.create${rawName} = create${rawName};
 `.trim();
     }
     return `
-export function create${rawName}({ defaultFields, typeVisitCount = {} }${
+export function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) }${
         isTypescript
             ? `: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> }`
             : ""
@@ -176,13 +176,13 @@ ${indent}${indent}...${generateCreateReferenceCode({
 `.trim();
     if (config.outputType === "typescript") {
         return `
-export function create${rawName}({ defaultFields, typeVisitCount = {} }: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> } = {}): ${name} {
+export function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> } = {}): ${name} {
 ${functionBodyCode}
 }
 `.trim();
     }
     return `
-function create${rawName}({ defaultFields, typeVisitCount = {} } = {}) {
+function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }`;
 }

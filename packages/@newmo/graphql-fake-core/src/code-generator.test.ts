@@ -53,7 +53,7 @@ describe("generateCode", () => {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createQuery({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   hello: "string",
                 };
@@ -87,14 +87,14 @@ describe("generateCode", () => {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createMutation({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   addMessage: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Mutation = createMutation();
-              export function createMessage({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id" }),
                   content: "string",
@@ -129,14 +129,14 @@ describe("generateCode", () => {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createSubscription({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createSubscription({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   messageAdded: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Subscription = createSubscription();
-              export function createMessage({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id" }),
                   content: "string",
@@ -177,7 +177,7 @@ describe("generateCode", () => {
                 INACTIVE: "INACTIVE",
               };
 
-              export function createUser({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
                   status: Object.values(Status)[0],
@@ -215,7 +215,7 @@ describe("generateCode", () => {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createQuery({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   today: new Date().toISOString(),
                 };
@@ -257,13 +257,13 @@ describe("generateCode", () => {
                   return id;
               }
 
-              function createAnimal({ defaultFields, typeVisitCount = {} } = {}) {
+              function createAnimal({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   __typename: "Cat",
                   ...((typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
               };
               }
-              export function createCat({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createCat({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id" }),
                   name: "string",
@@ -272,7 +272,7 @@ describe("generateCode", () => {
               }
 
               export const Cat = createCat();
-              export function createDog({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createDog({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Dog.id" }),
                   name: "string",
@@ -314,7 +314,7 @@ describe("generateCode", () => {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createNewUserInput({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createNewUserInput({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   name: "John Doe",
                   email: "example@example.com",
@@ -322,14 +322,14 @@ describe("generateCode", () => {
               }
 
               export const NewUserInput = createNewUserInput();
-              export function createMutation({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   createUser: ((typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Mutation = createMutation();
-              export function createUser({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
                   name: "string",
@@ -403,7 +403,7 @@ type Book {
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createQuery({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           hello: "Hello, World!",
                         };
@@ -437,14 +437,14 @@ type Book {
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createMutation({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           addMessage: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
                       export const Mutation = createMutation();
-                      export function createMessage({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"Message.id.1234" }),
                           content: "Hello, World!",
@@ -479,14 +479,14 @@ type Book {
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createSubscription({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createSubscription({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           messageAdded: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
                       export const Subscription = createSubscription();
-                      export function createMessage({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"Message.id.1234" }),
                           content: "Hello, World!",
@@ -527,7 +527,7 @@ type Book {
                         INACTIVE: "INACTIVE",
                       };
 
-                      export function createUser({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"User.id.1234" }),
                           status: Object.values(Status)[0],
@@ -571,13 +571,13 @@ type Book {
                           return id;
                       }
 
-                      function createAnimal({ defaultFields, typeVisitCount = {} } = {}) {
+                      function createAnimal({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           __typename: "Cat",
                           ...((typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
                       };
                       }
-                      export function createCat({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createCat({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"Cat.id.1234" }),
                           name: "Tom",
@@ -586,7 +586,7 @@ type Book {
                       }
 
                       export const Cat = createCat();
-                      export function createDog({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createDog({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"Dog.id.1234" }),
                           name: "Spike",
@@ -628,7 +628,7 @@ type Book {
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createNewUserInput({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createNewUserInput({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           name: "string",
                           email: "string",
@@ -636,14 +636,14 @@ type Book {
                       }
 
                       export const NewUserInput = createNewUserInput();
-                      export function createMutation({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           createUser: ((typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
                       export const Mutation = createMutation();
-                      export function createUser({ defaultFields, typeVisitCount = {} } = {}) {
+                      export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"User.id.1234" }),
                           name: "John Doe",
@@ -679,14 +679,14 @@ type Book {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createQuery({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   books: Array.from({ length: 3 }).map(() => ((typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean),
                 };
               }
 
               export const Query = createQuery();
-              export function createBook({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createBook({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "book-id", key:"Book.id.book-id" }),
                 };
@@ -722,7 +722,7 @@ type Book {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createCategory({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createCategory({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "1234", key:"Category.id.1234" }),
                   name: "Electronics",
@@ -731,7 +731,7 @@ type Book {
               }
 
               export const Category = createCategory();
-              export function createSubCategory({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createSubCategory({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "5678", key:"SubCategory.id.5678" }),
                   name: "Computers",
@@ -765,14 +765,14 @@ type Book {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createParent({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createParent({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   child: ((typeVisitCount["Child"] ?? 0) < 1 ? createChild({ defaultFields: defaultFields?.child ?? {}, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Parent = createParent();
-              export function createChild({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createChild({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   parent: ((typeVisitCount["Parent"] ?? 0) < 1 ? createParent({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
                 };
@@ -804,14 +804,14 @@ type Book {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createParent({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createParent({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   child: ((typeVisitCount["Child"] ?? 0) < 3 ? createChild({ defaultFields: defaultFields?.child ?? {}, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Parent = createParent();
-              export function createChild({ defaultFields, typeVisitCount = {} } = {}) {
+              export function createChild({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   parent: ((typeVisitCount["Parent"] ?? 0) < 3 ? createParent({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
                 };
@@ -841,7 +841,7 @@ type Book {
               __idContextCountMap.set(key, count + 1);
               return id;
           }
-          function createQuery({ defaultFields, typeVisitCount = {} } = {}) {
+          function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
           return {
               hello: "string",
             };
@@ -875,7 +875,7 @@ type Book {
               __idContextCountMap.set(key, count + 1);
               return id;
           }
-          export function createQuery({ defaultFields, typeVisitCount = {} }: { defaultFields?: Partial<Query>, typeVisitCount?: Record<string, number> } = {}): Query {
+          export function createQuery({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<Query>, typeVisitCount?: Record<string, number> } = {}): Query {
           return {
               hello: "string",
             };
@@ -919,7 +919,7 @@ type Book {
             INACTIVE: "INACTIVE",
           } as const;
 
-          export function createUser({ defaultFields, typeVisitCount = {} }: { defaultFields?: Partial<User>, typeVisitCount?: Record<string, number> } = {}): User {
+          export function createUser({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<User>, typeVisitCount?: Record<string, number> } = {}): User {
           return {
               id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
               status: Object.values(Status)[0],
@@ -959,7 +959,7 @@ type Book {
             INACTIVE: "INACTIVE",
           };
 
-          export function createUser({ defaultFields, typeVisitCount = {} } = {}) {
+          export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
           return {
               id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
               status: Object.values(Status)[0],
