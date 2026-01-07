@@ -853,6 +853,7 @@ const createRoutingServer = async ({
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
     const {
         logLevel,
+        maxTypeRecursion,
         maxQueryDepth,
         maxRegisteredSequences,
         ports,
@@ -864,6 +865,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
     const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
     const mockResult = await createMock({
         schema,
+        maxTypeRecursion,
         defaultValues,
     });
     if (!mockResult.ok) {

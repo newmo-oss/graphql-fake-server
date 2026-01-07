@@ -11,6 +11,14 @@ export type RawConfig = {
     namingConvention?: RawTypesConfig["namingConvention"] | undefined;
     typesPrefix?: RawTypesConfig["typesPrefix"] | undefined;
     typesSuffix?: RawTypesConfig["typesSuffix"] | undefined;
+    /**
+     * Maximum number of times a type can be recursively visited.
+     * This prevents exponential explosion when generating mock data for recursive types.
+     * For example, if User has a field `friends: [User!]!`, setting maxTypeRecursion to 2
+     * will allow User -> User -> User but stop there.
+     * Default is 2.
+     */
+    maxTypeRecursion?: number | undefined;
     defaultValues?:
         | {
               String?: string | undefined;
@@ -47,13 +55,6 @@ export const DefaultValues = {
     ID: "xxxx-xxxx-xxxx-xxxx",
     listLength: 3,
 };
-/**
- * Maximum number of times a type can be recursively visited.
- * This is an internal constant to prevent exponential explosion.
- * For example, if User has a field `friends: [User!]!`, this limits
- * User -> User -> User and stops there.
- */
-export const MAX_TYPE_RECURSION = 2;
 
 export type Config = {
     typesFile: string;
@@ -61,6 +62,7 @@ export type Config = {
     typesPrefix: Exclude<RawTypesConfig["typesPrefix"], undefined>;
     typesSuffix: Exclude<RawTypesConfig["typesSuffix"], undefined>;
     namingConvention: Exclude<RawTypesConfig["namingConvention"], undefined>;
+    maxTypeRecursion: number;
     defaultValues: {
         String: string;
         Int: number;
@@ -125,6 +127,14 @@ export function validateConfig(
             throw new Error("config.defaultValues.CustomScalar must be an object");
         }
     }
+    if ("maxTypeRecursion" in rawConfig) {
+        if (typeof rawConfig.maxTypeRecursion !== "number") {
+            throw new Error("config.maxTypeRecursion must be a number");
+        }
+        if (rawConfig.maxTypeRecursion < 1) {
+            throw new Error("config.maxTypeRecursion must be at least 1");
+        }
+    }
 }
 
 export function normalizeConfig(rawConfig: RawConfig): Config {
@@ -134,6 +144,7 @@ export function normalizeConfig(rawConfig: RawConfig): Config {
         typesPrefix: rawConfig.typesPrefix ?? "",
         typesSuffix: rawConfig.typesSuffix ?? "",
         namingConvention: rawConfig.namingConvention ?? "",
+        maxTypeRecursion: rawConfig.maxTypeRecursion ?? 2,
         defaultValues: {
             String: rawConfig.defaultValues?.String ?? DefaultValues.String,
             Int: rawConfig.defaultValues?.Int ?? DefaultValues.Int,

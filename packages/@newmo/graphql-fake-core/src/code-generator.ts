@@ -1,4 +1,4 @@
-import { type Config, MAX_TYPE_RECURSION } from "./config.js";
+import type { Config } from "./config.js";
 import type {
     EnumTypeInfo,
     ExampleDirective,
@@ -44,12 +44,12 @@ export const generateCreateReferenceCode = ({
      * Instead of using a global depth counter, we track how many times each specific type
      * has been visited in the current path.
      *
-     * Example: For User -> User recursion with MAX_TYPE_RECURSION=2:
+     * Example: For User -> User recursion with maxTypeRecursion=2:
      * - First User: typeVisitCount["User"] = 0, creates User
      * - Second User: typeVisitCount["User"] = 1, creates User
      * - Third User: typeVisitCount["User"] = 2, returns undefined (stops recursion)
      */
-    return `((typeVisitCount["${rawTypeName}"] ?? 0) < ${MAX_TYPE_RECURSION} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, typeVisitCount: { ...typeVisitCount, "${rawTypeName}": (typeVisitCount["${rawTypeName}"] ?? 0) + 1 } }) : undefined)`;
+    return `((typeVisitCount["${rawTypeName}"] ?? 0) < ${config.maxTypeRecursion} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, typeVisitCount: { ...typeVisitCount, "${rawTypeName}": (typeVisitCount["${rawTypeName}"] ?? 0) + 1 } }) : undefined)`;
 };
 
 // GraphQL AST Limitations
