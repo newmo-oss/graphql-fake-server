@@ -373,9 +373,11 @@ type RequiredDocument {
     `);
         const { mock }: MockObject = await createMock({
             schema,
-            defaultValues: {
-                CustomScalar: {
-                    Date: "new Date('2024-06-25T14:52:42.074Z').toISOString()",
+            mock: {
+                defaultValues: {
+                    CustomScalar: {
+                        Date: "new Date('2024-06-25T14:52:42.074Z').toISOString()",
+                    },
                 },
             },
         });

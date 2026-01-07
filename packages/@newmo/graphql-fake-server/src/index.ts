@@ -1,4 +1,4 @@
-export type { FakeServerConfig, RequiredFakeServerConfig } from "./config.js";
+export type { FakeServerConfig, RequiredFakeServerConfig, ServerConfig } from "./config.js";
 export {
     normalizeFakeServerConfig,
     validateFakeServerConfig,

@@ -14,16 +14,20 @@ describe("stress test", () => {
         server = await createFakeServer(
             normalizeFakeServerConfig({
                 schemaFilePath: "./api/api.graphqls",
-                defaultValues: {
-                    CustomScalar: {
-                        DATE_YYYYMMDD: `"2022-01-01"`,
+                logLevel: "error", // Reduce noise in tests
+                server: {
+                    ports: {
+                        fakeServer: TEST_PORT,
+                        apolloServer: TEST_PORT + 1,
                     },
                 },
-                ports: {
-                    fakeServer: TEST_PORT,
-                    apolloServer: TEST_PORT + 1,
+                mock: {
+                    defaultValues: {
+                        CustomScalar: {
+                            DATE_YYYYMMDD: `"2022-01-01"`,
+                        },
+                    },
                 },
-                logLevel: "error", // Reduce noise in tests
             }),
         );
 

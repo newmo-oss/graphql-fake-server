@@ -5,44 +5,26 @@ import type { Config } from "./config.js";
 import { extendSchema } from "./extend-schema.js";
 import { getTypeInfos, type ObjectTypeInfo, type TypeInfo } from "./schema-scanner.js";
 
-/**
- * export type Config = {
- *     typesFile: string;
- *     skipTypename: Exclude<RawTypesConfig['skipTypename'], undefined>;
- *     typesPrefix: Exclude<RawTypesConfig['typesPrefix'], undefined>;
- *     typesSuffix: Exclude<RawTypesConfig['typesSuffix'], undefined>;
- *     namingConvention: Exclude<RawTypesConfig['namingConvention'], undefined>;
- *     maxFieldRecursionDepth: number;
- *     defaultValues: {
- *         String: string
- *         Int: number
- *         Float: number
- *         Boolean: boolean
- *         ID: string,
- *         listLength: number
- *     }
- * };
- * @param config
- */
 const fakeConfig = (config?: Partial<Config>): Config => {
     return {
         typesFile: "types.ts",
-        skipTypename: true,
-        typesPrefix: "",
-        typesSuffix: "",
-        namingConvention: "keep",
-        maxFieldRecursionDepth: 1,
-        maxTypeRecursion: 2,
-        defaultValues: {
-            String: "xxxx",
-            Int: 0,
-            Float: 0,
-            Boolean: false,
-            ID: "xxxx-xxxx-xxxx-xxxx",
-            listLength: 3,
-            ...config?.defaultValues,
+        skipTypename: config?.skipTypename ?? true,
+        typesPrefix: config?.typesPrefix ?? "",
+        typesSuffix: config?.typesSuffix ?? "",
+        namingConvention: config?.namingConvention ?? "keep",
+        mock: {
+            maxDepth: config?.mock?.maxDepth ?? 9,
+            maxTypeRecursion: config?.mock?.maxTypeRecursion ?? 2,
+            listLength: config?.mock?.listLength ?? 3,
+            defaultValues: {
+                String: config?.mock?.defaultValues?.String ?? "xxxx",
+                Int: config?.mock?.defaultValues?.Int ?? 0,
+                Float: config?.mock?.defaultValues?.Float ?? 0,
+                Boolean: config?.mock?.defaultValues?.Boolean ?? false,
+                ID: config?.mock?.defaultValues?.ID ?? "xxxx-xxxx-xxxx-xxxx",
+                CustomScalar: config?.mock?.defaultValues?.CustomScalar ?? {},
+            },
         },
-        ...config,
     };
 };
 
@@ -90,7 +72,7 @@ describe("getTypeInfos", () => {
                 {
                   "comment": undefined,
                   "example": {
-                    "expression": "((typeVisitCount["Author"] ?? 0) < 2 ? createAuthor({ defaultFields: defaultFields?.author ?? {}, typeVisitCount: { ...typeVisitCount, "Author": (typeVisitCount["Author"] ?? 0) + 1 } }) : undefined)",
+                    "expression": "(depth < 9 && (typeVisitCount["Author"] ?? 0) < 2 ? createAuthor({ defaultFields: defaultFields?.author ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Author": (typeVisitCount["Author"] ?? 0) + 1 } }) : undefined)",
                   },
                   "name": "author",
                 },
@@ -119,7 +101,7 @@ describe("getTypeInfos", () => {
                   "comment": "/**  comment  */
           ",
                   "example": {
-                    "expression": "Array.from({ length: 3 }).map(() => ((typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean)",
+                    "expression": "(depth < 9 && (typeVisitCount["Book"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 9 && (typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : [])",
                   },
                   "name": "books",
                 },
@@ -277,21 +259,21 @@ type RequiredDocument {
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "Array.from({ length: 3 }).map(() => "xxxx").filter(Boolean)",
+                      "expression": "Array.from({ length: 3 }).map(() => "xxxx")",
                     },
                     "name": "field2",
                   },
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "((typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field3 ?? {}, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                      "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field3 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                     },
                     "name": "field3",
                   },
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "Array.from({ length: 3 }).map(() => ((typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field4 ?? {}, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)).filter(Boolean)",
+                      "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field4 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : [])",
                     },
                     "name": "field4",
                   },
@@ -443,7 +425,7 @@ type RequiredDocument {
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "((typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                      "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                     },
                     "name": "field2",
                   },
@@ -521,7 +503,7 @@ type RequiredDocument {
                     {
                       "comment": undefined,
                       "example": {
-                        "expression": "((typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.blockedByUser ?? {}, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined)",
+                        "expression": "(depth < 9 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.blockedByUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined)",
                       },
                       "name": "blockedByUser",
                     },
@@ -545,7 +527,7 @@ type RequiredDocument {
                     {
                       "comment": undefined,
                       "example": {
-                        "expression": "((typeVisitCount["UserResult"] ?? 0) < 2 ? createUserResult({ defaultFields: defaultFields?.user ?? {}, typeVisitCount: { ...typeVisitCount, "UserResult": (typeVisitCount["UserResult"] ?? 0) + 1 } }) : undefined)",
+                        "expression": "(depth < 9 && (typeVisitCount["UserResult"] ?? 0) < 2 ? createUserResult({ defaultFields: defaultFields?.user ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "UserResult": (typeVisitCount["UserResult"] ?? 0) + 1 } }) : undefined)",
                       },
                       "name": "user",
                     },
@@ -565,10 +547,11 @@ type RequiredDocument {
             }
           `);
             const config: Config = fakeConfig({
-                defaultValues: {
-                    ...fakeConfig().defaultValues,
-                    CustomScalar: {
-                        Date: "new Date()",
+                mock: {
+                    defaultValues: {
+                        CustomScalar: {
+                            Date: "new Date()",
+                        },
                     },
                 },
             });
@@ -708,7 +691,7 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "((typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                            "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                           },
                           "name": "field2",
                         },
@@ -781,7 +764,7 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "((typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                            "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                           },
                           "name": "field2",
                         },
