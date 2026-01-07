@@ -31,9 +31,6 @@ describe("validateConfig", () => {
             }),
         ).toThrow();
     });
-    it("should throw error when maxFieldRecursionDepth is not a number", () => {
-        expect(() => validateConfig({ maxFieldRecursionDepth: "not a number" })).toThrow();
-    });
 
     it("should not throw error when rawConfig is valid", () => {
         expect(() =>

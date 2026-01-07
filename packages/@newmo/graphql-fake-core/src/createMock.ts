@@ -29,10 +29,7 @@ export type CreateMockResult =
  */
 export const createMock = async (options: CreateMockOptions): Promise<CreateMockResult> => {
     const { schema, ...rawConfig } = options;
-    const normalizedConfig = normalizeConfig({
-        maxFieldRecursionDepth: rawConfig.maxFieldRecursionDepth ?? 3,
-        ...rawConfig,
-    });
+    const normalizedConfig = normalizeConfig(rawConfig);
     const typeInfos = getTypeInfos(normalizedConfig, schema);
     const code = generateCode(
         {

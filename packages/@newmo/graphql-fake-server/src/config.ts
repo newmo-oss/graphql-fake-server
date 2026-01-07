@@ -35,13 +35,7 @@ export type FakeServerConfig = {
      */
     maxRegisteredSequences?: number | undefined;
     /**
-     * The maximum number of depth of field recursion.
-     * Default is 9.
-     */
-    maxFieldRecursionDepth?: RawConfig["maxFieldRecursionDepth"] | undefined;
-    /**
      * The maximum number of depth of complexity of query
-     * this value should be maxFieldRecursionDepth + 1
      * Default is 10
      */
     maxQueryDepth?: number | undefined;
@@ -69,7 +63,6 @@ export type RequiredFakeServerConfig = {
         apolloServer: number;
     };
     maxRegisteredSequences: number;
-    maxFieldRecursionDepth: number;
     maxQueryDepth: number;
     defaultValues: RawConfig["defaultValues"];
     logLevel: LogLevel;
@@ -84,7 +77,6 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
             apolloServer: config.ports?.apolloServer ?? 4002,
         },
         maxRegisteredSequences: config.maxRegisteredSequences ?? 1000,
-        maxFieldRecursionDepth: config.maxFieldRecursionDepth ?? 9,
         maxQueryDepth: config.maxQueryDepth ?? 10,
         defaultValues: config.defaultValues ?? {},
         logLevel: config.logLevel ?? "info",
@@ -111,9 +103,6 @@ export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerCo
     }
     if (config.maxRegisteredSequences && typeof config.maxRegisteredSequences !== "number") {
         throw new Error("The maxRegisteredSequences must be a number.");
-    }
-    if (config.maxFieldRecursionDepth && typeof config.maxFieldRecursionDepth !== "number") {
-        throw new Error("The maxFieldRecursionDepth must be a number.");
     }
     if (config.maxQueryDepth && typeof config.maxQueryDepth !== "number") {
         throw new Error("The maxQueryDepth must be a number.");

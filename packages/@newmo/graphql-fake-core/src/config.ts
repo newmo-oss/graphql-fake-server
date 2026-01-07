@@ -11,7 +11,6 @@ export type RawConfig = {
     namingConvention?: RawTypesConfig["namingConvention"] | undefined;
     typesPrefix?: RawTypesConfig["typesPrefix"] | undefined;
     typesSuffix?: RawTypesConfig["typesSuffix"] | undefined;
-    maxFieldRecursionDepth?: number | undefined;
     defaultValues?:
         | {
               String?: string | undefined;
@@ -48,13 +47,20 @@ export const DefaultValues = {
     ID: "xxxx-xxxx-xxxx-xxxx",
     listLength: 3,
 };
+/**
+ * Maximum number of times a type can be recursively visited.
+ * This is an internal constant to prevent exponential explosion.
+ * For example, if User has a field `friends: [User!]!`, this limits
+ * User -> User -> User and stops there.
+ */
+export const MAX_TYPE_RECURSION = 2;
+
 export type Config = {
     typesFile: string;
     skipTypename: Exclude<RawTypesConfig["skipTypename"], undefined>;
     typesPrefix: Exclude<RawTypesConfig["typesPrefix"], undefined>;
     typesSuffix: Exclude<RawTypesConfig["typesSuffix"], undefined>;
     namingConvention: Exclude<RawTypesConfig["namingConvention"], undefined>;
-    maxFieldRecursionDepth: number;
     defaultValues: {
         String: string;
         Int: number;
@@ -80,11 +86,6 @@ export function validateConfig(
     }
     if (typeof rawConfig !== "object") {
         throw new Error("config.defaultValues must be an object");
-    }
-    if ("maxFieldRecursionDepth" in rawConfig) {
-        if (typeof rawConfig.maxFieldRecursionDepth !== "number") {
-            throw new Error("config.maxFieldRecursionDepth must be a number");
-        }
     }
     if (outputType === "typescript") {
         if (!("typesFile" in rawConfig)) {
@@ -133,7 +134,6 @@ export function normalizeConfig(rawConfig: RawConfig): Config {
         typesPrefix: rawConfig.typesPrefix ?? "",
         typesSuffix: rawConfig.typesSuffix ?? "",
         namingConvention: rawConfig.namingConvention ?? "",
-        maxFieldRecursionDepth: rawConfig.maxFieldRecursionDepth ?? 9,
         defaultValues: {
             String: rawConfig.defaultValues?.String ?? DefaultValues.String,
             Int: rawConfig.defaultValues?.Int ?? DefaultValues.Int,

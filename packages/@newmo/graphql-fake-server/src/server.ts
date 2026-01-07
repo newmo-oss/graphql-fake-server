@@ -35,7 +35,6 @@ type FakeServerInternal = {
         apolloServer: number;
     };
     maxQueryDepth: number;
-    maxFieldRecursionDepth: number;
     maxRegisteredSequences: number;
     logLevel: LogLevel;
     allowedCORSOrigins: string[];
@@ -854,7 +853,6 @@ const createRoutingServer = async ({
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
     const {
         logLevel,
-        maxFieldRecursionDepth,
         maxQueryDepth,
         maxRegisteredSequences,
         ports,
@@ -866,7 +864,6 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
     const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
     const mockResult = await createMock({
         schema,
-        maxFieldRecursionDepth,
         defaultValues,
     });
     if (!mockResult.ok) {
@@ -882,7 +879,6 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         schema,
         mockObject: mockResult.mock,
         maxQueryDepth,
-        maxFieldRecursionDepth,
         maxRegisteredSequences,
         logLevel: logLevel ?? "info",
         allowedCORSOrigins,
