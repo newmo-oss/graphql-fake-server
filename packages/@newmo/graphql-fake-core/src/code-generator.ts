@@ -40,13 +40,16 @@ export const generateCreateReferenceCode = ({
     config: Config;
 }): string => {
     /**
-     * function createAuthor({ defaultFields, depth = 0 }: { defaultFields?: Partial<Author>, depth?: number } = {}): Author {
-     *  return {
-     *    foo: depth < 1 ? createAuthor({ defaultFields: defaultFields?.foo, depth: depth + 1 }) : undefined,
-     *  }
-     *}
+     * Track type visit count to prevent exponential explosion for recursive types.
+     * Instead of using a global depth counter, we track how many times each specific type
+     * has been visited in the current path.
+     *
+     * Example: For User -> User recursion with maxTypeRecursion=2:
+     * - First User: typeVisitCount["User"] = 0, creates User
+     * - Second User: typeVisitCount["User"] = 1, creates User
+     * - Third User: typeVisitCount["User"] = 2, returns undefined (stops recursion)
      */
-    return `(depth < ${config.maxFieldRecursionDepth} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, depth: depth + 1 }) : undefined)`;
+    return `((typeVisitCount["${rawTypeName}"] ?? 0) < ${config.maxTypeRecursion} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, typeVisitCount: { ...typeVisitCount, "${rawTypeName}": (typeVisitCount["${rawTypeName}"] ?? 0) + 1 } }) : undefined)`;
 };
 
 // GraphQL AST Limitations
@@ -85,15 +88,17 @@ ${indent}};
 `.trim();
     if (config.outputType === "commonjs") {
         return `
-function create${rawName}({ defaultFields, depth = 0 } = {}) {
+function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }
 exports.create${rawName} = create${rawName};
 `.trim();
     }
     return `
-export function create${rawName}({ defaultFields, depth = 0 }${
-        isTypescript ? `: { defaultFields?: Partial<${name}>, depth?: number }` : ""
+export function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) }${
+        isTypescript
+            ? `: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> }`
+            : ""
     } = {})${isTypescript ? `: ${name}` : ""} {
 ${functionBodyCode}
 }
@@ -125,18 +130,17 @@ ${joinedTypeNames}
 function idGeneratorCode(config: ConfigWithOutput): string {
     // __id("name");
     const isTypescript = config.outputType === "typescript";
-    // ${name}_g${__idGlobalId}_d${depth}_c${count}
+    // ${name}_g${__idGlobalId}_c${count}
     // g: global id - starts from 0
-    // d: depth - starts from 0
     // c: name context count - starts from 0
     return `
 let __idGlobalId = 0; // global id
 const __idContextCountMap = new Map${isTypescript ? "<string, number>" : ""}() // context count
-function __id({ name, key, depth }${
-        isTypescript ? ": { name: string; key: string; depth: number; }" : ""
+function __id({ name, key }${
+        isTypescript ? ": { name: string; key: string; }" : ""
     })${isTypescript ? ": string" : ""} {
     const count = __idContextCountMap.get(key) ?? 0;
-    const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+    const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
     __idGlobalId += 1;
     __idContextCountMap.set(key, count + 1);
     return id;
@@ -172,13 +176,13 @@ ${indent}${indent}...${generateCreateReferenceCode({
 `.trim();
     if (config.outputType === "typescript") {
         return `
-export function create${rawName}({ defaultFields, depth = 0 }: { defaultFields?: Partial<${name}>, depth?: number } = {}): ${name} {
+export function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> } = {}): ${name} {
 ${functionBodyCode}
 }
 `.trim();
     }
     return `
-function create${rawName}({ defaultFields, depth = 0 } = {}) {
+function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }`;
 }

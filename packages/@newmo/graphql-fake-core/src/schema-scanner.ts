@@ -25,7 +25,7 @@ import { convertName } from "./convertName.js";
 
 const createIDFactory = () => {
     return (name: string, key: string) => {
-        return `__id({ name: "${name}", key:"${key}", depth })`;
+        return `__id({ name: "${name}", key:"${key}" })`;
     };
 };
 
@@ -207,18 +207,15 @@ const typeToFunctionWithArray = ({
     idFactory: ReturnType<typeof createIDFactory>;
     context: ScannerContext;
 }): string => {
-    // Avoid [null, null, null]
-    // Mock server can't handle null values in the array
-    return `(depth < ${config.maxFieldRecursionDepth}) ? Array.from({ length: ${
-        config.defaultValues.listLength
-    } }).map(() => ${typeToFunction({
+    // Use .filter(Boolean) to remove undefined elements when typeVisitCount cuts off recursion
+    return `Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction({
         convertedTypeName,
         fieldName: fieldName,
         type: type,
         config: config,
         idFactory: idFactory,
         context,
-    })}) : []`;
+    })}).filter(Boolean)`;
 };
 // NamedType/ListType handling
 const nodeToExpression = ({

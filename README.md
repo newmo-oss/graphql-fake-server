@@ -293,20 +293,19 @@ Return the following response:
 }
 ```
 
-:memo: The default value of the `@exampleID` directive is `${name}_g${global_id}_d${depth}_c${count}`.
+:memo: The default value of the `@exampleID` directive is `${name}_g${global_id}_c${count}`.
 
 ```
-${name}_g${global_id}_d${depth}_c${count}
-   |      ^^^^^^^^^^    ^^^^^^     ^^^^^
-   |        |              |          |
-   |        |              |          |__ c: name context count - starts from 0
-   |        |              |__ d: depth of field - starts from 0
+${name}_g${global_id}_c${count}
+   |      ^^^^^^^^^^     ^^^^^
+   |        |               |
+   |        |               |__ c: name context count - starts from 0
    |        |__ g: global id - starts from 0
    |
    |__ name: field name
 ```
 
-`@exampleID(value: "book_id")` will generate `book_id_g0_d0_c0`, `book_id_g1_d1_c1`, `book_id_g0_d1_c2`, ...
+`@exampleID(value: "book_id")` will generate `book_id_g0_c0`, `book_id_g1_c1`, `book_id_g2_c2`, ...
 
 #### Examples of `@example*` directive
 

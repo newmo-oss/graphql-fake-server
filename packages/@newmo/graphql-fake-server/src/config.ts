@@ -35,13 +35,15 @@ export type FakeServerConfig = {
      */
     maxRegisteredSequences?: number | undefined;
     /**
-     * The maximum number of depth of field recursion.
-     * Default is 9.
+     * Maximum number of times a type can be recursively visited.
+     * This prevents exponential explosion when generating mock data for recursive types.
+     * For example, if User has a field `friends: [User!]!`, setting maxTypeRecursion to 2
+     * will allow User -> User -> User but stop there.
+     * Default is 2.
      */
-    maxFieldRecursionDepth?: RawConfig["maxFieldRecursionDepth"] | undefined;
+    maxTypeRecursion?: RawConfig["maxTypeRecursion"] | undefined;
     /**
      * The maximum number of depth of complexity of query
-     * this value should be maxFieldRecursionDepth + 1
      * Default is 10
      */
     maxQueryDepth?: number | undefined;
@@ -76,7 +78,7 @@ export type RequiredFakeServerConfig = {
         apolloServer: number;
     };
     maxRegisteredSequences: number;
-    maxFieldRecursionDepth: number;
+    maxTypeRecursion: number;
     maxQueryDepth: number;
     defaultValues: RawConfig["defaultValues"];
     logLevel: LogLevel;
@@ -92,7 +94,7 @@ export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFak
             apolloServer: config.ports?.apolloServer ?? 4002,
         },
         maxRegisteredSequences: config.maxRegisteredSequences ?? 1000,
-        maxFieldRecursionDepth: config.maxFieldRecursionDepth ?? 9,
+        maxTypeRecursion: config.maxTypeRecursion ?? 2,
         maxQueryDepth: config.maxQueryDepth ?? 10,
         defaultValues: config.defaultValues ?? {},
         logLevel: config.logLevel ?? "info",
@@ -121,8 +123,13 @@ export const validateFakeServerConfig = (config: FakeServerConfig): FakeServerCo
     if (config.maxRegisteredSequences && typeof config.maxRegisteredSequences !== "number") {
         throw new Error("The maxRegisteredSequences must be a number.");
     }
-    if (config.maxFieldRecursionDepth && typeof config.maxFieldRecursionDepth !== "number") {
-        throw new Error("The maxFieldRecursionDepth must be a number.");
+    if (config.maxTypeRecursion !== undefined) {
+        if (typeof config.maxTypeRecursion !== "number") {
+            throw new Error("The maxTypeRecursion must be a number.");
+        }
+        if (config.maxTypeRecursion < 1) {
+            throw new Error("The maxTypeRecursion must be at least 1.");
+        }
     }
     if (config.maxQueryDepth && typeof config.maxQueryDepth !== "number") {
         throw new Error("The maxQueryDepth must be a number.");

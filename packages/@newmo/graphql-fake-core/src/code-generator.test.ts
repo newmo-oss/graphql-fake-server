@@ -46,14 +46,14 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createQuery({ defaultFields, depth = 0 } = {}) {
+              export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   hello: "string",
                 };
@@ -80,23 +80,23 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createMutation({ defaultFields, depth = 0 } = {}) {
+              export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  addMessage: (depth < 9 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
+                  addMessage: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Mutation = createMutation();
-              export function createMessage({ defaultFields, depth = 0 } = {}) {
+              export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id" }),
                   content: "string",
                 };
               }
@@ -122,23 +122,23 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createSubscription({ defaultFields, depth = 0 } = {}) {
+              export function createSubscription({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  messageAdded: (depth < 9 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
+                  messageAdded: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Subscription = createSubscription();
-              export function createMessage({ defaultFields, depth = 0 } = {}) {
+              export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id", depth }),
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Message.id" }),
                   content: "string",
                 };
               }
@@ -165,9 +165,9 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
@@ -177,9 +177,9 @@ describe("generateCode", () => {
                 INACTIVE: "INACTIVE",
               };
 
-              export function createUser({ defaultFields, depth = 0 } = {}) {
+              export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
                   status: Object.values(Status)[0],
                 };
               }
@@ -208,14 +208,14 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createQuery({ defaultFields, depth = 0 } = {}) {
+              export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   today: new Date().toISOString(),
                 };
@@ -249,32 +249,32 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
 
-              function createAnimal({ defaultFields, depth = 0 } = {}) {
+              function createAnimal({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   __typename: "Cat",
-                  ...(depth < 9 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
+                  ...((typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
               };
               }
-              export function createCat({ defaultFields, depth = 0 } = {}) {
+              export function createCat({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id", depth }),
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id" }),
                   name: "string",
                   livesLeft: 12,
                 };
               }
 
               export const Cat = createCat();
-              export function createDog({ defaultFields, depth = 0 } = {}) {
+              export function createDog({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Dog.id", depth }),
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Dog.id" }),
                   name: "string",
                   breed: "string",
                 };
@@ -307,14 +307,14 @@ describe("generateCode", () => {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
+              export function createNewUserInput({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
                   name: "John Doe",
                   email: "example@example.com",
@@ -322,16 +322,16 @@ describe("generateCode", () => {
               }
 
               export const NewUserInput = createNewUserInput();
-              export function createMutation({ defaultFields, depth = 0 } = {}) {
+              export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  createUser: (depth < 9 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
+                  createUser: ((typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Mutation = createMutation();
-              export function createUser({ defaultFields, depth = 0 } = {}) {
+              export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+                  id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
                   name: "string",
                   email: "string",
                 };
@@ -396,14 +396,14 @@ type Book {
                     ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
-                      function __id({ name, key, depth }) {
+                      function __id({ name, key }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                          const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createQuery({ defaultFields, depth = 0 } = {}) {
+                      export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           hello: "Hello, World!",
                         };
@@ -430,23 +430,23 @@ type Book {
                     ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
-                      function __id({ name, key, depth }) {
+                      function __id({ name, key }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                          const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createMutation({ defaultFields, depth = 0 } = {}) {
+                      export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          addMessage: (depth < 9 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1 }) : undefined),
+                          addMessage: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
                       export const Mutation = createMutation();
-                      export function createMessage({ defaultFields, depth = 0 } = {}) {
+                      export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          id: __id({ name: "1234", key:"Message.id.1234", depth }),
+                          id: __id({ name: "1234", key:"Message.id.1234" }),
                           content: "Hello, World!",
                         };
                       }
@@ -472,23 +472,23 @@ type Book {
                     ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
-                      function __id({ name, key, depth }) {
+                      function __id({ name, key }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                          const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createSubscription({ defaultFields, depth = 0 } = {}) {
+                      export function createSubscription({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          messageAdded: (depth < 9 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1 }) : undefined),
+                          messageAdded: ((typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
                       export const Subscription = createSubscription();
-                      export function createMessage({ defaultFields, depth = 0 } = {}) {
+                      export function createMessage({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          id: __id({ name: "1234", key:"Message.id.1234", depth }),
+                          id: __id({ name: "1234", key:"Message.id.1234" }),
                           content: "Hello, World!",
                         };
                       }
@@ -515,9 +515,9 @@ type Book {
                     ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
-                      function __id({ name, key, depth }) {
+                      function __id({ name, key }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                          const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
@@ -527,9 +527,9 @@ type Book {
                         INACTIVE: "INACTIVE",
                       };
 
-                      export function createUser({ defaultFields, depth = 0 } = {}) {
+                      export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          id: __id({ name: "1234", key:"User.id.1234", depth }),
+                          id: __id({ name: "1234", key:"User.id.1234" }),
                           status: Object.values(Status)[0],
                         };
                       }
@@ -563,32 +563,32 @@ type Book {
                     ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
-                      function __id({ name, key, depth }) {
+                      function __id({ name, key }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                          const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
 
-                      function createAnimal({ defaultFields, depth = 0 } = {}) {
+                      function createAnimal({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           __typename: "Cat",
-                          ...(depth < 9 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1 }) : undefined)
+                          ...((typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
                       };
                       }
-                      export function createCat({ defaultFields, depth = 0 } = {}) {
+                      export function createCat({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          id: __id({ name: "1234", key:"Cat.id.1234", depth }),
+                          id: __id({ name: "1234", key:"Cat.id.1234" }),
                           name: "Tom",
                           livesLeft: 9,
                         };
                       }
 
                       export const Cat = createCat();
-                      export function createDog({ defaultFields, depth = 0 } = {}) {
+                      export function createDog({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          id: __id({ name: "1234", key:"Dog.id.1234", depth }),
+                          id: __id({ name: "1234", key:"Dog.id.1234" }),
                           name: "Spike",
                           breed: "Bulldog",
                         };
@@ -621,14 +621,14 @@ type Book {
                     ).toMatchInlineSnapshot(`
                       "let __idGlobalId = 0; // global id
                       const __idContextCountMap = new Map() // context count
-                      function __id({ name, key, depth }) {
+                      function __id({ name, key }) {
                           const count = __idContextCountMap.get(key) ?? 0;
-                          const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                          const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                           __idGlobalId += 1;
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-                      export function createNewUserInput({ defaultFields, depth = 0 } = {}) {
+                      export function createNewUserInput({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           name: "string",
                           email: "string",
@@ -636,16 +636,16 @@ type Book {
                       }
 
                       export const NewUserInput = createNewUserInput();
-                      export function createMutation({ defaultFields, depth = 0 } = {}) {
+                      export function createMutation({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          createUser: (depth < 9 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1 }) : undefined),
+                          createUser: ((typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
                       export const Mutation = createMutation();
-                      export function createUser({ defaultFields, depth = 0 } = {}) {
+                      export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          id: __id({ name: "1234", key:"User.id.1234", depth }),
+                          id: __id({ name: "1234", key:"User.id.1234" }),
                           name: "John Doe",
                           email: "john.doe@example.com",
                         };
@@ -672,23 +672,23 @@ type Book {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createQuery({ defaultFields, depth = 0 } = {}) {
+              export function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  books: (depth < 9) ? Array.from({ length: 3 }).map(() => (depth < 9 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1 }) : undefined)) : [],
+                  books: Array.from({ length: 3 }).map(() => ((typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean),
                 };
               }
 
               export const Query = createQuery();
-              export function createBook({ defaultFields, depth = 0 } = {}) {
+              export function createBook({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "book-id", key:"Book.id.book-id", depth }),
+                  id: __id({ name: "book-id", key:"Book.id.book-id" }),
                 };
               }
 
@@ -715,31 +715,109 @@ type Book {
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
               const __idContextCountMap = new Map() // context count
-              function __id({ name, key, depth }) {
+              function __id({ name, key }) {
                   const count = __idContextCountMap.get(key) ?? 0;
-                  const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
                   __idGlobalId += 1;
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-              export function createCategory({ defaultFields, depth = 0 } = {}) {
+              export function createCategory({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "1234", key:"Category.id.1234", depth }),
+                  id: __id({ name: "1234", key:"Category.id.1234" }),
                   name: "Electronics",
-                  subCategory: (depth < 9 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1 }) : undefined),
+                  subCategory: ((typeVisitCount["SubCategory"] ?? 0) < 2 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, typeVisitCount: { ...typeVisitCount, "SubCategory": (typeVisitCount["SubCategory"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Category = createCategory();
-              export function createSubCategory({ defaultFields, depth = 0 } = {}) {
+              export function createSubCategory({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  id: __id({ name: "5678", key:"SubCategory.id.5678", depth }),
+                  id: __id({ name: "5678", key:"SubCategory.id.5678" }),
                   name: "Computers",
-                  parent: (depth < 9 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1 }) : undefined),
+                  parent: ((typeVisitCount["Category"] ?? 0) < 2 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Category": (typeVisitCount["Category"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const SubCategory = createSubCategory();"
+            `);
+        });
+        it("generates code with maxTypeRecursion: 1", () => {
+            expect(
+                generateCodeFromSchema({
+                    schema: `
+        type Parent {
+            child: Child
+        }
+        type Child {
+            parent: Parent
+        }
+    `,
+                    rawConfig: { maxTypeRecursion: 1 },
+                }),
+            ).toMatchInlineSnapshot(`
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
+              function __id({ name, key }) {
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
+              }
+              export function createParent({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
+              return {
+                  child: ((typeVisitCount["Child"] ?? 0) < 1 ? createChild({ defaultFields: defaultFields?.child ?? {}, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Parent = createParent();
+              export function createChild({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
+              return {
+                  parent: ((typeVisitCount["Parent"] ?? 0) < 1 ? createParent({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Child = createChild();"
+            `);
+        });
+        it("generates code with maxTypeRecursion: 3", () => {
+            expect(
+                generateCodeFromSchema({
+                    schema: `
+        type Parent {
+            child: Child
+        }
+        type Child {
+            parent: Parent
+        }
+    `,
+                    rawConfig: { maxTypeRecursion: 3 },
+                }),
+            ).toMatchInlineSnapshot(`
+              "let __idGlobalId = 0; // global id
+              const __idContextCountMap = new Map() // context count
+              function __id({ name, key }) {
+                  const count = __idContextCountMap.get(key) ?? 0;
+                  const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
+                  __idGlobalId += 1;
+                  __idContextCountMap.set(key, count + 1);
+                  return id;
+              }
+              export function createParent({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
+              return {
+                  child: ((typeVisitCount["Child"] ?? 0) < 3 ? createChild({ defaultFields: defaultFields?.child ?? {}, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Parent = createParent();
+              export function createChild({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
+              return {
+                  parent: ((typeVisitCount["Parent"] ?? 0) < 3 ? createParent({ defaultFields: defaultFields?.parent ?? {}, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                };
+              }
+
+              export const Child = createChild();"
             `);
         });
     });
@@ -756,14 +834,14 @@ type Book {
         ).toMatchInlineSnapshot(`
           "let __idGlobalId = 0; // global id
           const __idContextCountMap = new Map() // context count
-          function __id({ name, key, depth }) {
+          function __id({ name, key }) {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+              const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
           }
-          function createQuery({ defaultFields, depth = 0 } = {}) {
+          function createQuery({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
           return {
               hello: "string",
             };
@@ -790,14 +868,14 @@ type Book {
 
           let __idGlobalId = 0; // global id
           const __idContextCountMap = new Map<string, number>() // context count
-          function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
+          function __id({ name, key }: { name: string; key: string; }): string {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+              const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
           }
-          export function createQuery({ defaultFields, depth = 0 }: { defaultFields?: Partial<Query>, depth?: number } = {}): Query {
+          export function createQuery({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<Query>, typeVisitCount?: Record<string, number> } = {}): Query {
           return {
               hello: "string",
             };
@@ -829,9 +907,9 @@ type Book {
 
           let __idGlobalId = 0; // global id
           const __idContextCountMap = new Map<string, number>() // context count
-          function __id({ name, key, depth }: { name: string; key: string; depth: number; }): string {
+          function __id({ name, key }: { name: string; key: string; }): string {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+              const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
@@ -841,9 +919,9 @@ type Book {
             INACTIVE: "INACTIVE",
           } as const;
 
-          export function createUser({ defaultFields, depth = 0 }: { defaultFields?: Partial<User>, depth?: number } = {}): User {
+          export function createUser({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<User>, typeVisitCount?: Record<string, number> } = {}): User {
           return {
-              id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+              id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
               status: Object.values(Status)[0],
             };
           }
@@ -869,9 +947,9 @@ type Book {
         ).toMatchInlineSnapshot(`
           "let __idGlobalId = 0; // global id
           const __idContextCountMap = new Map() // context count
-          function __id({ name, key, depth }) {
+          function __id({ name, key }) {
               const count = __idContextCountMap.get(key) ?? 0;
-              const id = name + "_g" + String(__idGlobalId) + "_d" + String(depth) + "_c" + String(count);
+              const id = name + "_g" + String(__idGlobalId) + "_c" + String(count);
               __idGlobalId += 1;
               __idContextCountMap.set(key, count + 1);
               return id;
@@ -881,9 +959,9 @@ type Book {
             INACTIVE: "INACTIVE",
           };
 
-          export function createUser({ defaultFields, depth = 0 } = {}) {
+          export function createUser({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
           return {
-              id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id", depth }),
+              id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"User.id" }),
               status: Object.values(Status)[0],
             };
           }

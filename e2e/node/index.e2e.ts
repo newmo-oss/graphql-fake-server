@@ -133,7 +133,7 @@ describe("integration test", async () => {
                 "unionUser": {
                   "birthDate": "2022-01-01",
                   "birthYYYYMM": "2022-01",
-                  "id": "xxxx-xxxx-xxxx-xxxx_g2341_d2_c2",
+                  "id": "xxxx-xxxx-xxxx-xxxx_g145_c2",
                   "name": "string",
                 },
               }
@@ -193,27 +193,27 @@ describe("integration test", async () => {
                       "books": [
                         {
                           "author": {
-                            "id": "author-id_g975_d3_c364",
+                            "id": "author-id_g66_c22",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id_g1055_d3_c404",
+                            "id": "author-id_g71_c23",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id_g1135_d3_c444",
+                            "id": "author-id_g76_c24",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g973_d1_c363",
+                      "id": "author-id_g64_c21",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -221,27 +221,27 @@ describe("integration test", async () => {
                       "books": [
                         {
                           "author": {
-                            "id": "author-id_g1216_d3_c485",
+                            "id": "author-id_g82_c26",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id_g1296_d3_c525",
+                            "id": "author-id_g87_c27",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id_g1376_d3_c565",
+                            "id": "author-id_g92_c28",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g1214_d1_c484",
+                      "id": "author-id_g80_c25",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -249,27 +249,27 @@ describe("integration test", async () => {
                       "books": [
                         {
                           "author": {
-                            "id": "author-id_g1457_d3_c606",
+                            "id": "author-id_g98_c30",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id_g1537_d3_c646",
+                            "id": "author-id_g103_c31",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                         {
                           "author": {
-                            "id": "author-id_g1617_d3_c686",
+                            "id": "author-id_g108_c32",
                           },
                           "genre": "FICTION",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g1455_d1_c605",
+                      "id": "author-id_g96_c29",
                       "name": "F. Scott Fitzgerald",
                     },
                   ],
@@ -768,7 +768,7 @@ describe("integration test", async () => {
               {
                 "userWithErrors": {
                   "errors": [],
-                  "id": "xxxx-xxxx-xxxx-xxxx_g2342_d1_c1",
+                  "id": "xxxx-xxxx-xxxx-xxxx_g146_c1",
                   "name": "string",
                 },
               }

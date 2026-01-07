@@ -170,7 +170,7 @@ export default {
   },
   maxRegisteredSequences: 1000,
   maxQueryDepth: 10,
-  maxFieldRecursionDepth: 9,
+  maxTypeRecursion: 2,
   logLevel: "info",
   /**
    * @type {string[] | undefined}
@@ -202,7 +202,7 @@ type RequiredFakeServerConfig = {
   };
   maxRegisteredSequences: number;
   maxQueryDepth: number;
-  maxFieldRecursionDepth: number;
+  maxTypeRecursion: number;
   logLevel?: LogLevel;
   /**
    * Allowed CORS origins for the fake server

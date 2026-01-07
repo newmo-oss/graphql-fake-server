@@ -31,9 +31,6 @@ describe("validateConfig", () => {
             }),
         ).toThrow();
     });
-    it("should throw error when maxFieldRecursionDepth is not a number", () => {
-        expect(() => validateConfig({ maxFieldRecursionDepth: "not a number" })).toThrow();
-    });
 
     it("should not throw error when rawConfig is valid", () => {
         expect(() =>
@@ -48,6 +45,23 @@ describe("validateConfig", () => {
                 },
             }),
         ).not.toThrow();
+    });
+
+    it("should throw error when maxTypeRecursion is not a number", () => {
+        expect(() => validateConfig({ maxTypeRecursion: "2" as unknown as number })).toThrow(
+            "config.maxTypeRecursion must be a number",
+        );
+    });
+
+    it("should throw error when maxTypeRecursion is less than 1", () => {
+        expect(() => validateConfig({ maxTypeRecursion: 0 })).toThrow(
+            "config.maxTypeRecursion must be at least 1",
+        );
+    });
+
+    it("should not throw error when maxTypeRecursion is valid", () => {
+        expect(() => validateConfig({ maxTypeRecursion: 1 })).not.toThrow();
+        expect(() => validateConfig({ maxTypeRecursion: 5 })).not.toThrow();
     });
 });
 
@@ -88,5 +102,15 @@ describe("normalizeConfig", () => {
             defaultValues: { ...DefaultValues, String: "test" },
         });
         expect(normalizeConfig(rawConfig).defaultValues).toEqual(expectedConfig.defaultValues);
+    });
+
+    it("should return default maxTypeRecursion of 2 when not specified", () => {
+        const rawConfig: RawConfig = {};
+        expect(normalizeConfig(rawConfig).maxTypeRecursion).toBe(2);
+    });
+
+    it("should use specified maxTypeRecursion value", () => {
+        expect(normalizeConfig({ maxTypeRecursion: 1 }).maxTypeRecursion).toBe(1);
+        expect(normalizeConfig({ maxTypeRecursion: 5 }).maxTypeRecursion).toBe(5);
     });
 });
