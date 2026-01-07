@@ -4,7 +4,8 @@ import type { MockConfig, RawMockConfig } from "@newmo/graphql-fake-core";
 import type { LogLevel } from "./logger.js";
 
 /**
- * Server configuration options.
+ * Server configuration options (user input - all fields optional).
+ * Controls ports, request limits, and security settings.
  */
 export type ServerConfig = {
     /**
@@ -51,29 +52,52 @@ export type ServerConfig = {
 };
 
 /**
- * Configuration for the fake server.
+ * Configuration for the fake server (user input - most fields optional).
+ *
+ * @example
+ * ```js
+ * export default {
+ *   schemaFilePath: "./api.graphqls",
+ *   logLevel: "debug",
+ *   server: {
+ *     ports: { fakeServer: 4000, apolloServer: 4002 },
+ *     maxQueryDepth: 10,
+ *   },
+ *   mock: {
+ *     maxDepth: 9,
+ *     maxTypeRecursion: 2,
+ *     listLength: 3,
+ *   },
+ * };
+ * ```
  */
 export type FakeServerConfig = {
     /**
      * The path to the GraphQL schema file from cwd.
+     * @required
      */
     schemaFilePath: string;
     /**
-     * Log level: "debug", "info", "warn", "error"
-     * If you want to see the debug logs, set the logLevel to "debug".
-     * Default is "info".
+     * Log level for the server.
+     * @default "info"
      */
     logLevel?: LogLevel | undefined;
     /**
-     * Server configuration options.
+     * Server configuration options (ports, limits, security).
+     * @see ServerConfig
      */
     server?: ServerConfig | undefined;
     /**
-     * Mock data generation options.
+     * Mock data generation options (depth limits, default values).
+     * @see RawMockConfig from @newmo/graphql-fake-core
      */
     mock?: RawMockConfig | undefined;
 };
 
+/**
+ * Server configuration (normalized - all fields required).
+ * @internal
+ */
 export type RequiredServerConfig = {
     ports: {
         fakeServer: number;
@@ -85,8 +109,19 @@ export type RequiredServerConfig = {
     allowedHosts: string[] | "auto";
 };
 
+/**
+ * Mock configuration (normalized - all fields required).
+ * @internal
+ */
 export type RequiredMockConfig = MockConfig;
 
+/**
+ * Fake server configuration (normalized - all fields required).
+ * This is the internal config type with defaults applied.
+ *
+ * @see FakeServerConfig for user-facing config with optional fields
+ * @internal
+ */
 export type RequiredFakeServerConfig = {
     schemaFilePath: string;
     logLevel: LogLevel;
@@ -94,6 +129,10 @@ export type RequiredFakeServerConfig = {
     mock: RequiredMockConfig;
 };
 
+/**
+ * Default values for server configuration.
+ * @internal
+ */
 const ServerDefaults = {
     ports: {
         fakeServer: 4000,
@@ -103,23 +142,36 @@ const ServerDefaults = {
     maxQueryDepth: 10,
     allowedCORSOrigins: [] as string[],
     allowedHosts: "auto" as const,
-};
+} as const;
 
+/**
+ * Default log level.
+ * @internal
+ */
 const LogLevelDefault = "info" as LogLevel;
 
+/**
+ * Default values for mock generation options.
+ * @see RawMockConfig
+ * @internal
+ */
 const MockDefaultValues = {
     maxDepth: 9,
     maxTypeRecursion: 2,
     listLength: 3,
-};
+} as const;
 
+/**
+ * Default values for GraphQL scalar types.
+ * @internal
+ */
 const ScalarDefaults = {
     String: "string",
     Int: 12,
     Float: 12.3,
     Boolean: true,
     ID: "xxxx-xxxx-xxxx-xxxx",
-};
+} as const;
 
 export const normalizeFakeServerConfig = (config: FakeServerConfig): RequiredFakeServerConfig => {
     return {
