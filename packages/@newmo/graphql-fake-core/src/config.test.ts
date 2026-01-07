@@ -14,19 +14,22 @@ describe("validateConfig", () => {
     });
 
     it("should throw error when defaultValues is not an object", () => {
-        expect(() => validateConfig({ defaultValues: "not an object" })).toThrow();
+        expect(() =>
+            validateConfig({ mock: { defaultValues: "not an object" as unknown } }),
+        ).toThrow();
     });
 
     it("should throw error when defaultValues contains invalid types", () => {
         expect(() =>
             validateConfig({
-                defaultValues: {
-                    String: 123,
-                    Int: "not a number",
-                    Float: "not a number",
-                    Boolean: "not a boolean",
-                    ID: 123,
-                    listLength: "not a number",
+                mock: {
+                    defaultValues: {
+                        String: 123 as unknown as string,
+                        Int: "not a number" as unknown as number,
+                        Float: "not a number" as unknown as number,
+                        Boolean: "not a boolean" as unknown as boolean,
+                        ID: 123 as unknown as string,
+                    },
                 },
             }),
         ).toThrow();
@@ -35,33 +38,34 @@ describe("validateConfig", () => {
     it("should not throw error when rawConfig is valid", () => {
         expect(() =>
             validateConfig({
-                defaultValues: {
-                    String: "string",
-                    Int: 42,
-                    Float: 4.2,
-                    Boolean: true,
-                    ID: "xxxx-xxxx-xxxx-xxxx",
-                    listLength: 3,
+                mock: {
+                    defaultValues: {
+                        String: "string",
+                        Int: 42,
+                        Float: 4.2,
+                        Boolean: true,
+                        ID: "xxxx-xxxx-xxxx-xxxx",
+                    },
                 },
             }),
         ).not.toThrow();
     });
 
     it("should throw error when maxTypeRecursion is not a number", () => {
-        expect(() => validateConfig({ maxTypeRecursion: "2" as unknown as number })).toThrow(
-            "config.maxTypeRecursion must be a number",
-        );
+        expect(() =>
+            validateConfig({ mock: { maxTypeRecursion: "2" as unknown as number } }),
+        ).toThrow("config.mock.maxTypeRecursion must be a number");
     });
 
     it("should throw error when maxTypeRecursion is less than 1", () => {
-        expect(() => validateConfig({ maxTypeRecursion: 0 })).toThrow(
-            "config.maxTypeRecursion must be at least 1",
+        expect(() => validateConfig({ mock: { maxTypeRecursion: 0 } })).toThrow(
+            "config.mock.maxTypeRecursion must be at least 1",
         );
     });
 
     it("should not throw error when maxTypeRecursion is valid", () => {
-        expect(() => validateConfig({ maxTypeRecursion: 1 })).not.toThrow();
-        expect(() => validateConfig({ maxTypeRecursion: 5 })).not.toThrow();
+        expect(() => validateConfig({ mock: { maxTypeRecursion: 1 } })).not.toThrow();
+        expect(() => validateConfig({ mock: { maxTypeRecursion: 5 } })).not.toThrow();
     });
 });
 
@@ -74,43 +78,47 @@ describe("normalizeConfig", () => {
 
     it("should return rawConfig values when they are present", () => {
         const rawConfig: RawConfig = {
-            defaultValues: {
-                String: "test",
-                Int: 1,
-                Float: 1.1,
-                Boolean: false,
-                ID: "test-id",
-                listLength: 1,
+            mock: {
+                defaultValues: {
+                    String: "test",
+                    Int: 1,
+                    Float: 1.1,
+                    Boolean: false,
+                    ID: "test-id",
+                },
             },
         };
         const expectedConfig: Config = normalizeConfig({
-            defaultValues: {
-                String: "test",
-                Int: 1,
-                Float: 1.1,
-                Boolean: false,
-                ID: "test-id",
-                listLength: 1,
+            mock: {
+                defaultValues: {
+                    String: "test",
+                    Int: 1,
+                    Float: 1.1,
+                    Boolean: false,
+                    ID: "test-id",
+                },
             },
         });
         expect(normalizeConfig(rawConfig)).toEqual(expectedConfig);
     });
 
     it("should return a mix of rawConfig and default values when some values are missing in rawConfig", () => {
-        const rawConfig: RawConfig = { defaultValues: { String: "test" } };
+        const rawConfig: RawConfig = { mock: { defaultValues: { String: "test" } } };
         const expectedConfig: Config = normalizeConfig({
-            defaultValues: { ...DefaultValues, String: "test" },
+            mock: { defaultValues: { ...DefaultValues, String: "test" } },
         });
-        expect(normalizeConfig(rawConfig).defaultValues).toEqual(expectedConfig.defaultValues);
+        expect(normalizeConfig(rawConfig).mock.defaultValues).toEqual(
+            expectedConfig.mock.defaultValues,
+        );
     });
 
     it("should return default maxTypeRecursion of 2 when not specified", () => {
         const rawConfig: RawConfig = {};
-        expect(normalizeConfig(rawConfig).maxTypeRecursion).toBe(2);
+        expect(normalizeConfig(rawConfig).mock.maxTypeRecursion).toBe(2);
     });
 
     it("should use specified maxTypeRecursion value", () => {
-        expect(normalizeConfig({ maxTypeRecursion: 1 }).maxTypeRecursion).toBe(1);
-        expect(normalizeConfig({ maxTypeRecursion: 5 }).maxTypeRecursion).toBe(5);
+        expect(normalizeConfig({ mock: { maxTypeRecursion: 1 } }).mock.maxTypeRecursion).toBe(1);
+        expect(normalizeConfig({ mock: { maxTypeRecursion: 5 } }).mock.maxTypeRecursion).toBe(5);
     });
 });

@@ -164,61 +164,97 @@ Example of the config file: `graphql-fake-server.config.mjs`
 ```js
 export default {
   schemaFilePath: "./api/api.graphql",
-  ports: {
-    fakeServer: 4000,
-    apolloServer: 4002,
+  logLevel: "info", // "debug" | "info" | "warn" | "error"
+  server: {
+    ports: {
+      fakeServer: 4000,
+      apolloServer: 4002,
+    },
+    maxRegisteredSequences: 1000,
+    maxQueryDepth: 10,
+    /**
+     * @type {string[] | undefined}
+     * Allowed CORS origins for the fake server
+     * If undefined, it allows localhost and internal network connections only
+     */
+    allowedCORSOrigins: undefined,
+    /**
+     * @type {string[] | "auto" | undefined}
+     * Allowed Host headers for the fake server to prevent DNS rebinding attacks
+     * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
+     * - string[]: Explicit list of allowed Host headers
+     */
+    allowedHosts: "auto",
   },
-  maxRegisteredSequences: 1000,
-  maxQueryDepth: 10,
-  maxTypeRecursion: 2,
-  logLevel: "info",
-  /**
-   * @type {string[] | undefined}
-   * Allowed CORS origins for the fake server
-   * If undefined, it allows localhost and internal network connections only
-   * @example ["https://example.com", "https://app.example.com"]
-   */
-  allowedCORSOrigins: undefined,
-  /**
-   * @type {string[] | "auto" | undefined}
-   * Allowed Host headers for the fake server to prevent DNS rebinding attacks
-   * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
-   * - string[]: Explicit list of allowed Host headers
-   * - undefined: Same as "auto"
-   * @example ["localhost:4000", "myapp.local:4000"]
-   */
-  allowedHosts: undefined,
+  mock: {
+    /**
+     * Maximum total nesting depth across all types.
+     * Prevents deep chains like: Query -> Book -> Author -> Publisher -> ...
+     */
+    maxDepth: 9,
+    /**
+     * Maximum times a specific type can be visited in a single path.
+     * Prevents same-type recursion like: User -> User -> User -> ...
+     */
+    maxTypeRecursion: 2,
+    /** Number of elements to generate for array/list fields */
+    listLength: 3,
+    defaultValues: {
+      String: "string",
+      Int: 12,
+      Float: 12.3,
+      Boolean: true,
+      ID: "xxxx-xxxx-xxxx-xxxx",
+      // CustomScalar: { DATE_YYYYMMDD: '"2022-01-01"' }
+    },
+  },
 };
 ```
 
-`RequiredFakeServerConfig` schema:
+### Config Schema
 
 ```ts
-type RequiredFakeServerConfig = {
+type FakeServerConfig = {
+  /** Path to the GraphQL schema file (required) */
   schemaFilePath: string;
-  ports: {
-    fakeServer: number;
-    apolloServer: number;
+  /** Log level (default: "info") */
+  logLevel?: "debug" | "info" | "warn" | "error";
+  /** Server configuration */
+  server?: {
+    ports?: {
+      fakeServer?: number;  // default: 4000
+      apolloServer?: number; // default: 4002
+    };
+    maxRegisteredSequences?: number; // default: 1000
+    maxQueryDepth?: number; // default: 10
+    allowedCORSOrigins?: string[];
+    allowedHosts?: string[] | "auto"; // default: "auto"
   };
-  maxRegisteredSequences: number;
-  maxQueryDepth: number;
-  maxTypeRecursion: number;
-  logLevel?: LogLevel;
-  /**
-   * Allowed CORS origins for the fake server
-   * If undefined, it allows localhost and internal network connections only
-   * @example ["https://example.com", "https://app.example.com"]
-   */
-  allowedCORSOrigins?: string[] | undefined;
-  /**
-   * Allowed Host headers for the fake server to prevent DNS rebinding attacks
-   * - "auto" (default): Automatically generates allowed hosts from CORS origins and localhost addresses
-   * - string[]: Explicit list of allowed Host headers
-   * @example ["localhost:4000", "myapp.local:4000"]
-   */
-  allowedHosts?: string[] | "auto" | undefined;
+  /** Mock data generation options */
+  mock?: {
+    maxDepth?: number; // default: 9
+    maxTypeRecursion?: number; // default: 2
+    listLength?: number; // default: 3
+    defaultValues?: {
+      String?: string;
+      Int?: number;
+      Float?: number;
+      Boolean?: boolean;
+      ID?: string;
+      CustomScalar?: Record<string, string>;
+    };
+  };
 };
 ```
+
+### Depth Control
+
+Mock generation uses two complementary depth controls to prevent heap overflow:
+
+- **maxDepth**: Limits total nesting depth across ALL types (A -> B -> C -> D stops at depth limit)
+- **maxTypeRecursion**: Limits how many times the SAME type can appear in a chain (User -> User -> User)
+
+Both conditions must pass for generation to continue.
 
 ## Security
 

@@ -34,7 +34,11 @@ const startTestFakeServer = async ({
     const logLevel = "info";
     const mockResult = await createMock({
         schema,
-        maxFieldRecursionDepth: 3,
+        mock: {
+            maxDepth: 9,
+            maxTypeRecursion: 2,
+            listLength: 3,
+        },
     });
     if (!mockResult.ok) {
         throw new Error("Failed to create mock server.", {
@@ -47,7 +51,6 @@ const startTestFakeServer = async ({
         logLevel,
         ports: ports,
         maxQueryDepth: 3,
-        maxFieldRecursionDepth: 4,
         maxRegisteredSequences: 100,
         allowedCORSOrigins: allowedCORSOrigins ?? [],
         allowedHosts: allowedHosts ?? "auto",

@@ -40,16 +40,20 @@ export const generateCreateReferenceCode = ({
     config: Config;
 }): string => {
     /**
-     * Track type visit count to prevent exponential explosion for recursive types.
-     * Instead of using a global depth counter, we track how many times each specific type
-     * has been visited in the current path.
+     * Track both depth and type visit count to prevent exponential explosion.
      *
-     * Example: For User -> User recursion with maxTypeRecursion=2:
-     * - First User: typeVisitCount["User"] = 0, creates User
-     * - Second User: typeVisitCount["User"] = 1, creates User
-     * - Third User: typeVisitCount["User"] = 2, returns undefined (stops recursion)
+     * - depth: Total nesting depth across all types (prevents A -> B -> C -> D... explosion)
+     * - typeVisitCount: How many times each specific type has been visited (prevents User -> User -> User... recursion)
+     *
+     * Example: For User -> User recursion with maxTypeRecursion=2, maxDepth=9:
+     * - First User: depth=0, typeVisitCount["User"] = 0, creates User
+     * - Second User: depth=1, typeVisitCount["User"] = 1, creates User
+     * - Third User: depth=2, typeVisitCount["User"] = 2, returns undefined (stops by typeVisitCount)
+     *
+     * Example: For A -> B -> C -> D -> E -> F -> G -> H -> I -> J with maxDepth=9:
+     * - Stops at depth 9, regardless of type
      */
-    return `((typeVisitCount["${rawTypeName}"] ?? 0) < ${config.maxTypeRecursion} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, typeVisitCount: { ...typeVisitCount, "${rawTypeName}": (typeVisitCount["${rawTypeName}"] ?? 0) + 1 } }) : undefined)`;
+    return `(depth < ${config.mock.maxDepth} && (typeVisitCount["${rawTypeName}"] ?? 0) < ${config.mock.maxTypeRecursion} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "${rawTypeName}": (typeVisitCount["${rawTypeName}"] ?? 0) + 1 } }) : undefined)`;
 };
 
 // GraphQL AST Limitations
@@ -88,16 +92,16 @@ ${indent}};
 `.trim();
     if (config.outputType === "commonjs") {
         return `
-function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
+function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }
 exports.create${rawName} = create${rawName};
 `.trim();
     }
     return `
-export function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) }${
+export function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) }${
         isTypescript
-            ? `: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> }`
+            ? `: { defaultFields?: Partial<${name}>, depth?: number, typeVisitCount?: Record<string, number> }`
             : ""
     } = {})${isTypescript ? `: ${name}` : ""} {
 ${functionBodyCode}
@@ -122,7 +126,7 @@ function generateImportTypeCode(config: ConfigWithOutput, typeInfos: TypeInfo[])
         .filter(({ type }) => type === "object")
         .map(({ name }) => `${indent}${name}`)
         .join(",\n");
-    return `import type { 
+    return `import type {
 ${joinedTypeNames}
 } from '${config.typesFile}';`;
 }
@@ -176,13 +180,13 @@ ${indent}${indent}...${generateCreateReferenceCode({
 `.trim();
     if (config.outputType === "typescript") {
         return `
-export function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<${name}>, typeVisitCount?: Record<string, number> } = {}): ${name} {
+export function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) }: { defaultFields?: Partial<${name}>, depth?: number, typeVisitCount?: Record<string, number> } = {}): ${name} {
 ${functionBodyCode}
 }
 `.trim();
     }
     return `
-function create${rawName}({ defaultFields, typeVisitCount = Object.create(null) } = {}) {
+function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }`;
 }

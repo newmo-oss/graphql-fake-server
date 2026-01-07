@@ -65,16 +65,20 @@ describe("integration test", async () => {
         server = await createFakeServer(
             normalizeFakeServerConfig({
                 schemaFilePath: "./api/api.graphqls",
-                defaultValues: {
-                    CustomScalar: {
-                        DATE_YYYYMMDD: `"2022-01-01"`,
+                logLevel: "debug",
+                server: {
+                    ports: {
+                        fakeServer: 4000,
+                        apolloServer: 4002,
                     },
                 },
-                ports: {
-                    fakeServer: 4000,
-                    apolloServer: 4002,
+                mock: {
+                    defaultValues: {
+                        CustomScalar: {
+                            DATE_YYYYMMDD: `"2022-01-01"`,
+                        },
+                    },
                 },
-                logLevel: "debug",
             }),
         );
         const { urls } = await server.start();

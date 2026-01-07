@@ -33,11 +33,7 @@ const PRIVATE_IP_RANGES = [
     /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/, // 172.16.0.0/12
 ];
 
-export type CreateFakeServerOptions = RequiredFakeServerConfig & {
-    logLevel?: LogLevel;
-    allowedCORSOrigins: string[];
-    allowedHosts?: string[] | "auto";
-};
+export type CreateFakeServerOptions = RequiredFakeServerConfig;
 
 type FakeServerInternal = {
     mockObject: MockObject;
@@ -1017,23 +1013,12 @@ const createRoutingServer = async ({
     return app;
 };
 export const createFakeServer = async (options: CreateFakeServerOptions) => {
-    const {
-        logLevel,
-        maxTypeRecursion,
-        maxQueryDepth,
-        maxRegisteredSequences,
-        ports,
-        schemaFilePath,
-        defaultValues,
-        allowedCORSOrigins,
-        allowedHosts = "auto",
-    } = options;
+    const { schemaFilePath, logLevel, server, mock } = options;
     const logger = createLogger(logLevel);
     const schema = buildSchema(await fs.readFile(schemaFilePath, "utf-8"));
     const mockResult = await createMock({
         schema,
-        maxTypeRecursion,
-        defaultValues,
+        mock,
     });
     if (!mockResult.ok) {
         logger.error("Failed to create mock data", mockResult);
@@ -1044,14 +1029,14 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
     logger.debug("created mock code", mockResult.code);
     logger.debug("created mock data", mockResult.mock);
     return createFakeServerInternal({
-        ports,
+        ports: server.ports,
         schema,
         mockObject: mockResult.mock,
-        maxQueryDepth,
-        maxRegisteredSequences,
-        logLevel: logLevel ?? "info",
-        allowedCORSOrigins,
-        allowedHosts,
+        maxQueryDepth: server.maxQueryDepth,
+        maxRegisteredSequences: server.maxRegisteredSequences,
+        logLevel: logLevel,
+        allowedCORSOrigins: server.allowedCORSOrigins,
+        allowedHosts: server.allowedHosts,
     });
 };
 

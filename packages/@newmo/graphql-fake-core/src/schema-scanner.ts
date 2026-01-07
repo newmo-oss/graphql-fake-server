@@ -130,16 +130,16 @@ const typeToFunction = ({
 }): string => {
     switch (type) {
         case "String":
-            return `"${config.defaultValues.String}"`;
+            return `"${config.mock.defaultValues.String}"`;
         case "Int":
-            return `${config.defaultValues.Int}`;
+            return `${config.mock.defaultValues.Int}`;
         case "Float":
-            return `${config.defaultValues.Float}`;
+            return `${config.mock.defaultValues.Float}`;
         case "Boolean":
-            return `${config.defaultValues.Boolean ? "true" : "false"}`;
+            return `${config.mock.defaultValues.Boolean ? "true" : "false"}`;
         case "ID": {
             const pathOfField = `${convertedTypeName}.${fieldName}`;
-            return `${idFactory(config.defaultValues.ID, pathOfField)}`;
+            return `${idFactory(config.mock.defaultValues.ID, pathOfField)}`;
         }
         default: {
             // if enum type(name is equaled) is defined, reference to the enum
@@ -160,21 +160,22 @@ const typeToFunction = ({
 
                 // If dose not have default value, throw an error
                 const USAGE = `
-  options: {
+  mock: {
     defaultValues: {
       CustomScalar: {
         ${type}: "fake default value"
       }
+    }
   }
 `;
-                if (!config.defaultValues.CustomScalar) {
+                if (!config.mock.defaultValues.CustomScalar) {
                     throw new Error(`Custom scalar option is not defined in config for ${type}
 
 ${USAGE}
 `);
                 }
 
-                const fakeDefaultValue = config.defaultValues.CustomScalar[type];
+                const fakeDefaultValue = config.mock.defaultValues.CustomScalar[type];
                 if (!fakeDefaultValue) {
                     throw new Error(`Custom scalar type ${type} must have default value in config
 
@@ -207,15 +208,33 @@ const typeToFunctionWithArray = ({
     idFactory: ReturnType<typeof createIDFactory>;
     context: ScannerContext;
 }): string => {
-    // Use .filter(Boolean) to remove undefined elements when typeVisitCount cuts off recursion
-    return `Array.from({ length: ${config.defaultValues.listLength} }).map(() => ${typeToFunction({
-        convertedTypeName,
-        fieldName: fieldName,
-        type: type,
-        config: config,
-        idFactory: idFactory,
-        context,
-    })}).filter(Boolean)`;
+    // For primitive types and enums, no recursion check needed
+    const primitiveTypes = ["String", "Int", "Float", "Boolean", "ID"];
+    if (
+        primitiveTypes.includes(type) ||
+        context.enumMap.has(type) ||
+        context.customScalarMap.has(type)
+    ) {
+        return `Array.from({ length: ${config.mock.listLength} }).map(() => ${typeToFunction({
+            convertedTypeName,
+            fieldName: fieldName,
+            type: type,
+            config: config,
+            idFactory: idFactory,
+            context,
+        })})`;
+    }
+    // For object types, check depth and typeVisitCount before creating the array to avoid unnecessary memory allocation
+    return `(depth < ${config.mock.maxDepth} && (typeVisitCount["${type}"] ?? 0) < ${config.mock.maxTypeRecursion} ? Array.from({ length: ${config.mock.listLength} }).map(() => ${typeToFunction(
+        {
+            convertedTypeName,
+            fieldName: fieldName,
+            type: type,
+            config: config,
+            idFactory: idFactory,
+            context,
+        },
+    )}).filter(Boolean) : [])`;
 };
 // NamedType/ListType handling
 const nodeToExpression = ({
