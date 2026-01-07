@@ -27,13 +27,14 @@
     "ci:versionup:major": "lerna version major --no-push --no-git-tag-version --yes && npm run commit-version",
     "commit-version": "git add . && git commit -m \"chore(release): v`node -p 'require(\"./lerna.json\").version'`\"",
     "release": "lerna publish from-package",
+    "ci:release": "lerna publish from-package --yes",
     "prepare": "git config --local core.hooksPath .githooks"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.2",
-    "@lerna-lite/cli": "^4.4.1",
-    "@lerna-lite/publish": "^4.4.1",
-    "@lerna-lite/version": "^4.4.1",
+    "@lerna-lite/cli": "^4.9.1",
+    "@lerna-lite/publish": "^4.9.1",
+    "@lerna-lite/version": "^4.9.1",
     "lint-staged": "^16.1.2",
     "vitest": "^3.2.4"
   },
