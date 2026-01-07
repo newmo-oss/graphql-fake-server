@@ -1,6 +1,6 @@
 {
   "name": "@newmo/graphql-codegen-fake-server-client",
-  "version": "0.23.3",
+  "version": "0.24.0",
   "private": false,
   "description": "GraphQL Codegen plugin for generating a fake server client",
   "keywords": [
