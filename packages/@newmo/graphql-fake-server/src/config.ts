@@ -156,7 +156,7 @@ const LogLevelDefault = "info" as LogLevel;
  * @internal
  */
 const MockDefaultValues = {
-    maxDepth: 9,
+    maxDepth: 7,
     maxTypeRecursion: 2,
     listLength: 3,
 } as const;

@@ -13,7 +13,7 @@ const fakeConfig = (config?: Partial<Config>): Config => {
         typesSuffix: config?.typesSuffix ?? "",
         namingConvention: config?.namingConvention ?? "keep",
         mock: {
-            maxDepth: config?.mock?.maxDepth ?? 9,
+            maxDepth: config?.mock?.maxDepth ?? 7,
             maxTypeRecursion: config?.mock?.maxTypeRecursion ?? 2,
             listLength: config?.mock?.listLength ?? 3,
             defaultValues: {
@@ -72,7 +72,7 @@ describe("getTypeInfos", () => {
                 {
                   "comment": undefined,
                   "example": {
-                    "expression": "(depth < 9 && (typeVisitCount["Author"] ?? 0) < 2 ? createAuthor({ defaultFields: defaultFields?.author ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Author": (typeVisitCount["Author"] ?? 0) + 1 } }) : undefined)",
+                    "expression": "(depth < 7 && (typeVisitCount["Author"] ?? 0) < 2 ? createAuthor({ defaultFields: defaultFields?.author ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Author": (typeVisitCount["Author"] ?? 0) + 1 } }) : undefined)",
                   },
                   "name": "author",
                 },
@@ -101,7 +101,7 @@ describe("getTypeInfos", () => {
                   "comment": "/**  comment  */
           ",
                   "example": {
-                    "expression": "(depth < 9 && (typeVisitCount["Book"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 9 && (typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : [])",
+                    "expression": "(depth < 7 && (typeVisitCount["Book"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 7 && (typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : [])",
                   },
                   "name": "books",
                 },
@@ -266,14 +266,14 @@ type RequiredDocument {
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field3 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                      "expression": "(depth < 7 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field3 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                     },
                     "name": "field3",
                   },
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field4 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : [])",
+                      "expression": "(depth < 7 && (typeVisitCount["SubType"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 7 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field4 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : [])",
                     },
                     "name": "field4",
                   },
@@ -425,7 +425,7 @@ type RequiredDocument {
                   {
                     "comment": undefined,
                     "example": {
-                      "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                      "expression": "(depth < 7 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                     },
                     "name": "field2",
                   },
@@ -503,7 +503,7 @@ type RequiredDocument {
                     {
                       "comment": undefined,
                       "example": {
-                        "expression": "(depth < 9 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.blockedByUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined)",
+                        "expression": "(depth < 7 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.blockedByUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined)",
                       },
                       "name": "blockedByUser",
                     },
@@ -527,7 +527,7 @@ type RequiredDocument {
                     {
                       "comment": undefined,
                       "example": {
-                        "expression": "(depth < 9 && (typeVisitCount["UserResult"] ?? 0) < 2 ? createUserResult({ defaultFields: defaultFields?.user ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "UserResult": (typeVisitCount["UserResult"] ?? 0) + 1 } }) : undefined)",
+                        "expression": "(depth < 7 && (typeVisitCount["UserResult"] ?? 0) < 2 ? createUserResult({ defaultFields: defaultFields?.user ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "UserResult": (typeVisitCount["UserResult"] ?? 0) + 1 } }) : undefined)",
                       },
                       "name": "user",
                     },
@@ -691,7 +691,7 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                            "expression": "(depth < 7 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                           },
                           "name": "field2",
                         },
@@ -764,7 +764,7 @@ type RequiredDocument {
                         {
                           "comment": undefined,
                           "example": {
-                            "expression": "(depth < 9 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
+                            "expression": "(depth < 7 && (typeVisitCount["SubType"] ?? 0) < 2 ? createSubType({ defaultFields: defaultFields?.field2 ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubType": (typeVisitCount["SubType"] ?? 0) + 1 } }) : undefined)",
                           },
                           "name": "field2",
                         },

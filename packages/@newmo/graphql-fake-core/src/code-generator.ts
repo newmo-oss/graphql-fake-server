@@ -45,12 +45,12 @@ export const generateCreateReferenceCode = ({
      * - depth: Total nesting depth across all types (prevents A -> B -> C -> D... explosion)
      * - typeVisitCount: How many times each specific type has been visited (prevents User -> User -> User... recursion)
      *
-     * Example: For User -> User recursion with maxTypeRecursion=2, maxDepth=9:
+     * Example: For User -> User recursion with maxTypeRecursion=2, maxDepth=7:
      * - First User: depth=0, typeVisitCount["User"] = 0, creates User
      * - Second User: depth=1, typeVisitCount["User"] = 1, creates User
      * - Third User: depth=2, typeVisitCount["User"] = 2, returns undefined (stops by typeVisitCount)
      *
-     * Example: For A -> B -> C -> D -> E -> F -> G -> H -> I -> J with maxDepth=9:
+     * Example: For A -> B -> C -> D -> E -> F -> G -> H -> I -> J with maxDepth=7:
      * - Stops at depth 9, regardless of type
      */
     return `(depth < ${config.mock.maxDepth} && (typeVisitCount["${rawTypeName}"] ?? 0) < ${config.mock.maxTypeRecursion} ? create${rawTypeName}({ defaultFields: defaultFields?.${fieldName} ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "${rawTypeName}": (typeVisitCount["${rawTypeName}"] ?? 0) + 1 } }) : undefined)`;

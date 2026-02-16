@@ -191,7 +191,7 @@ export default {
      * Maximum total nesting depth across all types.
      * Prevents deep chains like: Query -> Book -> Author -> Publisher -> ...
      */
-    maxDepth: 9,
+    maxDepth: 7,
     /**
      * Maximum times a specific type can be visited in a single path.
      * Prevents same-type recursion like: User -> User -> User -> ...
@@ -232,7 +232,7 @@ type FakeServerConfig = {
   };
   /** Mock data generation options */
   mock?: {
-    maxDepth?: number; // default: 9
+    maxDepth?: number; // default: 7
     maxTypeRecursion?: number; // default: 2
     listLength?: number; // default: 3
     defaultValues?: {

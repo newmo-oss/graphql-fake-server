@@ -14,7 +14,7 @@ export type RawMockConfig = {
     /**
      * Maximum total nesting depth across all types.
      * Prevents deep chains like: Query → Book → Author → Publisher → Address → Country → ...
-     * @default 9
+     * @default 7
      * @example
      * // With maxDepth: 3, generation stops at depth 3 regardless of type
      * // Query(0) → Book(1) → Author(2) → Publisher(3) → stops
@@ -105,7 +105,7 @@ export type RawConfig = {
  */
 export const MockDefaults = {
     /** @see RawMockConfig.maxDepth */
-    maxDepth: 9,
+    maxDepth: 7,
     /** @see RawMockConfig.maxTypeRecursion */
     maxTypeRecursion: 2,
     /** @see RawMockConfig.listLength */

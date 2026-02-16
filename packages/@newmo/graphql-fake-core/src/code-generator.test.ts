@@ -89,7 +89,7 @@ describe("generateCode", () => {
               }
               export function createMutation({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  addMessage: (depth < 9 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
+                  addMessage: (depth < 7 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -131,7 +131,7 @@ describe("generateCode", () => {
               }
               export function createSubscription({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  messageAdded: (depth < 9 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
+                  messageAdded: (depth < 7 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -262,7 +262,7 @@ describe("generateCode", () => {
               function createAnimal({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
                   __typename: "Cat",
-                  ...(depth < 9 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
+                  ...(depth < 7 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
               };
               }
               export function createCat({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
@@ -326,7 +326,7 @@ describe("generateCode", () => {
               export const NewUserInput = createNewUserInput();
               export function createMutation({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  createUser: (depth < 9 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
+                  createUser: (depth < 7 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -441,7 +441,7 @@ type Book {
                       }
                       export function createMutation({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          addMessage: (depth < 9 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
+                          addMessage: (depth < 7 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.addMessage ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
@@ -483,7 +483,7 @@ type Book {
                       }
                       export function createSubscription({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          messageAdded: (depth < 9 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
+                          messageAdded: (depth < 7 && (typeVisitCount["Message"] ?? 0) < 2 ? createMessage({ defaultFields: defaultFields?.messageAdded ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Message": (typeVisitCount["Message"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
@@ -576,7 +576,7 @@ type Book {
                       function createAnimal({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           __typename: "Cat",
-                          ...(depth < 9 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
+                          ...(depth < 7 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
                       };
                       }
                       export function createCat({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
@@ -640,7 +640,7 @@ type Book {
                       export const NewUserInput = createNewUserInput();
                       export function createMutation({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
-                          createUser: (depth < 9 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
+                          createUser: (depth < 7 && (typeVisitCount["User"] ?? 0) < 2 ? createUser({ defaultFields: defaultFields?.createUser ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "User": (typeVisitCount["User"] ?? 0) + 1 } }) : undefined),
                         };
                       }
 
@@ -683,7 +683,7 @@ type Book {
               }
               export function createQuery({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  books: (depth < 9 && (typeVisitCount["Book"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 9 && (typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : []),
+                  books: (depth < 7 && (typeVisitCount["Book"] ?? 0) < 2 ? Array.from({ length: 3 }).map(() => (depth < 7 && (typeVisitCount["Book"] ?? 0) < 2 ? createBook({ defaultFields: defaultFields?.books ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Book": (typeVisitCount["Book"] ?? 0) + 1 } }) : undefined)).filter(Boolean) : []),
                 };
               }
 
@@ -728,7 +728,7 @@ type Book {
               return {
                   id: __id({ name: "1234", key:"Category.id.1234" }),
                   name: "Electronics",
-                  subCategory: (depth < 9 && (typeVisitCount["SubCategory"] ?? 0) < 2 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubCategory": (typeVisitCount["SubCategory"] ?? 0) + 1 } }) : undefined),
+                  subCategory: (depth < 7 && (typeVisitCount["SubCategory"] ?? 0) < 2 ? createSubCategory({ defaultFields: defaultFields?.subCategory ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "SubCategory": (typeVisitCount["SubCategory"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -737,7 +737,7 @@ type Book {
               return {
                   id: __id({ name: "5678", key:"SubCategory.id.5678" }),
                   name: "Computers",
-                  parent: (depth < 9 && (typeVisitCount["Category"] ?? 0) < 2 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Category": (typeVisitCount["Category"] ?? 0) + 1 } }) : undefined),
+                  parent: (depth < 7 && (typeVisitCount["Category"] ?? 0) < 2 ? createCategory({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Category": (typeVisitCount["Category"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -769,14 +769,14 @@ type Book {
               }
               export function createParent({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  child: (depth < 9 && (typeVisitCount["Child"] ?? 0) < 2 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                  child: (depth < 7 && (typeVisitCount["Child"] ?? 0) < 2 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Parent = createParent();
               export function createChild({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  parent: (depth < 9 && (typeVisitCount["Parent"] ?? 0) < 2 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                  parent: (depth < 7 && (typeVisitCount["Parent"] ?? 0) < 2 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -808,14 +808,14 @@ type Book {
               }
               export function createParent({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  child: (depth < 9 && (typeVisitCount["Child"] ?? 0) < 2 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                  child: (depth < 7 && (typeVisitCount["Child"] ?? 0) < 2 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Parent = createParent();
               export function createChild({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  parent: (depth < 9 && (typeVisitCount["Parent"] ?? 0) < 2 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                  parent: (depth < 7 && (typeVisitCount["Parent"] ?? 0) < 2 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
