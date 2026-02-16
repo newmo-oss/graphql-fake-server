@@ -8,8 +8,23 @@ export type MockObject = Record<string, unknown>;
 export type CreateMockOptions = {
     schema: GraphQLSchema;
 } & Partial<RawConfig>;
-const cloneAsJSON = (obj: unknown) => {
-    return JSON.parse(JSON.stringify(obj));
+const cloneAsJSON = (obj: unknown): unknown => {
+    if (obj === null || typeof obj !== "object") {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map((item) => cloneAsJSON(item));
+    }
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(obj)) {
+        const value = (obj as Record<string, unknown>)[key];
+        // JSON.stringify と同じ: function と undefined をスキップ
+        if (typeof value === "function" || typeof value === "undefined") {
+            continue;
+        }
+        result[key] = cloneAsJSON(value);
+    }
+    return result;
 };
 export type CreateMockResult =
     | {
