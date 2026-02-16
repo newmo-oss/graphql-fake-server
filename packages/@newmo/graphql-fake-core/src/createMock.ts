@@ -15,7 +15,7 @@ const cloneAsJSON = (obj: unknown): unknown => {
     if (Array.isArray(obj)) {
         return obj.map((item) => cloneAsJSON(item));
     }
-    const result: Record<string, unknown> = {};
+    const result: Record<string, unknown> = Object.create(null);
     for (const key of Object.keys(obj)) {
         const value = (obj as Record<string, unknown>)[key];
         // JSON.stringify と同じ: function と undefined をスキップ
