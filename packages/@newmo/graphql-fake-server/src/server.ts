@@ -251,24 +251,41 @@ const isListFieldType = (type: GraphQLOutputType): boolean => {
 // Depth value that exceeds any maxDepth config, causing factories to return scalar-only fields.
 const SCALAR_ONLY_DEPTH = Number.MAX_SAFE_INTEGER;
 
+// Mock resolution strategy:
+//
+// To avoid OOM from eagerly expanding deeply nested mock trees (listLength^depth),
+// mock generation is split into two layers:
+//
+// 1. `mocks` — Provides scalar field values.
+//    Factory functions registered per type return only scalar fields
+//    (depth = SCALAR_ONLY_DEPTH), so no nested objects are created upfront.
+//    @graphql-tools/mock's MockStore references these when resolving scalar fields.
+//
+// 2. `resolvers` — Lazy generation of nested object field values at query time.
+//    When a query traverses into a nested field, the resolver invokes
+//    the target type's factory at that point. For list fields, it creates
+//    `listLength` instances. Only fields actually requested by the query
+//    are materialized.
+//
+// Fields marked with @error directive (tracked in emptyListFields) are excluded
+// from resolver generation so they remain as empty arrays [].
 const creteApolloServer = async (options: FakeServerInternal) => {
     const executableSchema = makeExecutableSchema({
         typeDefs: options.schema,
     });
 
-    // Build mocks: factory functions return scalar-only fields (no nested objects).
+    // Layer 1: type-level mocks — scalar fields only, no nested expansion
     const mocks: Record<string, () => Record<string, unknown>> = {};
     for (const [typeName, factory] of Object.entries(options.mockFactories)) {
         mocks[typeName] = () => factory({ depth: SCALAR_ONLY_DEPTH });
     }
 
-    // Build resolvers for all object/list-of-object fields.
-    // All nested object fields are resolved lazily at query time via resolvers,
-    // preventing eager expansion that causes OOM with deep schemas.
+    // Layer 2: field-level resolvers — lazy generation of nested object fields at query time
     const objectFieldResolvers: Record<string, Record<string, () => unknown>> = {};
     const typeMap = executableSchema.getTypeMap();
 
     for (const [typeName, graphqlType] of Object.entries(typeMap)) {
+        // Skip introspection types (__Schema, __Type, etc.)
         if (!isObjectType(graphqlType) || typeName.startsWith("__")) continue;
         const fields = graphqlType.getFields();
         const fieldResolvers: Record<string, () => unknown> = {};
@@ -276,6 +293,7 @@ const creteApolloServer = async (options: FakeServerInternal) => {
         const emptyFields = options.emptyListFields.get(typeName);
         for (const [fieldName, field] of Object.entries(fields)) {
             const innerType = getInnerNamedType(field.type);
+            // Skip scalar/enum fields — their values are provided by `mocks` (layer 1)
             if (!isObjectType(innerType) && !isInterfaceType(innerType) && !isUnionType(innerType))
                 continue;
 
