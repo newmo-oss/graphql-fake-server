@@ -191,7 +191,8 @@ ${functionBodyCode}
     return `
 function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
-}`;
+}
+exports.create${rawName} = create${rawName};`;
 }
 
 export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): string {

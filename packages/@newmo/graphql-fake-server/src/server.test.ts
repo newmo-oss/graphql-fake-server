@@ -972,7 +972,17 @@ describe("graphql-fake-server", () => {
                 "data": {
                   "createFooURL": {
                     "URL": "string",
-                    "errors": [],
+                    "errors": [
+                      {
+                        "message": "string",
+                      },
+                      {
+                        "message": "string",
+                      },
+                      {
+                        "message": "string",
+                      },
+                    ],
                   },
                 },
               }

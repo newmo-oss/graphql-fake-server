@@ -265,6 +265,7 @@ describe("generateCode", () => {
                   ...(depth < 9 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
               };
               }
+              exports.createAnimal = createAnimal;
               export function createCat({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id" }),
@@ -579,6 +580,7 @@ type Book {
                           ...(depth < 9 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
                       };
                       }
+                      exports.createAnimal = createAnimal;
                       export function createCat({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"Cat.id.1234" }),
