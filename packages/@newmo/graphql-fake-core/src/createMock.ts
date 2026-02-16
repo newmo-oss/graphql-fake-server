@@ -62,7 +62,7 @@ export const createMock = async (options: CreateMockOptions): Promise<CreateMock
         const exports = {};
         vm.runInNewContext(code, { exports });
         // Apollo Server does not support Function type in mock object
-        const plainObject = cloneAsJSON(exports);
+        const plainObject = cloneAsJSON(exports) as MockObject;
         return {
             ok: true,
             code,
