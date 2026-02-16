@@ -572,7 +572,8 @@ Or, You can use Dynamic Fake to return a different value.
 
 ### `union` and `inteface`
 
-`@newmo/graphql-fake-core` always returns the first type of the union type/interface type.
+`@newmo/graphql-fake-server` returns one of the concrete types of the union type/interface type.
+The concrete type is determined by `@graphql-tools/mock` and is deterministic for the same schema definition.
 
 ```graphql
 type User {
@@ -592,20 +593,7 @@ type Query {
 }
 ```
 
-Return the following response:
-
-```json
-{
-  "data": {
-    "user": {
-      "id": "xxxx-xxxx-xxxx-xxxx",
-      "name": "String"
-    }
-  }
-}
-```
-
-The default response is first type `User` of the union type `UserResult`.
+The default response is one of the concrete types of the union type `UserResult`.
 
 If you want to return a different type, you need to use Dynamic Fake via HTTP.
 

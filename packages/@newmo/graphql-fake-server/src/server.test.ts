@@ -47,11 +47,13 @@ const startTestFakeServer = async ({
     }
     return createFakeServerInternal({
         schema,
-        mockObject: mockResult.mock,
+        mockFactories: mockResult.factories,
+        emptyListFields: mockResult.emptyListFields,
         logLevel,
         ports: ports,
         maxQueryDepth: 3,
         maxRegisteredSequences: 100,
+        listLength: 3,
         allowedCORSOrigins: allowedCORSOrigins ?? [],
         allowedHosts: allowedHosts ?? "auto",
     });
@@ -226,21 +228,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g6_c4",
+                          "id": "book-id_g5_c1",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g7_c5",
+                          "id": "book-id_g6_c2",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g8_c6",
+                          "id": "book-id_g7_c3",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g5_c1",
+                      "id": "author-id_g2_c1",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -248,21 +250,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g10_c7",
+                          "id": "book-id_g8_c4",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g11_c8",
+                          "id": "book-id_g9_c5",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g12_c9",
+                          "id": "book-id_g10_c6",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g9_c2",
+                      "id": "author-id_g3_c2",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -270,21 +272,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g14_c10",
+                          "id": "book-id_g11_c7",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g15_c11",
+                          "id": "book-id_g12_c8",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g16_c12",
+                          "id": "book-id_g13_c9",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g13_c3",
+                      "id": "author-id_g4_c3",
                       "name": "F. Scott Fitzgerald",
                     },
                   ],
@@ -966,25 +968,15 @@ describe("graphql-fake-server", () => {
             });
             const result = await response.json();
             expect(result).toMatchInlineSnapshot(`
-          {
-            "data": {
-              "createFooURL": {
-                "URL": "string",
-                "errors": [
-                  {
-                    "message": "string",
+              {
+                "data": {
+                  "createFooURL": {
+                    "URL": "string",
+                    "errors": [],
                   },
-                  {
-                    "message": "string",
-                  },
-                  {
-                    "message": "string",
-                  },
-                ],
-              },
-            },
-          }
-        `);
+                },
+              }
+            `);
         });
     });
     describe("/fake/called", () => {
@@ -1081,21 +1073,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g6_c4",
+                          "id": "book-id_g5_c1",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g7_c5",
+                          "id": "book-id_g6_c2",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g8_c6",
+                          "id": "book-id_g7_c3",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g5_c1",
+                      "id": "author-id_g2_c1",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -1103,21 +1095,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g10_c7",
+                          "id": "book-id_g8_c4",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g11_c8",
+                          "id": "book-id_g9_c5",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g12_c9",
+                          "id": "book-id_g10_c6",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g9_c2",
+                      "id": "author-id_g3_c2",
                       "name": "F. Scott Fitzgerald",
                     },
                     {
@@ -1125,21 +1117,21 @@ describe("graphql-fake-server", () => {
                       "books": [
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g14_c10",
+                          "id": "book-id_g11_c7",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g15_c11",
+                          "id": "book-id_g12_c8",
                           "title": "The Great Gatsby",
                         },
                         {
                           "genre": "FICTION",
-                          "id": "book-id_g16_c12",
+                          "id": "book-id_g13_c9",
                           "title": "The Great Gatsby",
                         },
                       ],
-                      "id": "author-id_g13_c3",
+                      "id": "author-id_g4_c3",
                       "name": "F. Scott Fitzgerald",
                     },
                   ],

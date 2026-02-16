@@ -7,10 +7,19 @@ import { expressMiddleware } from "@as-integrations/express5";
 import { addMocksToSchema } from "@graphql-tools/mock";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { serve } from "@hono/node-server";
-import { createMock, type MockObject } from "@newmo/graphql-fake-core";
+import { createMock, type MockFactory } from "@newmo/graphql-fake-core";
 import corsExpress from "cors";
 import express from "express";
-import type { GraphQLSchema } from "graphql/index.js";
+import {
+    type GraphQLNamedType,
+    type GraphQLOutputType,
+    type GraphQLSchema,
+    isInterfaceType,
+    isListType,
+    isNonNullType,
+    isObjectType,
+    isUnionType,
+} from "graphql/index.js";
 import { buildSchema } from "graphql/utilities/index.js";
 // @ts-expect-error -- no types
 import depthLimit from "graphql-depth-limit";
@@ -36,7 +45,8 @@ const PRIVATE_IP_RANGES = [
 export type CreateFakeServerOptions = RequiredFakeServerConfig;
 
 type FakeServerInternal = {
-    mockObject: MockObject;
+    mockFactories: Record<string, MockFactory>;
+    emptyListFields: Map<string, Set<string>>;
     schema: GraphQLSchema;
     ports: {
         fakeServer: number;
@@ -44,6 +54,7 @@ type FakeServerInternal = {
     };
     maxQueryDepth: number;
     maxRegisteredSequences: number;
+    listLength: number;
     logLevel: LogLevel;
     allowedCORSOrigins: string[];
     allowedHosts: string[] | "auto";
@@ -214,18 +225,90 @@ const startStandaloneServerWithCORS = async (
     };
 };
 
+/**
+ * Get the inner named type from a possibly wrapped type (NonNull, List).
+ */
+const getInnerNamedType = (type: GraphQLOutputType): GraphQLNamedType => {
+    if (isNonNullType(type)) {
+        return getInnerNamedType(type.ofType);
+    }
+    if (isListType(type)) {
+        return getInnerNamedType(type.ofType);
+    }
+    return type;
+};
+
+/**
+ * Check if a type is a list type (possibly wrapped in NonNull).
+ */
+const isListFieldType = (type: GraphQLOutputType): boolean => {
+    if (isNonNullType(type)) {
+        return isListFieldType(type.ofType);
+    }
+    return isListType(type);
+};
+
+// Depth value that exceeds any maxDepth config, causing factories to return scalar-only fields.
+const SCALAR_ONLY_DEPTH = Number.MAX_SAFE_INTEGER;
+
 const creteApolloServer = async (options: FakeServerInternal) => {
-    const mocks = Object.fromEntries(
-        Object.entries(options.mockObject).map(([key, value]) => {
-            return [key, () => value];
-        }),
-    );
+    const executableSchema = makeExecutableSchema({
+        typeDefs: options.schema,
+    });
+
+    // Build mocks: factory functions return scalar-only fields (no nested objects).
+    const mocks: Record<string, () => Record<string, unknown>> = {};
+    for (const [typeName, factory] of Object.entries(options.mockFactories)) {
+        mocks[typeName] = () => factory({ depth: SCALAR_ONLY_DEPTH });
+    }
+
+    // Build resolvers for all object/list-of-object fields.
+    // All nested object fields are resolved lazily at query time via resolvers,
+    // preventing eager expansion that causes OOM with deep schemas.
+    const objectFieldResolvers: Record<string, Record<string, () => unknown>> = {};
+    const typeMap = executableSchema.getTypeMap();
+
+    for (const [typeName, graphqlType] of Object.entries(typeMap)) {
+        if (!isObjectType(graphqlType) || typeName.startsWith("__")) continue;
+        const fields = graphqlType.getFields();
+        const fieldResolvers: Record<string, () => unknown> = {};
+
+        const emptyFields = options.emptyListFields.get(typeName);
+        for (const [fieldName, field] of Object.entries(fields)) {
+            const innerType = getInnerNamedType(field.type);
+            if (!isObjectType(innerType) && !isInterfaceType(innerType) && !isUnionType(innerType))
+                continue;
+
+            const innerTypeName = innerType.name;
+            const innerFactory = options.mockFactories[innerTypeName];
+            if (!innerFactory) continue;
+
+            if (isListFieldType(field.type)) {
+                // Skip list fields intentionally set to empty arrays (e.g., @error directive)
+                if (emptyFields?.has(fieldName)) continue;
+                fieldResolvers[fieldName] = () => {
+                    return Array.from({ length: options.listLength }, () =>
+                        innerFactory({ depth: SCALAR_ONLY_DEPTH }),
+                    );
+                };
+            } else {
+                // Single object field
+                fieldResolvers[fieldName] = () => {
+                    return innerFactory({ depth: SCALAR_ONLY_DEPTH });
+                };
+            }
+        }
+
+        if (Object.keys(fieldResolvers).length > 0) {
+            objectFieldResolvers[typeName] = fieldResolvers;
+        }
+    }
+
     return new ApolloServer({
         schema: addMocksToSchema({
-            schema: makeExecutableSchema({
-                typeDefs: options.schema,
-            }),
+            schema: executableSchema,
             mocks,
+            resolvers: () => objectFieldResolvers,
         }),
         validationRules: [depthLimit(options.maxQueryDepth)],
     });
@@ -1027,13 +1110,14 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
         });
     }
     logger.debug("created mock code", mockResult.code);
-    logger.debug("created mock data", mockResult.mock);
     return createFakeServerInternal({
         ports: server.ports,
         schema,
-        mockObject: mockResult.mock,
+        mockFactories: mockResult.factories,
+        emptyListFields: mockResult.emptyListFields,
         maxQueryDepth: server.maxQueryDepth,
         maxRegisteredSequences: server.maxRegisteredSequences,
+        listLength: mock.listLength,
         logLevel: logLevel,
         allowedCORSOrigins: server.allowedCORSOrigins,
         allowedHosts: server.allowedHosts,

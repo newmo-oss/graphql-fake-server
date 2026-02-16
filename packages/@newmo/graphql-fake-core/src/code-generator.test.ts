@@ -849,7 +849,7 @@ type Book {
             };
           }
           exports.createQuery = createQuery;
-          const Query = createQuery();
+          const Query = createQuery({ depth: 9 });
           exports.Query = Query;"
         `);
     });

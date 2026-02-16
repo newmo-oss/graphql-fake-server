@@ -112,7 +112,10 @@ ${functionBodyCode}
 function generateDefaultCode(config: ConfigWithOutput, typeInfo: ObjectTypeInfo): string {
     const { rawName } = typeInfo;
     if (config.outputType === "commonjs") {
-        return `const ${rawName} = create${rawName}();
+        // Pass depth: maxDepth to prevent recursive expansion of nested object types.
+        // This creates scalar-only instances, avoiding exponential memory growth.
+        // The server uses @graphql-tools/mock to lazily resolve nested types at query time.
+        return `const ${rawName} = create${rawName}({ depth: ${config.mock.maxDepth} });
 exports.${rawName} = ${rawName};`;
     }
     return `export const ${rawName} = create${rawName}();`;
