@@ -51,5 +51,12 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@apollo/protobufjs",
+      "esbuild",
+      "msw"
+    ]
+  }
 }
