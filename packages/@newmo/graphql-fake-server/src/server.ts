@@ -269,7 +269,7 @@ const SCALAR_ONLY_DEPTH = Number.MAX_SAFE_INTEGER;
 //
 // Fields marked with @error directive (tracked in emptyListFields) are excluded
 // from resolver generation so they remain as empty arrays [].
-const creteApolloServer = async (options: FakeServerInternal) => {
+const createApolloServer = async (options: FakeServerInternal) => {
     const executableSchema = makeExecutableSchema({
         typeDefs: options.schema,
     });
@@ -1143,7 +1143,7 @@ export const createFakeServer = async (options: CreateFakeServerOptions) => {
 };
 
 export const createFakeServerInternal = async (options: FakeServerInternal) => {
-    const apolloServer = await creteApolloServer(options);
+    const apolloServer = await createApolloServer(options);
     const routingServer = await createRoutingServer({
         logLevel: options.logLevel,
         ports: options.ports,

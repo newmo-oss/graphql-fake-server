@@ -572,8 +572,8 @@ Or, You can use Dynamic Fake to return a different value.
 
 ### `union` and `inteface`
 
-`@newmo/graphql-fake-server` returns one of the concrete types of the union type/interface type.
-The concrete type is determined by `@graphql-tools/mock` and is deterministic for the same schema definition.
+`@newmo/graphql-fake-server` returns one of the concrete types of the union type/interface type when generating fake responses.
+By default, the generated factory code always selects the first concrete type declared in the union/interface and sets `__typename` accordingly, so the choice is deterministic for the same schema definition.
 
 ```graphql
 type User {
