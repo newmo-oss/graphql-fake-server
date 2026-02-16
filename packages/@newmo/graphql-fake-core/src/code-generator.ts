@@ -188,11 +188,18 @@ ${functionBodyCode}
 }
 `.trim();
     }
-    return `
+    if (config.outputType === "commonjs") {
+        return `
 function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
 ${functionBodyCode}
 }
 exports.create${rawName} = create${rawName};`;
+    }
+    return `
+export function create${rawName}({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
+${functionBodyCode}
+}
+`.trimStart();
 }
 
 export function generateCode(config: ConfigWithOutput, typeInfos: TypeInfo[]): string {
