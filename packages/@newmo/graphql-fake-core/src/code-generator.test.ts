@@ -258,13 +258,13 @@ describe("generateCode", () => {
                   __idContextCountMap.set(key, count + 1);
                   return id;
               }
-
-              function createAnimal({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
+              export function createAnimal({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
                   __typename: "Cat",
                   ...(depth < 9 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
               };
               }
+
               export function createCat({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
                   id: __id({ name: "xxxx-xxxx-xxxx-xxxx", key:"Cat.id" }),
@@ -572,13 +572,13 @@ type Book {
                           __idContextCountMap.set(key, count + 1);
                           return id;
                       }
-
-                      function createAnimal({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
+                      export function createAnimal({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           __typename: "Cat",
                           ...(depth < 9 && (typeVisitCount["Cat"] ?? 0) < 2 ? createCat({ defaultFields: defaultFields?.Animal ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Cat": (typeVisitCount["Cat"] ?? 0) + 1 } }) : undefined)
                       };
                       }
+
                       export function createCat({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
                       return {
                           id: __id({ name: "1234", key:"Cat.id.1234" }),
@@ -849,7 +849,7 @@ type Book {
             };
           }
           exports.createQuery = createQuery;
-          const Query = createQuery();
+          const Query = createQuery({ depth: 9 });
           exports.Query = Query;"
         `);
     });

@@ -289,12 +289,25 @@ enum CreateFooURLErrorCode {
     FAILED_TO_CREATE_FOO_URL
 }
 
+"Union type that always returns the first concrete type (First)"
+union SimpleUnion = First | Second | Third
+type First {
+    value: String! @exampleString(value: "first-value")
+}
+type Second {
+    value: String! @exampleString(value: "second-value")
+}
+type Third {
+    value: String! @exampleString(value: "third-value")
+}
+
 type Query {
     author(id: ID!): Author
     authors: [Author!]!
     book(id: ID!): Book
     books: [Book!]!
     dog: Dog!
+    simpleUnion: SimpleUnion
     unionUser: UnionUserResult
     userNamesArray: UserNamesArrayExample!
     userWithErrors: UserWithErrors

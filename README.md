@@ -570,9 +570,10 @@ Or, You can use Dynamic Fake to return a different value.
 
 - [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
 
-### `union` and `inteface`
+### `union` and `interface`
 
-`@newmo/graphql-fake-core` always returns the first type of the union type/interface type.
+`@newmo/graphql-fake-server` returns one of the concrete types of the union type/interface type when generating fake responses.
+By default, the generated factory code always selects the first concrete type declared in the union/interface and sets `__typename` accordingly, so the choice is deterministic for the same schema definition.
 
 ```graphql
 type User {
@@ -592,20 +593,19 @@ type Query {
 }
 ```
 
-Return the following response:
+In this example, `UserResult = User | IsBlocked | Suspended`, so the fake server always returns `User` (the first type):
 
 ```json
 {
   "data": {
     "user": {
+      "__typename": "User",
       "id": "xxxx-xxxx-xxxx-xxxx",
-      "name": "String"
+      "name": "string"
     }
   }
 }
 ```
-
-The default response is first type `User` of the union type `UserResult`.
 
 If you want to return a different type, you need to use Dynamic Fake via HTTP.
 
