@@ -1,3 +1,7 @@
+# =============================================================================
+# Directives
+# =============================================================================
+
 """
 @exampleID directive specifies an example value for a ID field.
 This example value is used in the fake data.
@@ -161,14 +165,19 @@ It allows setting an error response and specifying the field name.
 """
 directive @error on FIELD_DEFINITION
 
+# =============================================================================
+# Scalars
+# =============================================================================
+
 # This scalar example value is defined in graphql-fake.config.mjs
 scalar DATE_YYYYMMDD
 # This scalar example value is defined by @exampleScalarString directive
 scalar DATE_YYYYMM @exampleScalarString(value: "2022-01")
 
-"""
-You Schema definition goes here
-"""
+# =============================================================================
+# Book / Author
+# =============================================================================
+
 enum BookGenre {
     FICTION
     NON_FICTION
@@ -186,22 +195,17 @@ type Author {
     age: Int! @exampleInt(value: 33)
     books: [Book!]!
 }
+input CreateBookInput {
+    title: String! @exampleString(value: "input title")
+}
 
-# multiple types
+# =============================================================================
+# User / Union
+# =============================================================================
+
 type UserNamesArrayExample {
     names: [String!]! @exampleArrayString(values: ["name1", "name2"])
 }
-# Interface for errors
-interface Character {
-    id: ID!
-    name: String!
-}
-type Dog implements Character {
-    id: ID!
-    name: String!
-    nickname: String!
-}
-# union types
 type User {
     id: ID!
     name: String
@@ -222,13 +226,42 @@ type UserWithErrors {
 }
 union UnionUserResult = User | UserSuspended | UserIsBlocked
 
-# Mutation Error pattern
+# =============================================================================
+# Character / Interface
+# =============================================================================
+
+interface Character {
+    id: ID!
+    name: String!
+}
+type Dog implements Character {
+    id: ID!
+    name: String!
+    nickname: String!
+}
+
+# =============================================================================
+# Error Interfaces
+# =============================================================================
+
+interface Error {
+    message: String!
+}
+interface DisplayableError {
+    message: String!
+    code: AbcErrorCode!
+    localizedMessage: String!
+}
+
+# =============================================================================
+# Mutation Error Pattern
 # https://productionreadygraphql.com/2020-08-01-guide-to-graphql-errors
 # https://speakerdeck.com/yukukotani/graphql-schema-design-practice?slide=23
+# =============================================================================
+
 input UseMutationErrorPatternInput {
     id: String!
 }
-
 type MutationErrorPattern {
     id: ID!
     name: String
@@ -237,35 +270,24 @@ type UseMutationErrorPatternPayload {
     MutationErrorPattern: MutationErrorPattern
     errors: [UseMutationErrorPatternError!]!
 }
-# Union Error pattern
 union UseMutationErrorPatternError = GeneralError | AbcError
 type GeneralError implements Error {
     message: String!
 }
-
 type AbcError implements Error & DisplayableError {
     message: String!
     code: AbcErrorCode!
     localizedMessage: String!
 }
-
 enum AbcErrorCode {
     INVALID
     ALREADY_EXIST
 }
-interface Error {
-    message: String!
-}
 
-interface DisplayableError {
-    message: String!
-    code: AbcErrorCode!
-    localizedMessage: String!
-}
+# =============================================================================
+# FooURL (Case Sensitivity Test)
+# =============================================================================
 
-# CaseSensitive test
-# *URL*
-# Create*
 type FooURLResource {
     "Foo URL"
     URL: String!
@@ -289,6 +311,10 @@ enum CreateFooURLErrorCode {
     FAILED_TO_CREATE_FOO_URL
 }
 
+# =============================================================================
+# SimpleUnion
+# =============================================================================
+
 "Union type that always returns the first concrete type (First)"
 union SimpleUnion = First | Second | Third
 type First {
@@ -301,6 +327,10 @@ type Third {
     value: String! @exampleString(value: "third-value")
 }
 
+# =============================================================================
+# Root Types
+# =============================================================================
+
 type Query {
     author(id: ID!): Author
     authors: [Author!]!
@@ -311,10 +341,6 @@ type Query {
     unionUser: UnionUserResult
     userNamesArray: UserNamesArrayExample!
     userWithErrors: UserWithErrors
-}
-
-input CreateBookInput {
-    title: String! @exampleString(value: "input title")
 }
 
 type Mutation {

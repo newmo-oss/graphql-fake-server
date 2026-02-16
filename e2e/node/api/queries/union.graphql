@@ -1,0 +1,32 @@
+query GotUnionUser {
+    unionUser {
+        ... on User {
+            id
+            name
+            birthDate
+            birthYYYYMM
+        }
+        ... on UserIsBlocked {
+            message
+            blockedByUser {
+                id
+                name
+            }
+        }
+    }
+}
+
+query GetSimpleUnion {
+    simpleUnion {
+        __typename
+        ... on First {
+            value
+        }
+        ... on Second {
+            value
+        }
+        ... on Third {
+            value
+        }
+    }
+}

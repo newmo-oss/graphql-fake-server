@@ -1,0 +1,17 @@
+query GetBooks {
+    books {
+        id
+        title
+    }
+}
+
+fragment BookFragmentParts on Book {
+    id
+    title
+}
+
+query GetBookWithFragments($bookId: ID!) {
+    book(id: $bookId) {
+        ...BookFragmentParts
+    }
+}

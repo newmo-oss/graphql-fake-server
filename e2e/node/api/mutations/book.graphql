@@ -1,0 +1,13 @@
+mutation CreateBook($title: String!) {
+    createBook(input: { title: $title }) {
+        id
+        title
+    }
+}
+
+mutation CreateBookInline($title: String!) {
+    createBookInline(bookId: 1, bookTitle: $title) {
+        id
+        title
+    }
+}

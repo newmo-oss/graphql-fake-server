@@ -1,0 +1,21 @@
+mutation UseMutationErrorPatternMutation {
+    useMutationErrorPattern(input: { id: "x" }) {
+        errors {
+            ... on GeneralError {
+                message
+            }
+            ... on AbcError {
+                message
+                code
+                localizedMessage
+            }
+            ... on DisplayableError {
+                localizedMessage
+                message
+            }
+            ... on Error {
+                message
+            }
+        }
+    }
+}
