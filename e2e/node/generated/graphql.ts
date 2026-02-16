@@ -94,6 +94,11 @@ export type Error = {
   message: Scalars['String']['output'];
 };
 
+export type First = {
+  __typename: 'First';
+  value: Scalars['String']['output'];
+};
+
 export type FooUrlInput = {
   /** Foo URL */
   URL: Scalars['String']['input'];
@@ -160,6 +165,7 @@ export type Query = {
   book: Maybe<Book>;
   books: Array<Book>;
   dog: Dog;
+  simpleUnion: Maybe<SimpleUnion>;
   unionUser: Maybe<UnionUserResult>;
   userNamesArray: UserNamesArrayExample;
   userWithErrors: Maybe<UserWithErrors>;
@@ -173,6 +179,19 @@ export type QueryAuthorArgs = {
 
 export type QueryBookArgs = {
   id: Scalars['ID']['input'];
+};
+
+export type Second = {
+  __typename: 'Second';
+  value: Scalars['String']['output'];
+};
+
+/** Union type that always returns the first concrete type (First) */
+export type SimpleUnion = First | Second | Third;
+
+export type Third = {
+  __typename: 'Third';
+  value: Scalars['String']['output'];
 };
 
 export type UnionUserResult = User | UserIsBlocked | UserSuspended;
@@ -247,6 +266,11 @@ export type GotUnionUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GotUnionUserQuery = { __typename: 'Query', unionUser: { __typename: 'User', id: string, name: string | null, birthDate: string | null, birthYYYYMM: string | null } | { __typename: 'UserIsBlocked', message: string | null, blockedByUser: { __typename: 'User', id: string, name: string | null } | null } | { __typename: 'UserSuspended' } | null };
 
+export type GetSimpleUnionQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSimpleUnionQuery = { __typename: 'Query', simpleUnion: { __typename: 'First', value: string } | { __typename: 'Second', value: string } | { __typename: 'Third', value: string } | null };
+
 export type GetUserNamesArrayExampleQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -283,6 +307,7 @@ export const GetBooksDocument = {"kind":"Document","definitions":[{"kind":"Opera
 export const GetBookWithFragmentsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetBookWithFragments"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"bookId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"book"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"bookId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BookFragmentParts"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BookFragmentParts"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Book"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]} as unknown as DocumentNode<GetBookWithFragmentsQuery, GetBookWithFragmentsQueryVariables>;
 export const GetDogDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDog"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dog"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetDogQuery, GetDogQueryVariables>;
 export const GotUnionUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GotUnionUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unionUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"User"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"birthDate"}},{"kind":"Field","name":{"kind":"Name","value":"birthYYYYMM"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserIsBlocked"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"blockedByUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GotUnionUserQuery, GotUnionUserQueryVariables>;
+export const GetSimpleUnionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSimpleUnion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"simpleUnion"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"First"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Second"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Third"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}}]}}]}}]}}]} as unknown as DocumentNode<GetSimpleUnionQuery, GetSimpleUnionQueryVariables>;
 export const GetUserNamesArrayExampleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserNamesArrayExample"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"userNamesArray"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"names"}}]}}]}}]} as unknown as DocumentNode<GetUserNamesArrayExampleQuery, GetUserNamesArrayExampleQueryVariables>;
 export const CreateBookDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateBook"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"title"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createBook"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"title"},"value":{"kind":"Variable","name":{"kind":"Name","value":"title"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<CreateBookMutation, CreateBookMutationVariables>;
 export const CreateBookInlineDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateBookInline"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"title"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createBookInline"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"bookId"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"bookTitle"},"value":{"kind":"Variable","name":{"kind":"Name","value":"title"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<CreateBookInlineMutation, CreateBookInlineMutationVariables>;

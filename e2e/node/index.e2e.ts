@@ -15,6 +15,7 @@ import {
     GetBooksDocument,
     GetBookWithFragmentsDocument,
     GetDogDocument,
+    GetSimpleUnionDocument,
     GetUserNamesArrayExampleDocument,
     GotUnionUserDocument,
     UseMutationErrorPatternMutationDocument,
@@ -139,6 +140,20 @@ describe("integration test", async () => {
                   "birthYYYYMM": "2022-01",
                   "id": "xxxx-xxxx-xxxx-xxxx_g6_c1",
                   "name": "string",
+                },
+              }
+            `);
+        });
+        it("should return the first concrete type of a union (First | Second | Third)", async () => {
+            const client = new GraphQLClient(`${fakeServerUrl}/graphql`);
+            const response = await client.request(GetSimpleUnionDocument);
+            // Union always returns the first concrete type declared in the schema
+            expect(response.simpleUnion?.__typename).toBe("First");
+            expect(response).toMatchInlineSnapshot(`
+              {
+                "simpleUnion": {
+                  "__typename": "First",
+                  "value": "first-value",
                 },
               }
             `);

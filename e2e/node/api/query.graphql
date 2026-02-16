@@ -39,6 +39,21 @@ query GotUnionUser {
     }
 }
 
+query GetSimpleUnion {
+    simpleUnion {
+        __typename
+        ... on First {
+            value
+        }
+        ... on Second {
+            value
+        }
+        ... on Third {
+            value
+        }
+    }
+}
+
 query GetUserNamesArrayExample {
     userNamesArray {
         names

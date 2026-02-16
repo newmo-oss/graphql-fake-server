@@ -5,6 +5,7 @@ import type { GetBooksQuery, GetBooksQueryVariables } from './graphql.js';
 import type { GetBookWithFragmentsQuery, GetBookWithFragmentsQueryVariables } from './graphql.js';
 import type { GetDogQuery, GetDogQueryVariables } from './graphql.js';
 import type { GotUnionUserQuery, GotUnionUserQueryVariables } from './graphql.js';
+import type { GetSimpleUnionQuery, GetSimpleUnionQueryVariables } from './graphql.js';
 import type { GetUserNamesArrayExampleQuery, GetUserNamesArrayExampleQueryVariables } from './graphql.js';
 import type { CreateBookMutation, CreateBookMutationVariables } from './graphql.js';
 import type { CreateBookInlineMutation, CreateBookInlineMutationVariables } from './graphql.js';
@@ -632,6 +633,116 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     status: number;
                     headers: Record<string, unknown>;
                     body: { data: GotUnionUserQuery };
+                };
+            }[];
+        };
+    },
+    async registerGetSimpleUnionQueryResponse(sequenceId:string, queryResponse: GetSimpleUnionQuery, sequenceOptions?: FakeClientRegisterSequenceOptions<GetSimpleUnionQueryVariables>): Promise<{ ok: true }> {
+        const requestCondition = sequenceOptions?.requestCondition ?? { type: "always" };
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetSimpleUnion",
+                    data: queryResponse,
+                    requestCondition: requestCondition
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
+    },
+    async registerGetSimpleUnionQueryErrorResponse(sequenceId:string, { errors, responseStatusCode }: { errors: Record<string, unknown>[]; responseStatusCode: number }): Promise<{ ok: true }> {
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    type: "network-error",
+                    operationName: "GetSimpleUnion",
+                    responseStatusCode,
+                    errors
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to register fake error response: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+        return result as { ok: true };
+    },
+    async calledGetSimpleUnionQuery(sequenceId:string): Promise<{
+      ok: true;
+      data: {
+        requestTimestamp: number;
+        request: {
+          headers: Record<string, unknown>;
+          body: {
+            operationName: string;
+            query: string;
+            variables: GetSimpleUnionQueryVariables;
+          };
+        };
+        response: {
+            status: number;
+            headers: Record<string, unknown>;
+            body: { data: GetSimpleUnionQuery };
+        };
+      }[]            
+    }> {
+        const response = await requestQueue.add(() => fetchWithRetry(
+            options.fakeServerEndpoint + "/called",
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'sequence-id': sequenceId
+                },
+                body: JSON.stringify({
+                    operationName: "GetSimpleUnion"
+                }),
+            }
+        ));
+    
+        const result = await response.json();
+        if (!response.ok) {
+            const errorResult = result as { errors?: string[] };
+            throw new Error(`Failed to get called data: ${response.status} ${response.statusText}${errorResult.errors ? ' - ' + JSON.stringify(errorResult.errors) : ''}`);
+        }
+    
+        return result as {
+            ok: true;
+            data: {
+                requestTimestamp: number;
+                request: {
+                    headers: Record<string, unknown>;
+                    body: {
+                        operationName: string;
+                        query: string;
+                        variables: GetSimpleUnionQueryVariables;
+                    };
+                };
+                response: {
+                    status: number;
+                    headers: Record<string, unknown>;
+                    body: { data: GetSimpleUnionQuery };
                 };
             }[];
         };
