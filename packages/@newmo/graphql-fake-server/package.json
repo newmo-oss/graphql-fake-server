@@ -47,27 +47,27 @@
     "updateSnapshot": "vitest run -u"
   },
   "dependencies": {
-    "@apollo/server": "^4.12.2",
-    "@as-integrations/express5": "^1.1.0",
-    "@graphql-tools/mock": "^9.0.23",
-    "@graphql-tools/schema": "^10.0.23",
-    "@hono/node-server": "^1.14.4",
+    "@apollo/server": "catalog:",
+    "@as-integrations/express5": "catalog:",
+    "@graphql-tools/mock": "catalog:",
+    "@graphql-tools/schema": "catalog:",
+    "@hono/node-server": "catalog:",
     "@newmo/graphql-fake-core": "workspace:*",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "cors": "catalog:",
+    "express": "catalog:",
     "graphql-depth-limit": "^1.1.0",
-    "hono": "^4.8.0"
+    "hono": "catalog:"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.0",
-    "@tsconfig/strictest": "^2.0.1",
+    "@tsconfig/node18": "catalog:",
+    "@tsconfig/strictest": "catalog:",
     "@types/cors": "^2.8.19",
     "@types/eslint": "^9.6.1",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.0.3",
-    "graphql": "^16.11.0",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "graphql": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
     "vitest-github-actions-reporter": "^0.11.1"
   },
   "peerDependencies": {

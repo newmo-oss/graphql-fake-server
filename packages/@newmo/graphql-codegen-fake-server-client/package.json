@@ -38,19 +38,19 @@
     "updateSnapshot": "pnpm run codegen"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^5.1.1",
-    "@graphql-codegen/visitor-plugin-common": "^5.8.0"
+    "@graphql-codegen/plugin-helpers": "catalog:",
+    "@graphql-codegen/visitor-plugin-common": "catalog:"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^5.0.7",
-    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/cli": "catalog:",
+    "@graphql-codegen/typescript": "catalog:",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@tsconfig/node18": "^18.2.0",
-    "@tsconfig/strictest": "^2.0.1",
+    "@tsconfig/node18": "catalog:",
+    "@tsconfig/strictest": "catalog:",
     "@types/eslint": "^9.6.1",
-    "@types/node": "^24.0.3",
-    "graphql": "^16.11.0",
-    "typescript": "^5.8.3"
+    "@types/node": "catalog:",
+    "graphql": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "graphql": "^16.8.1"

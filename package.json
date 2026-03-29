@@ -31,12 +31,12 @@
     "prepare": "git config --local core.hooksPath .githooks"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.2",
-    "@lerna-lite/cli": "^4.9.1",
-    "@lerna-lite/publish": "^4.9.1",
-    "@lerna-lite/version": "^4.9.1",
-    "lint-staged": "^16.1.2",
-    "vitest": "^3.2.4"
+    "@biomejs/biome": "catalog:",
+    "@lerna-lite/cli": "catalog:",
+    "@lerna-lite/publish": "catalog:",
+    "@lerna-lite/version": "catalog:",
+    "lint-staged": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -1,66 +1,66 @@
 {
-    "name": "@newmo/graphql-fake-core",
-    "version": "0.26.0",
-    "private": false,
-    "description": "GraphQL fake core library",
-    "keywords": [
-        "testing",
-        "mock",
-        "graphql"
-    ],
-    "repository": "https://github.com/newmo-oss/graphql-fake-server.git",
-    "license": "MIT",
-    "author": "newmo, Inc.",
-    "sideEffects": false,
-    "type": "module",
-    "exports": {
-        ".": {
-            "import": {
-                "types": "./dist/esm/index.d.ts",
-                "default": "./dist/esm/index.js"
-            }
-        }
-    },
-    "files": [
-        "src/",
-        "!src/test",
-        "!src/**/*.test.ts",
-        "!src/**/__snapshots__",
-        "dist/"
-    ],
-    "scripts": {
-        "prepare": "npm run build",
-        "build": "run-s -c build:*",
-        "build:esm": "tsc -p tsconfig.build.json",
-        "lint": "run-s -c lint:*",
-        "lint:tsc": "tsc",
-        "test": "vitest run",
-        "updateSnapshot": "vitest run -u"
-    },
-    "dependencies": {
-        "@graphql-codegen/visitor-plugin-common": "^5.8.0"
-    },
-    "devDependencies": {
-        "@graphql-codegen/cli": "^5.0.7",
-        "@graphql-codegen/typescript": "^4.1.6",
-        "@tsconfig/node18": "^18.2.0",
-        "@tsconfig/strictest": "^2.0.1",
-        "@types/eslint": "^9.6.1",
-        "@types/node": "^24.0.3",
-        "graphql": "^16.11.0",
-        "npm-run-all2": "^8.0.4",
-        "typescript": "^5.8.3",
-        "vitest": "^3.2.4",
-        "vitest-github-actions-reporter": "^0.11.1"
-    },
-    "peerDependencies": {
-        "graphql": "^16.8.1"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
+  "name": "@newmo/graphql-fake-core",
+  "version": "0.26.0",
+  "private": false,
+  "description": "GraphQL fake core library",
+  "keywords": [
+    "testing",
+    "mock",
+    "graphql"
+  ],
+  "repository": "https://github.com/newmo-oss/graphql-fake-server.git",
+  "license": "MIT",
+  "author": "newmo, Inc.",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
     }
+  },
+  "files": [
+    "src/",
+    "!src/test",
+    "!src/**/*.test.ts",
+    "!src/**/__snapshots__",
+    "dist/"
+  ],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "run-s -c build:*",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "lint": "run-s -c lint:*",
+    "lint:tsc": "tsc",
+    "test": "vitest run",
+    "updateSnapshot": "vitest run -u"
+  },
+  "dependencies": {
+    "@graphql-codegen/visitor-plugin-common": "catalog:"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "catalog:",
+    "@graphql-codegen/typescript": "catalog:",
+    "@tsconfig/node18": "catalog:",
+    "@tsconfig/strictest": "catalog:",
+    "@types/eslint": "^9.6.1",
+    "@types/node": "catalog:",
+    "graphql": "catalog:",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vitest-github-actions-reporter": "^0.11.1"
+  },
+  "peerDependencies": {
+    "graphql": "^16.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
