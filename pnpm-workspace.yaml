@@ -1,3 +1,31 @@
 packages:
   - 'packages/@newmo/*'
   - 'e2e/*'
+catalog:
+  '@as-integrations/express5': 1.1.2
+  '@graphql-tools/schema': 10.0.31
+  '@tsconfig/node18': 18.2.6
+  '@tsconfig/strictest': 2.0.8
+  '@types/express': 5.0.6
+  cors: 2.8.6
+  '@apollo/client': 4.1.6
+  '@biomejs/biome': 2.4.9
+  '@graphql-tools/mock': 9.1.5
+  '@hono/node-server': 1.19.11
+  '@lerna-lite/cli': 4.11.5
+  '@lerna-lite/publish': 4.11.5
+  '@lerna-lite/version': 4.11.5
+  express: 5.2.1
+  graphql: 16.13.2
+  graphql-request: 7.4.0
+  hono: 4.12.9
+  lint-staged: 16.4.0
+  '@apollo/server': 5.5.0
+  '@graphql-codegen/cli': 6.2.1
+  '@graphql-codegen/plugin-helpers': 6.2.0
+  '@graphql-codegen/typescript': 5.0.9
+  '@graphql-codegen/visitor-plugin-common': 6.2.4
+  '@types/node': 25.5.0
+  eslint: 10.1.0
+  typescript: 6.0.2
+  vitest: 4.1.2
