@@ -59,7 +59,7 @@
     "hono": "catalog:"
   },
   "devDependencies": {
-    "@tsconfig/node18": "catalog:",
+    "@tsconfig/node22": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "@types/cors": "^2.8.19",
     "@types/eslint": "^9.6.1",
@@ -74,7 +74,7 @@
     "graphql": "^16.8.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public",

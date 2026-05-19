@@ -1,242 +1,19 @@
 /* eslint-disable */
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-  DATE_YYYYMM: { input: string; output: string; }
-  DATE_YYYYMMDD: { input: string; output: string; }
-};
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type AbcErrorCode =
+  | 'ALREADY_EXIST'
+  | 'INVALID';
 
-export type AbcError = DisplayableError & Error & {
-  __typename: 'AbcError';
-  code: AbcErrorCode;
-  localizedMessage: Scalars['String']['output'];
-  message: Scalars['String']['output'];
-};
-
-export const AbcErrorCode = {
-  ALREADY_EXIST: 'ALREADY_EXIST',
-  INVALID: 'INVALID'
-} as const;
-
-export type AbcErrorCode = typeof AbcErrorCode[keyof typeof AbcErrorCode];
-export type Author = {
-  __typename: 'Author';
-  age: Scalars['Int']['output'];
-  books: Array<Book>;
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type Book = {
-  __typename: 'Book';
-  author: Author;
-  genre: BookGenre;
-  genre_non_example: BookGenre;
-  id: Scalars['ID']['output'];
-  title: Scalars['String']['output'];
-};
-
-/** You Schema definition goes here */
-export const BookGenre = {
-  FICTION: 'FICTION',
-  NON_FICTION: 'NON_FICTION'
-} as const;
-
-export type BookGenre = typeof BookGenre[keyof typeof BookGenre];
-export type Character = {
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type CreateBookInput = {
-  title: Scalars['String']['input'];
-};
-
-export type CreateFooUrlError = CreateFooUrlErrorDetail;
-
-export const CreateFooUrlErrorCode = {
-  FAILED_TO_CREATE_FOO_URL: 'FAILED_TO_CREATE_FOO_URL'
-} as const;
-
-export type CreateFooUrlErrorCode = typeof CreateFooUrlErrorCode[keyof typeof CreateFooUrlErrorCode];
-export type CreateFooUrlErrorDetail = Error & {
-  __typename: 'CreateFooURLErrorDetail';
-  code: CreateFooUrlErrorCode;
-  message: Scalars['String']['output'];
-};
-
-export type DisplayableError = {
-  code: AbcErrorCode;
-  localizedMessage: Scalars['String']['output'];
-  message: Scalars['String']['output'];
-};
-
-export type Dog = Character & {
-  __typename: 'Dog';
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-  nickname: Scalars['String']['output'];
-};
-
-export type Error = {
-  message: Scalars['String']['output'];
-};
-
-export type First = {
-  __typename: 'First';
-  value: Scalars['String']['output'];
-};
+export type CreateFooUrlErrorCode =
+  | 'FAILED_TO_CREATE_FOO_URL';
 
 export type FooUrlInput = {
   /** Foo URL */
-  URL: Scalars['String']['input'];
-};
-
-export type FooUrlPayload = {
-  __typename: 'FooURLPayload';
-  /** Foo URL */
-  URL: Scalars['String']['output'];
-  /** Errors */
-  errors: Array<CreateFooUrlError>;
-};
-
-export type FooUrlResource = {
-  __typename: 'FooURLResource';
-  /** Foo URL */
-  URL: Scalars['String']['output'];
-};
-
-export type GeneralError = Error & {
-  __typename: 'GeneralError';
-  message: Scalars['String']['output'];
-};
-
-export type Mutation = {
-  __typename: 'Mutation';
-  createBook: Book;
-  createBookInline: Book;
-  createFooURL: FooUrlPayload;
-  useMutationErrorPattern: UseMutationErrorPatternPayload;
-};
-
-
-export type MutationCreateBookArgs = {
-  input: CreateBookInput;
-};
-
-
-export type MutationCreateBookInlineArgs = {
-  bookId: Scalars['ID']['input'];
-  bookTitle: Scalars['String']['input'];
-};
-
-
-export type MutationCreateFooUrlArgs = {
-  input: FooUrlInput;
-};
-
-
-export type MutationUseMutationErrorPatternArgs = {
-  input: UseMutationErrorPatternInput;
-};
-
-export type MutationErrorPattern = {
-  __typename: 'MutationErrorPattern';
-  id: Scalars['ID']['output'];
-  name: Maybe<Scalars['String']['output']>;
-};
-
-export type Query = {
-  __typename: 'Query';
-  author: Maybe<Author>;
-  authors: Array<Author>;
-  book: Maybe<Book>;
-  books: Array<Book>;
-  dog: Dog;
-  simpleUnion: Maybe<SimpleUnion>;
-  unionUser: Maybe<UnionUserResult>;
-  userNamesArray: UserNamesArrayExample;
-  userWithErrors: Maybe<UserWithErrors>;
-};
-
-
-export type QueryAuthorArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryBookArgs = {
-  id: Scalars['ID']['input'];
-};
-
-export type Second = {
-  __typename: 'Second';
-  value: Scalars['String']['output'];
-};
-
-/** Union type that always returns the first concrete type (First) */
-export type SimpleUnion = First | Second | Third;
-
-export type Third = {
-  __typename: 'Third';
-  value: Scalars['String']['output'];
-};
-
-export type UnionUserResult = User | UserIsBlocked | UserSuspended;
-
-export type UseMutationErrorPatternError = AbcError | GeneralError;
-
-export type UseMutationErrorPatternInput = {
-  id: Scalars['String']['input'];
-};
-
-export type UseMutationErrorPatternPayload = {
-  __typename: 'UseMutationErrorPatternPayload';
-  MutationErrorPattern: Maybe<MutationErrorPattern>;
-  errors: Array<UseMutationErrorPatternError>;
-};
-
-export type User = {
-  __typename: 'User';
-  birthDate: Maybe<Scalars['DATE_YYYYMMDD']['output']>;
-  birthYYYYMM: Maybe<Scalars['DATE_YYYYMM']['output']>;
-  id: Scalars['ID']['output'];
-  name: Maybe<Scalars['String']['output']>;
-};
-
-export type UserIsBlocked = {
-  __typename: 'UserIsBlocked';
-  blockedByUser: Maybe<User>;
-  message: Maybe<Scalars['String']['output']>;
-};
-
-export type UserNamesArrayExample = {
-  __typename: 'UserNamesArrayExample';
-  names: Array<Scalars['String']['output']>;
-};
-
-export type UserSuspended = {
-  __typename: 'UserSuspended';
-  reason: Maybe<Scalars['String']['output']>;
-};
-
-export type UserWithErrors = {
-  __typename: 'UserWithErrors';
-  errors: Array<GeneralError>;
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
+  URL: string;
 };
 
 export type GetBooksQueryVariables = Exact<{ [key: string]: never; }>;
@@ -247,7 +24,7 @@ export type GetBooksQuery = { __typename: 'Query', books: Array<{ __typename: 'B
 export type BookFragmentPartsFragment = { __typename: 'Book', id: string, title: string } & { ' $fragmentName'?: 'BookFragmentPartsFragment' };
 
 export type GetBookWithFragmentsQueryVariables = Exact<{
-  bookId: Scalars['ID']['input'];
+  bookId: string | number;
 }>;
 
 
@@ -264,12 +41,20 @@ export type GetDogQuery = { __typename: 'Query', dog: { __typename: 'Dog', id: s
 export type GotUnionUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GotUnionUserQuery = { __typename: 'Query', unionUser: { __typename: 'User', id: string, name: string | null, birthDate: string | null, birthYYYYMM: string | null } | { __typename: 'UserIsBlocked', message: string | null, blockedByUser: { __typename: 'User', id: string, name: string | null } | null } | { __typename: 'UserSuspended' } | null };
+export type GotUnionUserQuery = { __typename: 'Query', unionUser:
+    | { __typename: 'User', id: string, name: string | null, birthDate: string | null, birthYYYYMM: string | null }
+    | { __typename: 'UserIsBlocked', message: string | null, blockedByUser: { __typename: 'User', id: string, name: string | null } | null }
+    | { __typename: 'UserSuspended' }
+   | null };
 
 export type GetSimpleUnionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetSimpleUnionQuery = { __typename: 'Query', simpleUnion: { __typename: 'First', value: string } | { __typename: 'Second', value: string } | { __typename: 'Third', value: string } | null };
+export type GetSimpleUnionQuery = { __typename: 'Query', simpleUnion:
+    | { __typename: 'First', value: string }
+    | { __typename: 'Second', value: string }
+    | { __typename: 'Third', value: string }
+   | null };
 
 export type GetUserNamesArrayExampleQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -277,14 +62,14 @@ export type GetUserNamesArrayExampleQueryVariables = Exact<{ [key: string]: neve
 export type GetUserNamesArrayExampleQuery = { __typename: 'Query', userNamesArray: { __typename: 'UserNamesArrayExample', names: Array<string> } };
 
 export type CreateBookMutationVariables = Exact<{
-  title: Scalars['String']['input'];
+  title: string;
 }>;
 
 
 export type CreateBookMutation = { __typename: 'Mutation', createBook: { __typename: 'Book', id: string, title: string } };
 
 export type CreateBookInlineMutationVariables = Exact<{
-  title: Scalars['String']['input'];
+  title: string;
 }>;
 
 
@@ -293,7 +78,10 @@ export type CreateBookInlineMutation = { __typename: 'Mutation', createBookInlin
 export type UseMutationErrorPatternMutationMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UseMutationErrorPatternMutationMutation = { __typename: 'Mutation', useMutationErrorPattern: { __typename: 'UseMutationErrorPatternPayload', errors: Array<{ __typename: 'AbcError', message: string, code: AbcErrorCode, localizedMessage: string } | { __typename: 'GeneralError', message: string }> } };
+export type UseMutationErrorPatternMutationMutation = { __typename: 'Mutation', useMutationErrorPattern: { __typename: 'UseMutationErrorPatternPayload', errors: Array<
+      | { __typename: 'AbcError', message: string, code: AbcErrorCode, localizedMessage: string }
+      | { __typename: 'GeneralError', message: string }
+    > } };
 
 export type CreateFooUrlMutationVariables = Exact<{
   input: FooUrlInput;

@@ -11,7 +11,7 @@
     "updateSnapshot": "vitest run -u && pnpm run codegen"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@newmo/graphql-codegen-fake-server-client": "workspace:*",
@@ -21,7 +21,7 @@
     "@apollo/client": "catalog:",
     "@graphql-codegen/cli": "catalog:",
     "@graphql-codegen/typescript": "catalog:",
-    "@tsconfig/node18": "catalog:",
+    "@tsconfig/node22": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "graphql-request": "catalog:",
     "rxjs": "^7.8.1",
