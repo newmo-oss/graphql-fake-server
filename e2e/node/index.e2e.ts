@@ -10,8 +10,9 @@ import type { FragmentType } from "./generated/fragment-masking.js";
 import {
     type BookFragmentPartsFragment,
     CreateBookDocument,
-    type CreateBookInput,
+    type CreateBookMutation,
     CreateFooUrlDocument,
+    type CreateFooUrlMutation,
     GetBooksDocument,
     GetBookWithFragmentsDocument,
     GetDogDocument,
@@ -94,7 +95,7 @@ describe("integration test", async () => {
             const client = createApolloClient({
                 uri: `${fakeServerUrl}/graphql`,
             });
-            const response = await client.mutate<CreateBookInput>({
+            const response = await client.mutate<CreateFooUrlMutation>({
                 mutation: CreateFooUrlDocument,
                 variables: {
                     input: {
@@ -424,7 +425,7 @@ describe("integration test", async () => {
                 sequenceId,
             });
             // get fake response
-            const response = await client.mutate<CreateBookInput>({
+            const response = await client.mutate<CreateBookMutation>({
                 mutation: CreateBookDocument,
                 variables: {
                     title: "new title",
