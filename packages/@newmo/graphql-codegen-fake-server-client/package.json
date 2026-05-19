@@ -12,13 +12,14 @@
   "license": "MIT",
   "author": "newmo, Inc.",
   "sideEffects": false,
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/graphql-codegen-fake-server-client.js",
   "exports": {
     ".": {
-      "import": "./dist/graphql-codegen-fake-server-client.js",
-      "require": "./dist/graphql-codegen-fake-server-client.js",
-      "default": "./dist/graphql-codegen-fake-server-client.js"
+      "import": {
+        "types": "./dist/graphql-codegen-fake-server-client.d.ts",
+        "default": "./dist/graphql-codegen-fake-server-client.js"
+      }
     }
   },
   "files": [
@@ -45,7 +46,7 @@
     "@graphql-codegen/cli": "catalog:",
     "@graphql-codegen/typescript": "catalog:",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@tsconfig/node18": "catalog:",
+    "@tsconfig/node22": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "@types/eslint": "^9.6.1",
     "@types/node": "catalog:",
@@ -56,7 +57,7 @@
     "graphql": "^16.8.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public",

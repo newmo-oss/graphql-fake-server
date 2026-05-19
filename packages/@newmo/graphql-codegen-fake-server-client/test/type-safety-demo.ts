@@ -1,6 +1,6 @@
 // Type safety demonstration
 import assert from "node:assert";
-import { createFakeClient } from "./snapshots/typescript/fake-client";
+import { createFakeClient } from "./snapshots/typescript/fake-client.js";
 
 const fakeClient = createFakeClient({
     fakeServerEndpoint: "http://localhost:4000/fake",

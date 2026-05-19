@@ -1,6 +1,6 @@
 import { convertFactory } from "@graphql-codegen/visitor-plugin-common";
 import type { ASTNode } from "graphql/index.js";
-import type { PluginConfig } from "./config";
+import type { PluginConfig } from "./config.js";
 
 export function convertName(node: ASTNode | string, config: PluginConfig): string {
     const convert = config.namingConvention

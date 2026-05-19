@@ -1,6 +1,6 @@
 import type { CodegenPlugin } from "@graphql-codegen/plugin-helpers";
-import { normalizeConfig, type RawPluginConfig } from "./config";
-import { convertName } from "./convertName";
+import { normalizeConfig, type RawPluginConfig } from "./config.js";
+import { convertName } from "./convertName.js";
 import {
     generateCalledMutation,
     generateCalledQuery,
@@ -8,10 +8,10 @@ import {
     generateRegisterMutationError,
     generateRegisterQuery,
     generateRegisterQueryError,
-} from "./templates/method-generators";
-import { getRuntimeCode } from "./templates/runtime";
+} from "./templates/method-generators.js";
+import { getRuntimeCode } from "./templates/runtime.js";
 
-const plugin: CodegenPlugin<RawPluginConfig> = {
+const fakeServerClientPlugin: CodegenPlugin<RawPluginConfig> = {
     plugin(_schema, documents, rawConfig, _info) {
         const config = normalizeConfig(rawConfig);
         const registerOperationResponseType = "{ ok: true }";
@@ -254,5 +254,5 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
         );
     },
 };
-// GraphQL Codegen Plugin requires CommonJS export
-module.exports = plugin;
+export const { plugin } = fakeServerClientPlugin;
+export default fakeServerClientPlugin;
