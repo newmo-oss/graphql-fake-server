@@ -65,7 +65,7 @@ const queryFakeServer = async (
         });
         const result = (await response.json()) as GraphQLResponse;
         assert(result.data, `response should have data: ${JSON.stringify(result.errors)}`);
-        return result.data;
+        return result.data as any;
     } finally {
         await server.stop();
     }
@@ -93,7 +93,7 @@ describe("createMock", () => {
             "{ books { id title } }",
         );
         expect(data.books).toBeDefined();
-        const books = data.books as Array<Record<string, unknown>>;
+        const books = data.books as any[];
         assert(books.length > 0, "should have books");
         expect(books[0].title).toBe("title");
         // ID should start with "id" prefix from @exampleID
@@ -160,7 +160,7 @@ describe("createMock", () => {
             "{ node { ... on User { id name } } }",
         );
         assert(data.node !== null, "node should not be null");
-        const node = data.node as Record<string, unknown>;
+        const node = data.node as any;
         expect(node.id).toBeDefined();
         expect(node.name).toBeDefined();
     });
@@ -175,7 +175,7 @@ describe("createMock", () => {
             "{ user { id name } }",
         );
         assert(data.user !== null, "user should not be null");
-        const user = data.user as Record<string, unknown>;
+        const user = data.user as any;
         expect(user.id).toBeDefined();
         expect(user.name).toBeDefined();
     });
@@ -207,7 +207,7 @@ describe("createMock", () => {
             `,
             "{ user { id name createdAt } }",
         );
-        const user = data.user as Record<string, unknown>;
+        const user = data.user as any;
         expect(user.createdAt).toBe("2024-06-25T14:52:42.074Z");
     });
     it("should support custom scalar with @exampleScalarInt", async () => {
@@ -279,7 +279,7 @@ describe("createMock", () => {
                 },
             },
         );
-        const user = data.user as Record<string, unknown>;
+        const user = data.user as any;
         expect(user.createdAt).toBe("2024-06-25T14:52:42.074Z");
     });
     it("should support custom scalar with @exampleFloat on scalar field", async () => {
@@ -291,7 +291,7 @@ describe("createMock", () => {
             `,
             "{ user { id name createdAt } }",
         );
-        const user = data.user as Record<string, unknown>;
+        const user = data.user as any;
         expect(user.createdAt).toBe("2024-06-25");
     });
     it("should extend interface type", async () => {
@@ -305,7 +305,7 @@ describe("createMock", () => {
             "{ user { id name } }",
         );
         assert(data.user !== null, "user should not be null");
-        const user = data.user as Record<string, unknown>;
+        const user = data.user as any;
         expect(user.id).toBeDefined();
         expect(user.name).toBeDefined();
     });
@@ -408,6 +408,8 @@ describe("createMock", () => {
         expect(data.values).toBeDefined();
         const values = data.values as string[];
         expect(values.length).toBe(2);
+        assert(values[0], "values[0] should be defined");
+        assert(values[1], "values[1] should be defined");
         expect(values[0].startsWith("id1")).toBe(true);
         expect(values[1].startsWith("id2")).toBe(true);
     });
@@ -461,7 +463,7 @@ describe("createMock", () => {
             }`,
         );
         assert(data.useFooBar !== null, "useFooBar should not be null");
-        const payload = data.useFooBar as Record<string, unknown>;
+        const payload = data.useFooBar as any;
         expect(payload.fooBar).toBeDefined();
         expect(Array.isArray(payload.errors)).toBe(true);
     });
@@ -474,7 +476,7 @@ describe("createMock", () => {
             `,
             "{ user { id name errors { message code } } }",
         );
-        const user = data.user as Record<string, unknown>;
+        const user = data.user as any;
         expect(user.errors).toStrictEqual([]);
     });
     it("support UpperCase enum", async () => {
@@ -490,7 +492,7 @@ describe("createMock", () => {
             "{ fooURL { URL errors { ... on CreateFooURLErrorDetail { code message } } } }",
         );
         assert(data.fooURL !== null, "fooURL should not be null");
-        const payload = data.fooURL as Record<string, unknown>;
+        const payload = data.fooURL as any;
         expect(payload.URL).toBe("string");
         expect(Array.isArray(payload.errors)).toBe(true);
     });

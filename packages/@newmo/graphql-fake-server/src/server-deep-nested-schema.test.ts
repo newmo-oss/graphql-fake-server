@@ -14,7 +14,7 @@ const getPorts = () => {
 };
 
 type GraphQLResponse = {
-    data?: Record<string, unknown>;
+    data?: any;
     errors?: Array<{ message: string }>;
 };
 
@@ -225,12 +225,12 @@ describe("deep nested schema: should not OOM on eager mock generation", () => {
         assert(result.data, "response should have data");
         assert(Array.isArray(result.data.organizations), "organizations should be an array");
         // Verify nested structure exists
-        const orgs = result.data.organizations as Array<Record<string, unknown>>;
+        const orgs = result.data.organizations as any[];
         const org = orgs[0];
         assert(org, "should have at least one organization");
         expect(org.id).toBeDefined();
         expect(org.name).toBeDefined();
-        const divisions = org.divisions as Array<Record<string, unknown>>;
+        const divisions = org.divisions as any[];
         assert(Array.isArray(divisions), "divisions should be an array");
         assert(divisions.length > 0, "should have at least one division");
         await server.stop();
@@ -276,12 +276,12 @@ describe("deep nested schema: should not OOM on eager mock generation", () => {
         // Both queries should return same structure (list lengths, field names)
         assert(result1.data, "result1 should have data");
         assert(result2.data, "result2 should have data");
-        const orgs1 = result1.data.organizations as Array<Record<string, unknown>>;
-        const orgs2 = result2.data.organizations as Array<Record<string, unknown>>;
+        const orgs1 = result1.data.organizations as any[];
+        const orgs2 = result2.data.organizations as any[];
         expect(orgs1.length).toBe(orgs2.length);
         expect(Object.keys(orgs1[0]).sort()).toStrictEqual(Object.keys(orgs2[0]).sort());
-        const divs1 = orgs1[0].divisions as Array<Record<string, unknown>>;
-        const divs2 = orgs2[0].divisions as Array<Record<string, unknown>>;
+        const divs1 = orgs1[0].divisions as any[];
+        const divs2 = orgs2[0].divisions as any[];
         expect(divs1.length).toBe(divs2.length);
         await server.stop();
     });

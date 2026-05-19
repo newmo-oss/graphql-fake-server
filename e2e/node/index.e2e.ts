@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createFakeClient } from "./generated/fake.js";
 import type { FragmentType } from "./generated/fragment-masking.js";
 import {
-    type BookFragmentPartsFragment,
+    type BookFragmentPartsFragmentDoc,
     CreateBookDocument,
     type CreateBookMutation,
     CreateFooUrlDocument,
@@ -532,7 +532,9 @@ describe("integration test", async () => {
                         __typename: "Book",
                         id: "new id",
                         title: "new title",
-                    } as FragmentType<BookFragmentPartsFragment>,
+                    } as unknown as {
+                        __typename: "Book";
+                    } & FragmentType<typeof BookFragmentPartsFragmentDoc>,
                 },
             );
             expect(resRegister).toMatchInlineSnapshot(`
@@ -546,7 +548,9 @@ describe("integration test", async () => {
                     "sequence-id": sequenceId,
                 },
             });
-            const response = await client.request(GetBookWithFragmentsDocument);
+            const response = await client.request(GetBookWithFragmentsDocument, {
+                bookId: "1",
+            });
             expect(response).toMatchInlineSnapshot(`
         {
           "__typename": "Query",
@@ -818,10 +822,7 @@ describe("integration test", async () => {
                     requestCondition: {
                         type: "variables",
                         value: {
-                            input: {
-                                title: "Test Book A",
-                                authorId: "author-1",
-                            },
+                            title: "Test Book A",
                         },
                     },
                     data: {
@@ -846,10 +847,7 @@ describe("integration test", async () => {
                     requestCondition: {
                         type: "variables",
                         value: {
-                            input: {
-                                title: "Test Book B",
-                                authorId: "author-2",
-                            },
+                            title: "Test Book B",
                         },
                     },
                     data: {
@@ -863,10 +861,7 @@ describe("integration test", async () => {
 
             // Call with first input
             const firstResponse = await client.request(CreateBookDocument, {
-                input: {
-                    title: "Test Book A",
-                    authorId: "author-1",
-                },
+                title: "Test Book A",
             });
             expect((firstResponse as { createBook: { title: string } }).createBook.title).toBe(
                 "Test Book A - Created",
@@ -874,10 +869,7 @@ describe("integration test", async () => {
 
             // Call with second input
             const secondResponse = await client.request(CreateBookDocument, {
-                input: {
-                    title: "Test Book B",
-                    authorId: "author-2",
-                },
+                title: "Test Book B",
             });
             expect((secondResponse as { createBook: { title: string } }).createBook.title).toBe(
                 "Test Book B - Created",

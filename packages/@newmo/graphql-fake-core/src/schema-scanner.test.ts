@@ -5,7 +5,11 @@ import type { Config } from "./config.js";
 import { extendSchema } from "./extend-schema.js";
 import { getTypeInfos, type ObjectTypeInfo, type TypeInfo } from "./schema-scanner.js";
 
-const fakeConfig = (config?: Partial<Config>): Config => {
+type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+const fakeConfig = (config?: DeepPartial<Config>): Config => {
     return {
         typesFile: "types.ts",
         skipTypename: config?.skipTypename ?? true,

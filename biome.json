@@ -46,5 +46,17 @@
                 "useLiteralKeys": "off"
             }
         }
-    }
+    },
+    "overrides": [
+        {
+            "includes": ["**/*.test.ts", "**/*.e2e.ts"],
+            "linter": {
+                "rules": {
+                    "suspicious": {
+                        "noExplicitAny": "off"
+                    }
+                }
+            }
+        }
+    ]
 }
