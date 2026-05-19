@@ -755,7 +755,7 @@ type Book {
             parent: Parent
         }
     `,
-                    rawConfig: { maxTypeRecursion: 1 },
+                    rawConfig: { mock: { maxTypeRecursion: 1 } },
                 }),
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
@@ -769,14 +769,14 @@ type Book {
               }
               export function createParent({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  child: (depth < 9 && (typeVisitCount["Child"] ?? 0) < 2 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                  child: (depth < 9 && (typeVisitCount["Child"] ?? 0) < 1 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Parent = createParent();
               export function createChild({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  parent: (depth < 9 && (typeVisitCount["Parent"] ?? 0) < 2 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                  parent: (depth < 9 && (typeVisitCount["Parent"] ?? 0) < 1 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
@@ -794,7 +794,7 @@ type Book {
             parent: Parent
         }
     `,
-                    rawConfig: { maxTypeRecursion: 3 },
+                    rawConfig: { mock: { maxTypeRecursion: 3 } },
                 }),
             ).toMatchInlineSnapshot(`
               "let __idGlobalId = 0; // global id
@@ -808,14 +808,14 @@ type Book {
               }
               export function createParent({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  child: (depth < 9 && (typeVisitCount["Child"] ?? 0) < 2 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
+                  child: (depth < 9 && (typeVisitCount["Child"] ?? 0) < 3 ? createChild({ defaultFields: defaultFields?.child ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Child": (typeVisitCount["Child"] ?? 0) + 1 } }) : undefined),
                 };
               }
 
               export const Parent = createParent();
               export function createChild({ defaultFields, depth = 0, typeVisitCount = Object.create(null) } = {}) {
               return {
-                  parent: (depth < 9 && (typeVisitCount["Parent"] ?? 0) < 2 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
+                  parent: (depth < 9 && (typeVisitCount["Parent"] ?? 0) < 3 ? createParent({ defaultFields: defaultFields?.parent ?? {}, depth: depth + 1, typeVisitCount: { ...typeVisitCount, "Parent": (typeVisitCount["Parent"] ?? 0) + 1 } }) : undefined),
                 };
               }
 

@@ -13,8 +13,8 @@ const getPorts = () => {
     };
 };
 
-type GraphQLResponse = {
-    data?: Record<string, unknown>;
+type GraphQLResponse<TData = Record<string, unknown>> = {
+    data?: TData;
     errors?: Array<{ message: string }>;
 };
 
@@ -158,7 +158,9 @@ describe("deep nested schema: should not OOM on eager mock generation", () => {
                 `,
             }),
         });
-        const result = (await response.json()) as GraphQLResponse;
+        const result = (await response.json()) as GraphQLResponse<{
+            organizations: unknown;
+        }>;
         assert(result.data, "response should have data");
         assert(Array.isArray(result.data.organizations), "organizations should be an array");
         await server.stop();
@@ -221,18 +223,18 @@ describe("deep nested schema: should not OOM on eager mock generation", () => {
                 `,
             }),
         });
-        const result = (await response.json()) as GraphQLResponse;
+        type Org = { id: string; name: string; divisions: unknown[] };
+        const result = (await response.json()) as GraphQLResponse<{ organizations: Org[] }>;
         assert(result.data, "response should have data");
-        assert(Array.isArray(result.data.organizations), "organizations should be an array");
+        const { organizations } = result.data;
+        assert(Array.isArray(organizations), "organizations should be an array");
         // Verify nested structure exists
-        const orgs = result.data.organizations as Array<Record<string, unknown>>;
-        const org = orgs[0];
+        const [org] = organizations;
         assert(org, "should have at least one organization");
         expect(org.id).toBeDefined();
         expect(org.name).toBeDefined();
-        const divisions = org.divisions as Array<Record<string, unknown>>;
-        assert(Array.isArray(divisions), "divisions should be an array");
-        assert(divisions.length > 0, "should have at least one division");
+        assert(Array.isArray(org.divisions), "divisions should be an array");
+        assert(org.divisions.length > 0, "should have at least one division");
         await server.stop();
     });
 
@@ -261,7 +263,8 @@ describe("deep nested schema: should not OOM on eager mock generation", () => {
             },
             body: JSON.stringify({ query }),
         });
-        const result1 = (await response1.json()) as GraphQLResponse;
+        type Org = { id: string; name: string; divisions: unknown[] };
+        const result1 = (await response1.json()) as GraphQLResponse<{ organizations: Org[] }>;
 
         const response2 = await fetch(`${urls.fakeServer}/graphql`, {
             method: "POST",
@@ -271,17 +274,20 @@ describe("deep nested schema: should not OOM on eager mock generation", () => {
             },
             body: JSON.stringify({ query }),
         });
-        const result2 = (await response2.json()) as GraphQLResponse;
+        const result2 = (await response2.json()) as GraphQLResponse<{ organizations: Org[] }>;
 
         // Both queries should return same structure (list lengths, field names)
         assert(result1.data, "result1 should have data");
         assert(result2.data, "result2 should have data");
-        const orgs1 = result1.data.organizations as Array<Record<string, unknown>>;
-        const orgs2 = result2.data.organizations as Array<Record<string, unknown>>;
+        const { organizations: orgs1 } = result1.data;
+        const { organizations: orgs2 } = result2.data;
         expect(orgs1.length).toBe(orgs2.length);
-        expect(Object.keys(orgs1[0]).sort()).toStrictEqual(Object.keys(orgs2[0]).sort());
-        const divs1 = orgs1[0].divisions as Array<Record<string, unknown>>;
-        const divs2 = orgs2[0].divisions as Array<Record<string, unknown>>;
+        const [first1] = orgs1;
+        const [first2] = orgs2;
+        assert(first1 && first2, "both results should have at least one organization");
+        expect(Object.keys(first1).sort()).toStrictEqual(Object.keys(first2).sort());
+        const divs1 = first1.divisions;
+        const divs2 = first2.divisions;
         expect(divs1.length).toBe(divs2.length);
         await server.stop();
     });

@@ -4,11 +4,15 @@
 const config = {
     logLevel: "debug",
     schemaFilePath: "api/api.graphqls",
-    maxQueryDepth: 10,
+    server: {
+        maxQueryDepth: 10,
+    },
     // Define the default value of the custom scalar.
-    defaultValues: {
-        CustomScalar: {
-            DATE_YYYYMMDD: "'2022-02-03'",
+    mock: {
+        defaultValues: {
+            CustomScalar: {
+                DATE_YYYYMMDD: "'2022-02-03'",
+            },
         },
     },
 };
