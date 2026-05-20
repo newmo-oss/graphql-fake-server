@@ -93,35 +93,12 @@
       {
         "matchPackageNames": [
           "@apollo/client",
-          "@apollo/server"
+          "@apollo/server",
+          "@as-integrations/express5",
+          "rxjs"
         ],
         "groupName": "apollo automerge group",
         "groupSlug": "apollo-automerge",
-        "matchUpdateTypes": [
-          "minor",
-          "patch"
-        ],
-        "addLabels": [
-          "dependencies",
-          "dependencies/automerge"
-        ],
-        "automerge": true,
-        "automergeType": "pr",
-        "platformAutomerge": true
-      },
-      {
-        "matchPackageNames": [
-          "@as-integrations/express5",
-          "@hono/node-server",
-          "@types/cors",
-          "@types/express",
-          "cors",
-          "express",
-          "hono",
-          "undici"
-        ],
-        "groupName": "server automerge group",
-        "groupSlug": "server-automerge",
         "matchUpdateTypes": [
           "minor",
           "patch"
@@ -196,10 +173,14 @@
       {
         "matchPackageNames": [
           "@graphql-tools/mock",
-          "@graphql-tools/schema"
+          "@graphql-tools/schema",
+          "@graphql-typed-document-node/core",
+          "graphql",
+          "graphql-depth-limit",
+          "graphql-request"
         ],
-        "groupName": "graphql-tools automerge group",
-        "groupSlug": "graphql-tools-automerge",
+        "groupName": "graphql automerge group",
+        "groupSlug": "graphql-automerge",
         "matchUpdateTypes": [
           "minor",
           "patch"
@@ -214,13 +195,16 @@
       },
       {
         "matchPackageNames": [
-          "@graphql-typed-document-node/core",
-          "graphql",
-          "graphql-depth-limit",
-          "graphql-request"
+          "@hono/node-server",
+          "@types/cors",
+          "@types/express",
+          "cors",
+          "express",
+          "hono",
+          "undici"
         ],
-        "groupName": "graphql automerge group",
-        "groupSlug": "graphql-automerge",
+        "groupName": "server automerge group",
+        "groupSlug": "server-automerge",
         "matchUpdateTypes": [
           "minor",
           "patch"
@@ -276,8 +260,7 @@
       },
       {
         "matchPackageNames": [
-          "lint-staged",
-          "rxjs"
+          "lint-staged"
         ],
         "groupName": "dev automerge group",
         "groupSlug": "dev-automerge",

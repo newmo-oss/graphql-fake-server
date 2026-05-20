@@ -9,7 +9,7 @@ catalog:
   # @pkg-group: apollo
   # @pkg-automerge
   '@apollo/server': 4.12.2
-  # @pkg-group: server
+  # @pkg-group: apollo
   # @pkg-automerge
   '@as-integrations/express5': 1.1.0
   # @pkg-group: biome
@@ -30,10 +30,10 @@ catalog:
   # @pkg-group: eslint
   # @pkg-automerge
   '@graphql-eslint/eslint-plugin': 4.4.0
-  # @pkg-group: graphql-tools
+  # @pkg-group: graphql
   # @pkg-automerge
   '@graphql-tools/mock': 9.0.23
-  # @pkg-group: graphql-tools
+  # @pkg-group: graphql
   # @pkg-automerge
   '@graphql-tools/schema': 10.0.23
   # @pkg-group: graphql
@@ -93,7 +93,7 @@ catalog:
   # @pkg-group: dev
   # @pkg-automerge
   lint-staged: 16.1.2
-  # @pkg-group: dev
+  # @pkg-group: apollo
   # @pkg-automerge
   rxjs: 7.8.2
   # @pkg-group: typescript
