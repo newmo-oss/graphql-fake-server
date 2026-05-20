@@ -30,7 +30,7 @@ When the fake server starts it actually exposes **two HTTP servers**:
 
 | Server | Default port | Purpose |
 | --- | --- | --- |
-| Fake Server | `4000` | The endpoint your app talks to. Routes: `POST /graphql` (alias `/query`), `POST /fake`, `GET /fake/called`. Responses are driven by registered fakes (`/fake`) or fall back to declarative fakes from the schema. |
+| Fake Server | `4000` | The endpoint your app talks to. Routes: `POST /graphql` (alias `/query`), `POST /fake`, `POST /fake/called`. Responses are driven by registered fakes (`/fake`) or fall back to declarative fakes from the schema. |
 | Apollo Server | `4002` | A vanilla Apollo Server bound to the same schema for use with GraphQL Playground / introspection / schema sanity checks. It does **not** consult registered fakes. |
 
 Both ports are configurable under `server.ports` (see [Configuration](#configuration)).
@@ -72,7 +72,7 @@ $ npx @newmo/graphql-fake-server --schema graphql/schema.graphql
 For non-trivial setups, use a config file instead of `--schema`:
 
 ```bash
-$ npx @newmo/graphql-fake-server --config ./fake-server.config.mjs
+$ npx @newmo/graphql-fake-server --config ./graphql-fake-server.config.mjs
 ```
 
 The fake server defaults to `http://localhost:4000` and the Apollo Server to `http://localhost:4002`.
@@ -111,10 +111,19 @@ returns:
         }
       },
       {
-        "id": "book-id_g0_c1",
+        "id": "book-id_g2_c1",
         "title": "The Great Gatsby",
         "author": {
-          "id": "author-id_g1_c1",
+          "id": "author-id_g3_c1",
+          "name": "F. Scott Fitzgerald",
+          "age": 33
+        }
+      },
+      {
+        "id": "book-id_g4_c2",
+        "title": "The Great Gatsby",
+        "author": {
+          "id": "author-id_g5_c2",
           "name": "F. Scott Fitzgerald",
           "age": 33
         }
@@ -124,13 +133,15 @@ returns:
 }
 ```
 
+(The list contains three entries because `mock.listLength` defaults to `3`; see [Configuration](#configuration).)
+
 `@exampleID` values are decorated with a deterministic suffix so that every generated ID is unique:
 
 ```
 ${value}_g${global_id}_c${count}
    |          |             |
-   |          |             └─ per-name counter, starts at 0
-   |          └─ global counter across all @exampleID fields, starts at 0
+   |          |             └─ per-key counter, incremented for each call with the same value
+   |          └─ global counter, incremented on every @exampleID call across the response
    └─ the value passed to @exampleID(value: ...)
 ```
 
@@ -159,6 +170,7 @@ export default config;
 Then in test code:
 
 ```ts
+import { print } from "graphql";
 import { createFakeClient } from "./generated/fake-client.js";
 import { GetBooksDocument } from "./generated/graphql.js";
 
@@ -177,12 +189,13 @@ await fakeClient.registerGetBooksQueryResponse(sequenceId, {
 });
 
 // Make the request through your usual GraphQL client, propagating sequence-id.
+// `client-preset` emits DocumentNode as a JSON AST without `.loc`, so use `print()`.
 const response = await fetch("http://127.0.0.1:4000/graphql", {
   method: "POST",
   headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
   body: JSON.stringify({
     operationName: "GetBooks",
-    query: GetBooksDocument.loc!.source.body,
+    query: print(GetBooksDocument),
   }),
 }).then((r) => r.json());
 
@@ -226,7 +239,7 @@ When no fake is registered for a given `(sequence-id, operationName)`, the serve
 
 ## Configuration
 
-`fake-server.config.mjs` is the canonical configuration file. All fields except `schemaFilePath` are optional.
+The config file path is passed via `--config` and can have any name; the convention used in this project is `graphql-fake-server.config.mjs`. All fields except `schemaFilePath` are optional.
 
 ```js
 /** @type {import("@newmo/graphql-fake-server").FakeServerConfig} */
@@ -484,7 +497,7 @@ See the package README for installation and full configuration.
 
 ## Examples
 
-- [`e2e/node`](./e2e/node) — the canonical example: schema, codegen, fake client, vitest integration tests, and `fake-server.config.mjs`.
+- [`e2e/node`](./e2e/node) — the canonical example: schema, codegen, fake client, vitest integration tests, and [`graphql-fake.config.mjs`](./e2e/node/graphql-fake.config.mjs).
 
 ## Limitations
 
