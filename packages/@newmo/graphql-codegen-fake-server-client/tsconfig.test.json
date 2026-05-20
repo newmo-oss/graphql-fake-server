@@ -12,6 +12,8 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "lib": ["ES2022", "DOM"],
     /* Lint Options */
     "noUnusedLocals": false,
     // Delegate to @typescript-eslint/no-unused-vars in eslint

@@ -44,51 +44,45 @@ describe("stress test", () => {
         await server?.stop();
     });
 
-    it(
-        "should handle 5000 concurrent fake registrations without ECONNRESET",
-        {
-            timeout: 60 * 1000,
-        },
-        async () => {
-            const sequenceId = `test-${Date.now()}`;
-            const promises: Promise<unknown>[] = [];
+    it("should handle 5000 concurrent fake registrations without ECONNRESET", {
+        timeout: 60 * 1000,
+    }, async () => {
+        const sequenceId = `test-${Date.now()}`;
+        const promises: Promise<unknown>[] = [];
 
-            const fakeResponse: GetBooksQuery = {
-                __typename: "Query",
-                books: [
-                    {
-                        __typename: "Book" as const,
-                        id: "test-book",
-                        title: "Test Book",
-                    },
-                ],
-            };
+        const fakeResponse: GetBooksQuery = {
+            __typename: "Query",
+            books: [
+                {
+                    __typename: "Book" as const,
+                    id: "test-book",
+                    title: "Test Book",
+                },
+            ],
+        };
 
-            // Register 500 fakes concurrently
-            for (let i = 0; i < 5000; i++) {
-                const uniqueSequenceId = `${sequenceId}-${i}`;
-                promises.push(
-                    fakeClient.registerGetBooksQueryResponse(uniqueSequenceId, fakeResponse),
-                );
-            }
+        // Register 500 fakes concurrently
+        for (let i = 0; i < 5000; i++) {
+            const uniqueSequenceId = `${sequenceId}-${i}`;
+            promises.push(fakeClient.registerGetBooksQueryResponse(uniqueSequenceId, fakeResponse));
+        }
 
-            // All should succeed
-            const results = await Promise.allSettled(promises);
-            const successes = results.filter((r) => r.status === "fulfilled");
-            const failures = results.filter((r) => r.status === "rejected");
+        // All should succeed
+        const results = await Promise.allSettled(promises);
+        const successes = results.filter((r) => r.status === "fulfilled");
+        const failures = results.filter((r) => r.status === "rejected");
 
-            // Log any failures for debugging
-            if (failures.length > 0) {
-                console.error(`Failed registrations: ${failures.length}/5000`);
-                failures.forEach((failure, index) => {
-                    const error = (failure as PromiseRejectedResult).reason;
-                    console.error(`Failure ${index + 1}:`, error.message || error);
-                });
-            }
+        // Log any failures for debugging
+        if (failures.length > 0) {
+            console.error(`Failed registrations: ${failures.length}/5000`);
+            failures.forEach((failure, index) => {
+                const error = (failure as PromiseRejectedResult).reason;
+                console.error(`Failure ${index + 1}:`, error.message || error);
+            });
+        }
 
-            // Assert all succeeded
-            expect(successes.length).toBe(5000);
-            expect(failures.length).toBe(0);
-        },
-    );
+        // Assert all succeeded
+        expect(successes.length).toBe(5000);
+        expect(failures.length).toBe(0);
+    });
 });
