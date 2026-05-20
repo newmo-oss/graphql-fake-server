@@ -29,10 +29,12 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
             | {
                   type: "query";
                   name: string;
+                  operationName: string;
               }
             | {
                   type: "mutation";
                   name: string;
+                  operationName: string;
               };
         const indentEachLine = (indent: string, text: string) => {
             return text
@@ -64,6 +66,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                                     indent + indent,
                                     generateRegisterOperationMethod(
                                         fn.name,
+                                        fn.operationName,
                                         "options.fakeServerEndpoint",
                                     ),
                                 ),
@@ -71,6 +74,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                                     indent + indent,
                                     generateRegisterOperationErrorMethod(
                                         fn.name,
+                                        fn.operationName,
                                         "options.fakeServerEndpoint",
                                     ),
                                 ),
@@ -78,6 +82,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                                     indent + indent,
                                     generateCalledQueryMethod(
                                         fn.name,
+                                        fn.operationName,
                                         'options.fakeServerEndpoint + "/called"',
                                     ),
                                 ),
@@ -89,6 +94,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                                     indent + indent,
                                     generateRegisterMutationMethod(
                                         fn.name,
+                                        fn.operationName,
                                         "options.fakeServerEndpoint",
                                     ),
                                 ),
@@ -96,6 +102,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                                     indent + indent,
                                     generateRegisterMutationErrorMethod(
                                         fn.name,
+                                        fn.operationName,
                                         "options.fakeServerEndpoint",
                                     ),
                                 ),
@@ -103,6 +110,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                                     indent + indent,
                                     generateCalledMutationMethod(
                                         fn.name,
+                                        fn.operationName,
                                         'options.fakeServerEndpoint + "/called"',
                                     ),
                                 ),
@@ -116,11 +124,13 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
         };
         const generateRegisterOperationMethod = (
             name: string,
+            operationName: string,
             fakeEndpointVariableName: string,
         ) => {
-            const variablesType = `${convertName(name, config)}QueryVariables`;
+            const variablesType = `${name}QueryVariables`;
             return generateRegisterQuery({
                 name,
+                operationName,
                 variablesType,
                 responseType: registerOperationResponseType,
                 endpoint: fakeEndpointVariableName,
@@ -128,18 +138,25 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
         };
         const generateRegisterOperationErrorMethod = (
             name: string,
+            operationName: string,
             fakeEndpointVariableName: string,
         ) => {
             return generateRegisterQueryError({
                 name,
+                operationName,
                 responseType: registerOperationResponseType,
                 endpoint: fakeEndpointVariableName,
             });
         };
-        const generateRegisterMutationMethod = (name: string, fakeEndpointVariableName: string) => {
-            const variablesType = `${convertName(name, config)}MutationVariables`;
+        const generateRegisterMutationMethod = (
+            name: string,
+            operationName: string,
+            fakeEndpointVariableName: string,
+        ) => {
+            const variablesType = `${name}MutationVariables`;
             return generateRegisterMutation({
                 name,
+                operationName,
                 variablesType,
                 responseType: registerOperationResponseType,
                 endpoint: fakeEndpointVariableName,
@@ -147,27 +164,39 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
         };
         const generateRegisterMutationErrorMethod = (
             name: string,
+            operationName: string,
             fakeEndpointVariableName: string,
         ) => {
             return generateRegisterMutationError({
                 name,
+                operationName,
                 responseType: registerOperationResponseType,
                 endpoint: fakeEndpointVariableName,
             });
         };
-        const generateCalledQueryMethod = (name: string, calledEndpoint: string) => {
-            const variablesType = `${convertName(name, config)}QueryVariables`;
+        const generateCalledQueryMethod = (
+            name: string,
+            operationName: string,
+            calledEndpoint: string,
+        ) => {
+            const variablesType = `${name}QueryVariables`;
             return generateCalledQuery({
-                name: convertName(name, config),
+                name,
+                operationName,
                 variablesType,
                 endpoint: calledEndpoint,
             });
         };
 
-        const generateCalledMutationMethod = (name: string, calledEndpoint: string) => {
-            const variablesType = `${convertName(name, config)}MutationVariables`;
+        const generateCalledMutationMethod = (
+            name: string,
+            operationName: string,
+            calledEndpoint: string,
+        ) => {
+            const variablesType = `${name}MutationVariables`;
             return generateCalledMutation({
-                name: convertName(name, config),
+                name,
+                operationName,
                 variablesType,
                 endpoint: calledEndpoint,
             });
@@ -220,6 +249,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                             return [
                                 {
                                     name: convertName(definition.name.value, config),
+                                    operationName: definition.name.value,
                                     type: "query",
                                 },
                             ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];
@@ -232,6 +262,7 @@ export type FakeClientRegisterSequenceOptions<TVariables = Record<string, any>> 
                             return [
                                 {
                                     name: convertName(definition.name.value, config),
+                                    operationName: definition.name.value,
                                     type: "mutation",
                                 },
                             ] satisfies GenerateFakeFunction[] as GenerateFakeFunction[];

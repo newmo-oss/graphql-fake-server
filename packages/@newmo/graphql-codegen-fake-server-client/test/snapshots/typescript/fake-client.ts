@@ -422,7 +422,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 },
                 body: JSON.stringify({
                     type: "operation",
-                    operationName: "CreateUrlRideHistory",
+                    operationName: "CreateURLRideHistory",
                     data: mutationResponse,
                     requestCondition: requestCondition
                 }),
@@ -447,7 +447,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 },
                 body: JSON.stringify({
                     type: "network-error",
-                    operationName: "CreateUrlRideHistory",
+                    operationName: "CreateURLRideHistory",
                     responseStatusCode,
                     errors
                 }),
@@ -489,7 +489,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     'sequence-id': sequenceId
                 },
                 body: JSON.stringify({
-                    operationName: "CreateUrlRideHistory"
+                    operationName: "CreateURLRideHistory"
                 }),
             }
         ));
@@ -532,7 +532,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 },
                 body: JSON.stringify({
                     type: "operation",
-                    operationName: "CreateFooUrlRideHistory",
+                    operationName: "CreateFooURLRideHistory",
                     data: mutationResponse,
                     requestCondition: requestCondition
                 }),
@@ -557,7 +557,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 },
                 body: JSON.stringify({
                     type: "network-error",
-                    operationName: "CreateFooUrlRideHistory",
+                    operationName: "CreateFooURLRideHistory",
                     responseStatusCode,
                     errors
                 }),
@@ -599,7 +599,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     'sequence-id': sequenceId
                 },
                 body: JSON.stringify({
-                    operationName: "CreateFooUrlRideHistory"
+                    operationName: "CreateFooURLRideHistory"
                 }),
             }
         ));
