@@ -1,0 +1,96 @@
+name: Renovate Config
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/workflows/renovate-config.yml"
+      - "renovate.json5"
+      - "pnpm-workspace.yaml"
+      - "script/renovatebot/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/renovate-config.yml"
+      - "renovate.json5"
+      - "pnpm-workspace.yaml"
+      - "script/renovatebot/**"
+
+env:
+  # renovate: datasource=npm depName=renovate
+  RENOVATE_VERSION: "43.110.14"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Validate renovate config
+        run: npx --package "renovate@${RENOVATE_VERSION}" renovate-config-validator
+
+      - name: Check renovate.json5 is up to date with pnpm-workspace.yaml
+        run: |
+          pnpm run renovatebot:generate-config:run
+          if [ -n "$(git status --porcelain renovate.json5)" ]; then
+            echo "::error::renovate.json5 is out of date. Run 'pnpm run renovatebot:generate-config:run' locally and commit the result."
+            git --no-pager diff renovate.json5
+            exit 1
+          fi
+
+  dry-run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Dry-Run renovate
+        # `pnpm dlx` は engines.pnpm/engines.node を strict にチェックするため、
+        # renovate (engines.pnpm: ^10, engines.node: ^24.11) を pnpm 11 + Node 22 上で起動できない
+        # npx は engine 不一致を warning に留めるので、ここでは npx 経由で実行する
+        run: |
+          npx --yes --package "renovate@${RENOVATE_VERSION}" -- renovate --platform=local 2>&1 | tee /tmp/renovate-log.ndjson
+        env:
+          GITHUB_COM_TOKEN: ${{ github.token }}
+          RENOVATE_CONFIG_FILE: "renovate.json5"
+          LOG_LEVEL: debug
+          LOG_FORMAT: json
+
+      - name: Generate summary
+        if: always()
+        run: node script/renovatebot/parse-renovate-log.ts < /tmp/renovate-log.ndjson

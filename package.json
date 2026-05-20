@@ -29,7 +29,9 @@
     "commit-version": "git add . && git commit -m \"chore(release): v`node -p 'require(\"./lerna.json\").version'`\"",
     "release": "lerna publish from-package",
     "ci:release": "lerna publish from-package --yes",
-    "prepare": "git config --local core.hooksPath .githooks"
+    "prepare": "git config --local core.hooksPath .githooks",
+    "renovatebot:generate-config:run": "node script/renovatebot/generate-renovatebot-json5.ts",
+    "renovatebot:generate-config:dry-run": "node script/renovatebot/generate-renovatebot-json5.ts --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
