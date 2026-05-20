@@ -422,7 +422,24 @@ Matches only when the GraphQL `variables` are deeply equal to `value`.
 
 ### Next.js App Router
 
-The App Router's parallel route convention lets you register fakes per page in dedicated `*.fake.tsx` files, then swap them in by running the app against the fake server. The keys are: (1) a singleton fake client, (2) a fresh `sequence-id` per render, (3) a provider that forwards the `sequence-id` header on every GraphQL request.
+The App Router's parallel route convention lets you register fakes per page in dedicated `*.fake.tsx` files, then swap them in by running the app against the fake server. The keys are: (1) `pageExtensions` configured so `*.fake.tsx` is picked up instead of `*.tsx` when an env flag is on, (2) a singleton fake client, (3) a fresh `sequence-id` per render, (4) a provider that forwards the `sequence-id` header on every GraphQL request.
+
+```ts
+// next.config.ts
+import type { NextConfig } from "next";
+
+const useFakePage = process.env.USE_FAKE_PAGE === "true";
+
+const config: NextConfig = {
+  // When USE_FAKE_PAGE=true, Next.js treats page.fake.tsx / layout.fake.tsx as
+  // the active route; otherwise it picks up the plain *.tsx files.
+  // Every page.tsx must have a matching page.fake.tsx (re-export the default
+  // if the page does not need a fake).
+  pageExtensions: [...(useFakePage ? ["fake.tsx"] : ["tsx"]), "ts"],
+};
+
+export default config;
+```
 
 ```ts
 // src/test-utils/fake-client.ts
