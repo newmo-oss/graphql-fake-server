@@ -405,6 +405,75 @@ Matches only when the GraphQL `variables` are deeply equal to `value`.
 - **Ties**: the most recently registered fake wins.
 - **Fallback**: when no condition matches, the server falls back to the declarative fake from the schema.
 
+## Recipes
+
+### Next.js App Router
+
+The App Router's parallel route convention lets you register fakes per page in dedicated `*.fake.tsx` files, then swap them in by running the app against the fake server. The keys are: (1) a singleton fake client, (2) a fresh `sequence-id` per render, (3) a provider that forwards the `sequence-id` header on every GraphQL request.
+
+```ts
+// src/test-utils/fake-client.ts
+import { createFakeClient } from "@/generated/fake-client";
+
+export const fakeClient = createFakeClient({
+  fakeServerEndpoint: process.env.NEXT_PUBLIC_GRAPHQL_FAKE_API_ENDPOINT!,
+});
+```
+
+```tsx
+// src/components/ApolloWrapper.tsx
+"use client";
+
+import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from "@apollo/client";
+import { useMemo } from "react";
+
+export function ApolloWrapper({
+  sequenceId,
+  children,
+}: {
+  sequenceId: string;
+  children: React.ReactNode;
+}) {
+  const client = useMemo(
+    () =>
+      new ApolloClient({
+        cache: new InMemoryCache(),
+        link: new HttpLink({
+          uri: process.env.NEXT_PUBLIC_GRAPHQL_FAKE_API_ENDPOINT,
+          headers: { "sequence-id": sequenceId },
+        }),
+      }),
+    [sequenceId],
+  );
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+}
+```
+
+```tsx
+// src/app/books/page.fake.tsx
+import { fakeClient } from "@/test-utils/fake-client";
+import { ApolloWrapper } from "@/components/ApolloWrapper";
+import DefaultPage from "./page";
+
+export default async function FakePage() {
+  const sequenceId = crypto.randomUUID();
+  await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+    __typename: "Query",
+    books: [
+      { __typename: "Book", id: "book-1", title: "The Great Gatsby" },
+    ],
+  });
+
+  return (
+    <ApolloWrapper sequenceId={sequenceId}>
+      <DefaultPage />
+    </ApolloWrapper>
+  );
+}
+```
+
+A `sequence-id` is minted on every render so concurrent visits to fake pages do not collide. To enforce that every `page.tsx` / `layout.tsx` has a `*.fake.tsx` counterpart, add a small structural test (e.g. a vitest spec that walks `src/app/`).
+
 ## ESLint Plugin
 
 [`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake) ships rules that catch the most common mistakes when authoring fake schemas:
