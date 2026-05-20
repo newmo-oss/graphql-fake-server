@@ -1,234 +1,57 @@
 # @newmo/graphql-fake-server
 
-GraphQL Fake Server and Toolkits for Declarative and Dynamic Fake.
+A GraphQL fake server and toolkit for declarative and dynamic fakes.
 
 ## Motivation
 
-`@newmo/graphql-fake-server` is for developers who use Fake data in GraphQL API.
+`@newmo/graphql-fake-server` is for developers who use fake data against a GraphQL API.
 
-`@newmo/graphql-fake-server` provides a two-way GraphQL API Fake.
+It offers two complementary ways to fake responses:
 
-- Declarative Fake
-  - Support Declarative Fake for testing via GraphQL Schema
-  - Fake directives are `@exampleID`, `@exampleString`, `@exampleInt`, `@exampleFloat`, `@exampleBoolean`.
-  - It is Static Fake, so you can easily understand the fake data.
-- Dynamic Fake
-  - Support Framework-Agnostic fake for testing via HTTP
-  - Fake server allow to register fake data via HTTP request `/fake` endpoint.
-  - Fake server allow to get actual request data to any GraphQL operation via HTTP request `/fake/called` endpoint.
-  - It is useful for integration testing GraphQL API with dynamic fake data.
+- **Declarative Fake** — static fakes embedded in the schema via `@example*` directives. Good for default values, storybook-like screens, and read-only flows.
+- **Dynamic Fake** — register responses at runtime over HTTP, keyed by a `sequence-id`. Good for integration tests, edge cases, and error paths.
 
-The purpose is to be able to develop while keeping maintainable Fake by using these differently depending on the application.
+The main interface is HTTP, so the fake server is usable from any language. For TypeScript projects, the [`@newmo/graphql-codegen-fake-server-client`](./packages/@newmo/graphql-codegen-fake-server-client) plugin generates a typed client and is the recommended way to drive dynamic fakes.
 
-This package is written in Node.js, but it is also available in other languages.
-Main interface is HTTP, so you can use it in any language.
+## Packages
 
-## Usage
+This repository is a monorepo. The packages you will typically depend on are:
 
-### Declarative Fake
+| Package | Role |
+| --- | --- |
+| [`@newmo/graphql-fake-server`](./packages/@newmo/graphql-fake-server) | The fake server CLI and programmatic API. |
+| [`@newmo/graphql-fake-core`](./packages/@newmo/graphql-fake-core) | The mock-generation core used by the server. |
+| [`@newmo/graphql-codegen-fake-server-client`](./packages/@newmo/graphql-codegen-fake-server-client) | GraphQL Code Generator plugin that emits a typed fake client. |
+| [`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake) | ESLint rules for schemas that use the fake directives. |
 
-Declarative Fake is used to define fake data in the GraphQL schema.
+## Architecture
 
-1. Install the package.
+When the fake server starts it actually exposes **two HTTP servers**:
+
+| Server | Default port | Purpose |
+| --- | --- | --- |
+| Fake Server | `4000` | The endpoint your app talks to. Routes: `POST /graphql` (alias `/query`), `POST /fake`, `GET /fake/called`. Responses are driven by registered fakes (`/fake`) or fall back to declarative fakes from the schema. |
+| Apollo Server | `4002` | A vanilla Apollo Server bound to the same schema for use with GraphQL Playground / introspection / schema sanity checks. It does **not** consult registered fakes. |
+
+Both ports are configurable under `server.ports` (see [Configuration](#configuration)).
+
+## Quick Start
+
+### 1. Install
 
 ```bash
 npm install @newmo/graphql-fake-server --save-dev
 ```
 
-2. Add example directives to the GraphQL schema.
+### 2. Add the directive prelude and example values to your schema
 
-- Primitive types: `ID`, `String`, `Int`, `Float`, `Boolean`
-  - `@exampleID`: Specifies an example value for a ID or String field and the value will be unique between all ID fake data.
-  - `@exampleString`: Specifies an example value for a String field.
-  - `@exampleInt`: Specifies an example value for a Int field.
-  - `@exampleFloat`: Specifies an example value for a Float field.
-  - `@exampleBoolean`: Specifies an example value for a Boolean field.
-- Array types: `[ID!]`, `[String!]`, `[Int!]`, `[Float!]`, `[Boolean!]`
-  - `@exampleArrayID`: Specifies an example value for a array of ID field.
-  - `@exampleArrayString`: Specifies an example value for a array of String field.
-  - `@exampleArrayInt`: Specifies an example value for a array of Int field.
-  - `@exampleArrayFloat`: Specifies an example value for a array of Float field.
-  - `@exampleArrayBoolean`: Specifies an example value for a array of Boolean field.
-- Custom scalar types:
-  - `@exampleScalarString`: Specifies an example value for a scalar field.
-  - `@exampleScalarInt`: Specifies an example value for a scalar field.
-  - `@exampleScalarFloat`: Specifies an example value for a scalar field.
-  - `@exampleScalarBoolean`: Specifies an example value for a scalar field.
-- Special types:
-  - `@error`: Mark the fields as error fields. This fields make empty array by default.
-
-`graphql/schema.graphql`:
+The fake directives must be declared in the schema before they can be used. The full prelude is in [`examples/e2e/node/api/api.graphqls`](./e2e/node/api/api.graphqls); copy it into your own schema (or `import` it from a separate file if your codegen supports schema composition).
 
 ```graphql
-"""
-@exampleID directive specifies an example value for a ID field.
-This example value is used in the fake data.
-ID value will be unique between all ID fake data.
-"""
-directive @exampleID(
-  """
-  The value of the ID field.
-  @exampleID(value: "id")
-  """
-  value: ID!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleString directive specifies an example value for a String field.
-This example value is used in the fake data.
-"""
-directive @exampleString(
-  """
-  The value of the String field.
-  @exampleString(value: "example")
-  """
-  value: String!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleInt directive specifies an example value for a Int field.
-This example value is used in the fake data.
-"""
-directive @exampleInt(
-  """
-  The value of the Int field.
-  @exampleInt(value: 1)
-  """
-  value: Int!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleFloat directive specifies an example value for a Float field.
-This example value is used in the fake data.
-"""
-directive @exampleFloat(
-  """
-  The value of the Float field.
-  @exampleFloat(value: 1.0)
-  """
-  value: Float!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleBoolean directive specifies an example value for a Boolean field.
-This example value is used in the fake data.
-"""
-directive @exampleBoolean(
-  """
-  The value of the Boolean field.
-  @exampleBoolean(value: true)
-  """
-  value: Boolean!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-
-"""
-@exampleArrayID directive specifies an example value for a array of ID field.
-This example value is used in the fake data.
-ID value will be unique between all ID fake data.
-"""
-directive @exampleArrayID(
-  """
-  The value of the ID field.
-  @exampleArrayID(value: ["id1", "id2"])
-  """
-  values: [ID!]!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleArrayString directive specifies an example value for a array of String field.
-This example value is used in the fake data.
-"""
-directive @exampleArrayString(
-  """
-  The value of the String field.
-  @exampleArrayString(value: ["example1", "example2"])
-  """
-  values: [String!]!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleArrayInt directive specifies an example value for a array of Int field.
-This example value is used in the fake data.
-"""
-directive @exampleArrayInt(
-  """
-  The value of the Int field.
-  @exampleArrayInt(value: [1, 2])
-  """
-  values: [Int!]!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleArrayFloat directive specifies an example value for a array of Float field.
-This example value is used in the fake data.
-"""
-directive @exampleArrayFloat(
-  """
-  The value of the Float field.
-  @exampleArrayFloat(value: [1.0, 2.0])
-  """
-  values: [Float!]!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleArrayBoolean directive specifies an example value for a array of Boolean field.
-This example value is used in the fake data.
-"""
-directive @exampleArrayBoolean(
-  """
-  The value of the Boolean field.
-  @exampleArrayBoolean(value: [true, false])
-  """
-  values: [Boolean!]!
-) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-"""
-@exampleScalarString directive specifies an example value for a scalar field.
-This example value is used in the fake data.
-"""
-directive @exampleScalarString(
-  """
-  The value of the scalar field.
-  scalar CustomString @exampleScalar(value: "example")
-  """
-  value: String!
-) on SCALAR
-"""
-@exampleScalarInt directive specifies an example value for a scalar field.
-This example value is used in the fake data.
-"""
-directive @exampleScalarInt(
-  """
-  The value of the scalar field.
-  scalar CustomValue @exampleScalar(value: 1)
-  """
-  value: Int!
-) on SCALAR
-"""
-@exampleScalarFloat directive specifies an example value for a scalar field.
-This example value is used in the fake data.
-"""
-directive @exampleScalarFloat(
-  """
-  The value of the scalar field.
-  scalar CustomValue @exampleScalar(value: 1.0)
-  """
-  value: Float!
-) on SCALAR
-"""
-@exampleScalarBoolean directive specifies an example value for a scalar field.
-This example value is used in the fake data.
-"""
-directive @exampleScalarBoolean(
-  """
-  The value of the scalar field.
-  scalar CustomValue @exampleScalar(value: true)
-  """
-  value: Boolean!
-) on SCALAR
-"""
-@error directive specifies a field as an error response field.
-It allows setting an error response and specifying the field name.
-"""
-directive @error on FIELD_DEFINITION
-
-# Your schema
 type Book {
   id: ID! @exampleID(value: "book-id")
   title: String! @exampleString(value: "The Great Gatsby")
   author: Author!
-  errors: [Error!]! @error
 }
 type Author {
   id: ID! @exampleID(value: "author-id")
@@ -240,15 +63,23 @@ type Query {
 }
 ```
 
-4. Launch Fake Server specifying the schema.
+### 3. Launch the fake server
 
 ```bash
-$ npx graphql-fake-server --schema graphql/schema.graphql
+$ npx @newmo/graphql-fake-server --schema graphql/schema.graphql
 ```
 
-5. The fake server will be launched at `http://localhost:4000`.
+For non-trivial setups, use a config file instead of `--schema`:
 
-For example, send the following query to `http://localhost:4000/query`.
+```bash
+$ npx @newmo/graphql-fake-server --config ./fake-server.config.mjs
+```
+
+The fake server defaults to `http://localhost:4000` and the Apollo Server to `http://localhost:4002`.
+
+### 4. (Static path) Query the declarative fake
+
+With no fakes registered, the server answers from the directives in the schema. For example:
 
 ```graphql
 query {
@@ -264,26 +95,26 @@ query {
 }
 ```
 
-Return the following response:
+returns:
 
 ```json
 {
   "data": {
     "books": [
       {
-        "id": "book-id00",
+        "id": "book-id_g0_c0",
         "title": "The Great Gatsby",
         "author": {
-          "id": "author-id10",
+          "id": "author-id_g1_c0",
           "name": "F. Scott Fitzgerald",
           "age": 33
         }
       },
       {
-        "id": "book-id01",
+        "id": "book-id_g0_c1",
         "title": "The Great Gatsby",
         "author": {
-          "id": "author-id11",
+          "id": "author-id_g1_c1",
           "name": "F. Scott Fitzgerald",
           "age": 33
         }
@@ -293,26 +124,234 @@ Return the following response:
 }
 ```
 
-:memo: The default value of the `@exampleID` directive is `${name}_g${global_id}_c${count}`.
+`@exampleID` values are decorated with a deterministic suffix so that every generated ID is unique:
 
 ```
-${name}_g${global_id}_c${count}
-   |      ^^^^^^^^^^     ^^^^^
-   |        |               |
-   |        |               |__ c: name context count - starts from 0
-   |        |__ g: global id - starts from 0
-   |
-   |__ name: field name
+${value}_g${global_id}_c${count}
+   |          |             |
+   |          |             └─ per-name counter, starts at 0
+   |          └─ global counter across all @exampleID fields, starts at 0
+   └─ the value passed to @exampleID(value: ...)
 ```
 
-`@exampleID(value: "book_id")` will generate `book_id_g0_c0`, `book_id_g1_c1`, `book_id_g2_c2`, ...
+### 5. (Dynamic path) Register fakes from a TypeScript test
 
-#### Examples of `@example*` directive
+This is the recommended workflow for tests. Generate a typed client with [`@newmo/graphql-codegen-fake-server-client`](./packages/@newmo/graphql-codegen-fake-server-client):
+
+```ts
+// graphql-codegen.ts
+import type { CodegenConfig } from "@graphql-codegen/cli";
+
+const config: CodegenConfig = {
+  schema: "./api/schema.graphqls",
+  documents: "./api/*.graphql",
+  generates: {
+    "./generated/": { preset: "client" },
+    "./generated/fake-client.ts": {
+      plugins: ["@newmo/graphql-codegen-fake-server-client"],
+      config: { typesFile: "./graphql.js" },
+    },
+  },
+};
+export default config;
+```
+
+Then in test code:
+
+```ts
+import { createFakeClient } from "./generated/fake-client.js";
+import { GetBooksDocument } from "./generated/graphql.js";
+
+const fakeClient = createFakeClient({
+  fakeServerEndpoint: "http://127.0.0.1:4000/fake",
+});
+
+const sequenceId = crypto.randomUUID();
+
+// Register the response for a specific operation, type-checked against the schema.
+await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+  __typename: "Query",
+  books: [
+    { __typename: "Book", id: "new id", title: "new title" },
+  ],
+});
+
+// Make the request through your usual GraphQL client, propagating sequence-id.
+const response = await fetch("http://127.0.0.1:4000/graphql", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
+  body: JSON.stringify({
+    operationName: "GetBooks",
+    query: GetBooksDocument.loc!.source.body,
+  }),
+}).then((r) => r.json());
+
+// Inspect what the server received.
+const called = await fakeClient.calledGetBooksQuery(sequenceId);
+```
+
+The pair `(sequence-id, operationName)` is the cache key for registered fakes. Use a fresh UUID per test (or per render in UI fake screens) to isolate cases.
+
+### 6. (Dynamic path, HTTP only) Register fakes without TypeScript
+
+If you are not using TypeScript codegen, drive the same flow with raw HTTP:
+
+```ts
+const sequenceId = "unique-sequence-id-1";
+await fetch("http://127.0.0.1:4000/fake", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
+  body: JSON.stringify({
+    type: "operation",
+    operationName: "GetBooks",
+    data: {
+      books: [{ id: "book-id00", title: "The Great Gatsby" }],
+    },
+  }),
+});
+```
+
+```ts
+const response = await fetch("http://127.0.0.1:4000/query", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
+  body: JSON.stringify({
+    operationName: "GetBooks",
+    query: `query GetBooks { books { id title } }`,
+  }),
+});
+```
+
+When no fake is registered for a given `(sequence-id, operationName)`, the server falls back to the declarative fake defined by directives in the schema.
+
+## Configuration
+
+`fake-server.config.mjs` is the canonical configuration file. All fields except `schemaFilePath` are optional.
+
+```js
+/** @type {import("@newmo/graphql-fake-server").FakeServerConfig} */
+const config = {
+  schemaFilePath: "graphql/schema.graphql",
+  logLevel: "info",
+  server: {
+    ports: {
+      fakeServer: 4000,
+      apolloServer: 4002,
+    },
+    maxQueryDepth: 10,
+    maxRegisteredSequences: 1000,
+    allowedCORSOrigins: ["https://app.example.com"],
+    allowedHosts: "auto",
+  },
+  mock: {
+    maxDepth: 9,
+    maxTypeRecursion: 2,
+    listLength: 3,
+    defaultValues: {
+      String: "string",
+      Int: 12,
+      Float: 12.3,
+      Boolean: true,
+      ID: "xxxx-xxxx-xxxx-xxxx",
+      CustomScalar: {
+        DATE_YYYYMMDD: "'2022-02-03'",
+        ISODateTime: "new Date().toISOString()",
+      },
+    },
+  },
+};
+export default config;
+```
+
+### Top level
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `schemaFilePath` | `string` | — (required) | Path to the GraphQL schema, resolved from cwd. |
+| `logLevel` | `"debug" \| "info" \| "warn" \| "error"` | `"info"` | Server log verbosity. |
+| `server` | `ServerConfig` | — | Network and limit settings (see below). |
+| `mock` | `MockConfig` | — | Mock generation settings (see below). |
+
+### `server`
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ports.fakeServer` | `number` | `4000` | Port for the fake server (the one your app talks to). |
+| `ports.apolloServer` | `number` | `4002` | Port for the Apollo Playground server bound to the same schema. |
+| `maxQueryDepth` | `number` | `10` | Maximum query depth accepted; deeper queries are rejected. |
+| `maxRegisteredSequences` | `number` | `1000` | Upper bound on retained `sequence-id` entries. Oldest entries are evicted. |
+| `allowedCORSOrigins` | `string[]` | `[]` | Extra origins allowed in addition to localhost and private IP ranges. |
+| `allowedHosts` | `string[] \| "auto"` | `"auto"` | Allowed `Host` headers (DNS rebinding protection). `"auto"` derives the list from CORS origins and localhost. |
+
+### `mock`
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `maxDepth` | `number` | `9` | Maximum nesting depth when generating a mock response. |
+| `maxTypeRecursion` | `number` | `2` | Maximum times a single type may recurse inside one response. |
+| `listLength` | `number` | `3` | Number of items used when materialising list fields without an `@exampleArray*` directive. |
+| `defaultValues.String` / `Int` / `Float` / `Boolean` / `ID` | scalar literal | see example | Default values used when no `@example*` directive is present. |
+| `defaultValues.CustomScalar` | `Record<string, string>` | `{}` | Per-scalar default. Values are emitted **as code literals** by the codegen, so quote strings (`"'2022-02-03'"`) or pass an expression (`"new Date().toISOString()"`). |
+
+> [!IMPORTANT]
+> Custom scalar defaults live under `mock.defaultValues.CustomScalar`, not at the top level of the config. The values are inlined as TypeScript expressions, which is why strings must include their own quotes.
+
+## Directive Reference
+
+The directive prelude declares every directive the fake server understands. Drop it into your schema (see [`examples/e2e/node/api/api.graphqls`](./e2e/node/api/api.graphqls)).
+
+### Primitives
+
+| Directive | Target | Example |
+| --- | --- | --- |
+| `@exampleID(value: ID!)` | `ID` field | `id: ID! @exampleID(value: "book-id")` |
+| `@exampleString(value: String!)` | `String` field | `name: String! @exampleString(value: "alice")` |
+| `@exampleInt(value: Int!)` | `Int` field | `age: Int! @exampleInt(value: 33)` |
+| `@exampleFloat(value: Float!)` | `Float` field | `height: Float! @exampleFloat(value: 1.7)` |
+| `@exampleBoolean(value: Boolean!)` | `Boolean` field | `active: Boolean! @exampleBoolean(value: true)` |
+
+`@exampleID` values are decorated with `_g<global>_c<count>` to keep IDs unique across the response.
+
+### Arrays
+
+| Directive | Target |
+| --- | --- |
+| `@exampleArrayID(values: [ID!]!)` | `[ID!]` field |
+| `@exampleArrayString(values: [String!]!)` | `[String!]` field |
+| `@exampleArrayInt(values: [Int!]!)` | `[Int!]` field |
+| `@exampleArrayFloat(values: [Float!]!)` | `[Float!]` field |
+| `@exampleArrayBoolean(values: [Boolean!]!)` | `[Boolean!]` field |
+
+### Custom scalars
+
+Custom scalars accept a directive on the `scalar` definition itself:
+
+| Directive | Target |
+| --- | --- |
+| `@exampleScalarString(value: String!)` | `scalar CustomString @exampleScalarString(value: "example")` |
+| `@exampleScalarInt(value: Int!)` | `scalar CustomCount @exampleScalarInt(value: 1)` |
+| `@exampleScalarFloat(value: Float!)` | `scalar CustomRatio @exampleScalarFloat(value: 1.0)` |
+| `@exampleScalarBoolean(value: Boolean!)` | `scalar CustomFlag @exampleScalarBoolean(value: true)` |
+
+Scalars without a directive fall back to `mock.defaultValues.CustomScalar[<name>]` in the config file. If neither is set, the scalar is generated using the default for its kind.
+
+### `@error`
+
+`directive @error on FIELD_DEFINITION` marks fields that hold the error payload of a [union-error-pattern mutation](https://productionreadygraphql.com/2020-08-01-guide-to-graphql-errors). Fields marked `@error` default to an empty array in declarative fakes; populate them via dynamic fakes when you want to exercise error paths.
 
 ```graphql
-"""
-All example directives are used to define fake data.
-"""
+type UserWithErrors {
+  id: ID!
+  name: String!
+  errors: [GeneralError!]! @error
+}
+```
+
+The companion ESLint rule [`@newmo/graphql-fake/required-error-directive`](./packages/@newmo/eslint-plugin-graphql-fake/docs/rules/required-error-directive.md) enforces that any field literally named `errors` carries `@error`.
+
+### A complete example
+
+```graphql
 type TestThings {
   id: ID! @exampleID(value: "id")
   name: String! @exampleString(value: "example")
@@ -327,144 +366,26 @@ type TestThings {
 }
 ```
 
-### Dynamic Fake
+## Conditional Fake Responses
 
-Dynamic Fake is used to integration testing with dynamic fake data.
+A registered fake may carry a `requestCondition` so that different inputs return different data.
 
-1. Launch Fake Server.
+### `type: "always"`
 
-```bash
-$ npx graphql-fake-server
-```
-
-2. Register Fake Data via HTTP.
-
-`/fake` is fake data registration endpoint.
-
-```ts
-const sequenceId = "unique-sequence-id-1";
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    // sequence-id is the unique identifier of the fake data.
-    "sequence-id": sequenceId,
-  },
-  body: JSON.stringify({
-    type: "operation",
-    // operationName is the name of the operation in the GraphQL schema.
-    operationName: "GetBooks",
-    // data is the fake data to be returned.
-    data: {
-      books: [
-        {
-          id: "book-id00",
-          title: "The Great Gatsby",
-        },
-      ],
-    },
-  }),
-});
-```
-
-3. Request and get Fake Data via HTTP.
-
-`/query` and `/graphql` is the GraphQL query endpoint.
-
-```ts
-const sequenceId = "unique-sequence-id-1";
-const response = await fetch("http://127.0.0.1:4000/query", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "sequence-id": sequenceId,
-  },
-  body: JSON.stringify({
-    query: `
-            query GetBooks {
-                books {
-                    id
-                    title
-                }
-            }
-        `,
-  }),
-});
-const json = await response.json();
-console.log(json);
-/* Response is registered fake data.
-{
-  "data": {
-    "books": [
-      {
-        "id": "book-id00",
-        "title": "The Great Gatsby"
-      }
-    ]
-  }
-}
-*/
-```
-
-#### Conditional Fake Responses
-
-You can register fake responses with conditions to return different results based on request characteristics:
-
-**Variables-based conditions** - Return specific responses when variables match exactly:
-
-```ts
-// Return different response when variables match
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "sequence-id": sequenceId,
-  },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetUser",
-    requestCondition: {
-      type: "variables",
-      value: { id: "admin", role: "admin" }, // Only match when variables exactly match
-    },
-    data: {
-      user: {
-        id: "admin",
-        name: "Admin User",
-      },
-    },
-  }),
-});
-```
-
-When no condition matches, the server falls back to the declarative fake data defined in the GraphQL schema.
-
-### Condition
-
-The `condition` property in fake data registration allows you to control when specific fake responses should be returned. This enables sophisticated testing scenarios where you need different responses based on request characteristics.
-
-#### Supported Condition Types
-
-**Always Conditions (`type: "always"`)**
-
-Always conditions provide a default response that matches all requests:
+Default response, matches every request. Equivalent to omitting `requestCondition`.
 
 ```ts
 {
   type: "operation",
   operationName: "GetBooks",
-  requestCondition: {
-    type: "always"
-  },
-  data: { /* response data */ }
+  requestCondition: { type: "always" },
+  data: { /* ... */ },
 }
 ```
 
-This is useful for providing fallback responses when no specific conditions are met.
+### `type: "variables"`
 
-**Variables-based Conditions (`type: "variables"`)**
-
-Variables-based conditions allow you to return specific responses when the GraphQL variables exactly match the specified value:
+Matches only when the GraphQL `variables` are deeply equal to `value`.
 
 ```ts
 {
@@ -472,65 +393,37 @@ Variables-based conditions allow you to return specific responses when the Graph
   operationName: "GetUser",
   requestCondition: {
     type: "variables",
-    value: { id: "admin", role: "admin" } // Only match when variables exactly match
+    value: { id: "admin", role: "admin" },
   },
-  data: { /* response data */ }
+  data: { /* admin-only response */ },
 }
 ```
 
-This is useful for testing scenarios like:
+### Matching rules
 
-- Different user roles returning different data
-- Specific input values triggering special behaviors
-- Testing edge cases with particular variable combinations
-
-#### Condition Matching Rules
-
-- **Exact Match**: For variables-based conditions, the variables must match exactly (deep equality)
-- **Priority**: If multiple fake responses are registered for the same operation, they are matched based on condition specificity:
-  - **Variables conditions** (`type: "variables"`): Higher priority (specificity score: 20)
-  - **Always conditions** (`type: "always"`): Lower priority (specificity score: 0)
-  - When conditions have the same specificity, the most recently registered fake response is used
-- **Fallback**: When no condition matches, the server falls back to declarative fake data defined in the GraphQL schema
-
-#### Example: Complex Testing Scenario
-
-```ts
-const sequenceId = "test-scenario-1";
-
-// Admin user gets special data
-fetch("http://127.0.0.1:4000/fake", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "sequence-id": sequenceId },
-  body: JSON.stringify({
-    type: "operation",
-    operationName: "GetBooks",
-    requestCondition: { type: "variables", value: { userRole: "admin" } },
-    data: { books: [{ id: "admin", title: "Admin Only Book" }] },
-  }),
-});
-```
-
-> [!NOTE]
-> If you use TypeScript, you can use [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client) to generate a client for the Fake Server.
+- **Specificity**: `variables` (score 20) beats `always` (score 0).
+- **Ties**: the most recently registered fake wins.
+- **Fallback**: when no condition matches, the server falls back to the declarative fake from the schema.
 
 ## ESLint Plugin
 
-[`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake) provides ESLint rules for GraphQL Fake Server. The plugin helps to enforce best practices when using GraphQL Fake Server.
+[`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake) ships rules that catch the most common mistakes when authoring fake schemas:
 
-- [`@newmo/eslint-plugin-graphql-fake`](./packages/@newmo/eslint-plugin-graphql-fake)
+- [`required-error-directive`](./packages/@newmo/eslint-plugin-graphql-fake/docs/rules/required-error-directive.md): requires the `@error` directive on fields named `errors`.
+
+See the package README for installation and full configuration.
 
 ## Examples
 
-- [examples/e2e/node](./examples/e2e/node): Example of using Fake Server in Node.js.
+- [`e2e/node`](./e2e/node) — the canonical example: schema, codegen, fake client, vitest integration tests, and `fake-server.config.mjs`.
 
 ## Limitations
 
-Declarative Fake is a static fake, so it has the following limitations.
+Declarative fakes are static, which leads to a few constraints:
 
 ### Enum
 
-`@newmo/graphql-fake-core` always returns the first value of the enum type.
+`@newmo/graphql-fake-core` always returns the first value of an enum.
 
 ```graphql
 enum Status {
@@ -542,97 +435,43 @@ type User {
 }
 ```
 
-Return the following response:
+Returns:
 
 ```json
-{
-  "data": {
-    "user": {
-      "status": "ACTIVE"
-    }
-  }
-}
+{ "data": { "user": { "status": "ACTIVE" } } }
 ```
 
-If you want to return a different value, you need to use `@exampleString` directive.
+To pick another value, either narrow with `@exampleString`:
 
 ```graphql
-enum Status {
-  ACTIVE
-  INACTIVE
-}
 type User {
   status: Status! @exampleString(value: "INACTIVE")
 }
 ```
 
-Or, You can use Dynamic Fake to return a different value.
-
-- [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
+or override with a dynamic fake.
 
 ### `union` and `interface`
 
-`@newmo/graphql-fake-server` returns one of the concrete types of the union type/interface type when generating fake responses.
-By default, the generated factory code always selects the first concrete type declared in the union/interface and sets `__typename` accordingly, so the choice is deterministic for the same schema definition.
+For unions and interfaces the fake server picks the **first** concrete type declared and sets `__typename` accordingly. The choice is deterministic for a given schema.
 
 ```graphql
-type User {
-  id: ID!
-  name: String
-}
-type Suspended {
-  reason: String
-}
-type IsBlocked {
-  message: String
-  blockedByUser: User
-}
+type User { id: ID! name: String }
+type Suspended { reason: String }
+type IsBlocked { message: String, blockedByUser: User }
 union UserResult = User | IsBlocked | Suspended
-type Query {
-  user: UserResult
-}
+
+type Query { user: UserResult }
 ```
 
-In this example, `UserResult = User | IsBlocked | Suspended`, so the fake server always returns `User` (the first type):
+Returns `User` because it is listed first. To return a different concrete type, register a dynamic fake.
 
-```json
-{
-  "data": {
-    "user": {
-      "__typename": "User",
-      "id": "xxxx-xxxx-xxxx-xxxx",
-      "name": "string"
-    }
-  }
-}
-```
+### Custom scalar
 
-If you want to return a different type, you need to use Dynamic Fake via HTTP.
-
-- [`@newmo/graphql-codegen-fake-server-client`](https://npmjs.com/package/@newmo/graphql-codegen-fake-server-client)
-
-### Custom Scalar
-
-You can use `@exampleScalar*` directive to define the default value of the custom scalar.
-
-```graphql
-scalar CustomScalar @exampleScalarString(value: "example")
-type Query {
-  customScalar: CustomScalar
-}
-```
-
-Or, You can create a config file for `@newmo/graphql-fake-server` to define the default value of the custom scalar.
-
-`fake-server.config.mjs`:
+Prefer `@exampleScalar*` directives on the scalar definition. As a fallback, set `mock.defaultValues.CustomScalar[<name>]` in the config — the value is inlined as code, so quote strings and use expressions where appropriate:
 
 ```js
-/**
- * @type {import("@newmo/graphql-fake-server").FakeServerConfig}
- */
-const config = {
-  schemaFilePath: "graphql/schema.graphql",
-  // Define the default value of the custom scalar.
+mock: {
   defaultValues: {
     CustomScalar: {
       Digit: "1",
@@ -640,73 +479,53 @@ const config = {
       ISODateTime: "new Date().toISOString()",
     },
   },
-};
-export default config;
+}
 ```
-
-Run the fake server with the config file.
-
-```bash
-$ npx @newmo/graphql-fake-server --config ./fake-server.config.mjs
-```
-
-If you want to know more about the CLI, please see [packages/@newmo/graphql-fake-server](packages/@newmo/graphql-fake-server/README.md)
 
 ### `operationName` is required
 
-`@newmo/graphql-fake-server` depended on `operationName` of GraphQL requests.
-The fake server manages the fakes using the `sequence-id` header and `operationName` value combination as keys.
-
-As a result, the graphql request body should includes `operationName` value.
+The fake server keys responses by `(sequence-id, operationName)`. Every request body must therefore include `operationName`:
 
 ```js
-const sequenceId = crypto.randomUUID();
-const response = await fetch(`${urls.fakeServer}/graphql`, {
+await fetch(`${urls.fakeServer}/graphql`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
     "sequence-id": sequenceId,
   },
   body: JSON.stringify({
-    operationName: "GetDog", // <= required
-    query: `
-            query GetDog {
-                dog {
-                    id
-                    name
-                }
-            }
-        `,
+    operationName: "GetDog", // required
+    query: `query GetDog { dog { id name } }`,
   }),
 });
 ```
 
 ## FAQ
 
-### Can I use example directives to `input` type?
+### Can I use `@example*` directives on `input` types?
 
-Yes, It is allowed to use example directives to `input` type.
-
-`@example*` directive is for defining fake data of response, but it is also useful for declaring example value of input.
-`@newmo/graphql-fake-server` can not fake the request data, but you can use `@example*` directive to declare example value of input.
+Yes. The fake server cannot fake request data, but the directive is preserved as documentation of an example input.
 
 ```graphql
 input CreateDocumentInput {
   """
-  This @exampleString directive does not affect the request for fake server
-  It is like comment for the input field.
+  Example input value. Does not affect runtime behaviour; serves as inline documentation.
   """
   name: String! @exampleString(value: "new doc")
 }
 ```
 
+### Where does newmo's own usage live?
+
+newmo's internal apps generate one fake client per GraphQL graph (e.g. `@newmo-app/unkan-graph-client/fake-client`) and call it from Next.js `page.fake.tsx` files. The pattern is: mint a fresh `sequenceId = crypto.randomUUID()` per render, register the response via the generated client, then wrap the page in a provider that propagates the `sequence-id` header. The same pattern is reproducible outside Next.js by passing the header through any Apollo / urql / graphql-request client.
+
 ## Contributing
 
-1. Fork it!
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request :D
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b my-new-feature`.
+3. Commit your changes.
+4. Push to the branch: `git push origin my-new-feature`.
+5. Open a pull request.
 
 ## License
 
@@ -714,6 +533,6 @@ MIT
 
 ## Credits
 
-- [mizdra/graphql-codegen-typescript-fabbrica: GraphQL Code Generator Plugin to define fake data factory.](https://github.com/mizdra/graphql-codegen-typescript-fabbrica)
-- [graphql-kit/graphql-faker: 🎲 Mock or extend your GraphQL API with faked data. No coding required.](https://github.com/graphql-kit/graphql-faker)
-- [wayfair-incubator/gqmock: Project generated via @wayfair-incubator oss-template](https://github.com/wayfair-incubator/gqmock)
+- [mizdra/graphql-codegen-typescript-fabbrica](https://github.com/mizdra/graphql-codegen-typescript-fabbrica)
+- [graphql-kit/graphql-faker](https://github.com/graphql-kit/graphql-faker)
+- [wayfair-incubator/gqmock](https://github.com/wayfair-incubator/gqmock)
