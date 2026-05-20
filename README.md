@@ -45,7 +45,7 @@ npm install @newmo/graphql-fake-server --save-dev
 
 ### 2. Add the directive prelude and example values to your schema
 
-The fake directives must be declared in the schema before they can be used. The full prelude is in [`examples/e2e/node/api/api.graphqls`](./e2e/node/api/api.graphqls); copy it into your own schema (or `import` it from a separate file if your codegen supports schema composition).
+The fake directives must be declared in the schema before they can be used. The full prelude is in [`e2e/node/api/api.graphqls`](./e2e/node/api/api.graphqls); copy it into your own schema (or `import` it from a separate file if your codegen supports schema composition).
 
 ```graphql
 type Book {
@@ -298,7 +298,7 @@ export default config;
 
 ## Directive Reference
 
-The directive prelude declares every directive the fake server understands. Drop it into your schema (see [`examples/e2e/node/api/api.graphqls`](./e2e/node/api/api.graphqls)).
+The directive prelude declares every directive the fake server understands. Drop it into your schema (see [`e2e/node/api/api.graphqls`](./e2e/node/api/api.graphqls)).
 
 ### Primitives
 
@@ -514,10 +514,6 @@ input CreateDocumentInput {
   name: String! @exampleString(value: "new doc")
 }
 ```
-
-### Where does newmo's own usage live?
-
-newmo's internal apps generate one fake client per GraphQL graph (e.g. `@newmo-app/unkan-graph-client/fake-client`) and call it from Next.js `page.fake.tsx` files. The pattern is: mint a fresh `sequenceId = crypto.randomUUID()` per render, register the response via the generated client, then wrap the page in a provider that propagates the `sequence-id` header. The same pattern is reproducible outside Next.js by passing the header through any Apollo / urql / graphql-request client.
 
 ## Contributing
 
