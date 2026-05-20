@@ -21,13 +21,13 @@
     "@apollo/client": "catalog:",
     "@graphql-codegen/cli": "catalog:",
     "@graphql-codegen/typescript": "catalog:",
-    "@graphql-typed-document-node/core": "^3.2.0",
+    "@graphql-typed-document-node/core": "catalog:",
     "@tsconfig/node22": "catalog:",
     "@tsconfig/strictest": "catalog:",
     "graphql": "catalog:",
     "graphql-request": "catalog:",
-    "rxjs": "^7.8.1",
+    "rxjs": "catalog:",
     "vitest": "catalog:",
-    "vitest-github-actions-reporter": "^0.11.1"
+    "vitest-github-actions-reporter": "catalog:"
   }
 }
