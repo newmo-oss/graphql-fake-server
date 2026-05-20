@@ -43,12 +43,12 @@
     "@graphql-codegen/typescript": "catalog:",
     "@tsconfig/node22": "catalog:",
     "@tsconfig/strictest": "catalog:",
-    "@types/eslint": "^9.6.1",
+    "@types/eslint": "catalog:",
     "@types/node": "catalog:",
     "graphql": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "vitest-github-actions-reporter": "^0.11.1"
+    "vitest-github-actions-reporter": "catalog:"
   },
   "peerDependencies": {
     "graphql": "^16.8.1"

@@ -11,25 +11,33 @@ catalog:
   '@graphql-codegen/plugin-helpers': 7.0.1
   '@graphql-codegen/typescript': 6.0.1
   '@graphql-codegen/visitor-plugin-common': 7.0.2
+  '@graphql-eslint/eslint-plugin': 4.4.0
   '@graphql-tools/mock': 9.0.23
   '@graphql-tools/schema': 10.0.23
+  '@graphql-typed-document-node/core': 3.2.0
   '@hono/node-server': 1.14.4
   '@lerna-lite/cli': 4.10.4
   '@lerna-lite/publish': 4.10.4
   '@lerna-lite/version': 4.10.4
   '@tsconfig/node22': 22.0.5
   '@tsconfig/strictest': 2.0.5
+  '@types/cors': 2.8.19
+  '@types/eslint': 9.6.1
   '@types/express': 5.0.3
   '@types/node': 24.0.3
   cors: 2.8.5
   eslint: 9.29.0
   express: 5.1.0
   graphql: 16.11.0
+  graphql-depth-limit: 1.1.0
   graphql-request: 7.2.0
   hono: 4.8.0
   lint-staged: 16.1.2
+  rxjs: 7.8.2
   typescript: 5.8.3
+  undici: 8.3.0
   vitest: 3.2.4
+  vitest-github-actions-reporter: 0.11.1
 allowBuilds:
   '@apollo/protobufjs': false
   esbuild: false

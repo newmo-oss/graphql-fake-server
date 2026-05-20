@@ -30,12 +30,18 @@ catalogs:
     '@graphql-codegen/visitor-plugin-common':
       specifier: 7.0.2
       version: 7.0.2
+    '@graphql-eslint/eslint-plugin':
+      specifier: 4.4.0
+      version: 4.4.0
     '@graphql-tools/mock':
       specifier: 9.0.23
       version: 9.0.23
     '@graphql-tools/schema':
       specifier: 10.0.23
       version: 10.0.23
+    '@graphql-typed-document-node/core':
+      specifier: 3.2.0
+      version: 3.2.0
     '@hono/node-server':
       specifier: 1.14.4
       version: 1.14.4
@@ -54,6 +60,12 @@ catalogs:
     '@tsconfig/strictest':
       specifier: 2.0.5
       version: 2.0.5
+    '@types/cors':
+      specifier: 2.8.19
+      version: 2.8.19
+    '@types/eslint':
+      specifier: 9.6.1
+      version: 9.6.1
     '@types/express':
       specifier: 5.0.3
       version: 5.0.3
@@ -72,6 +84,9 @@ catalogs:
     graphql:
       specifier: 16.11.0
       version: 16.11.0
+    graphql-depth-limit:
+      specifier: 1.1.0
+      version: 1.1.0
     graphql-request:
       specifier: 7.2.0
       version: 7.2.0
@@ -81,12 +96,21 @@ catalogs:
     lint-staged:
       specifier: 16.1.2
       version: 16.1.2
+    rxjs:
+      specifier: 7.8.2
+      version: 7.8.2
     typescript:
       specifier: 5.8.3
       version: 5.8.3
+    undici:
+      specifier: 8.3.0
+      version: 8.3.0
     vitest:
       specifier: 3.2.4
       version: 3.2.4
+    vitest-github-actions-reporter:
+      specifier: 0.11.1
+      version: 0.11.1
 
 importers:
 
@@ -130,7 +154,7 @@ importers:
         specifier: 'catalog:'
         version: 6.0.1(graphql@16.11.0)
       '@graphql-typed-document-node/core':
-        specifier: ^3.2.0
+        specifier: 'catalog:'
         version: 3.2.0(graphql@16.11.0)
       '@tsconfig/node22':
         specifier: 'catalog:'
@@ -145,7 +169,7 @@ importers:
         specifier: 'catalog:'
         version: 7.2.0(graphql@16.11.0)
       rxjs:
-        specifier: ^7.8.1
+        specifier: 'catalog:'
         version: 7.8.2
       typescript:
         specifier: 'catalog:'
@@ -154,13 +178,13 @@ importers:
         specifier: 'catalog:'
         version: 3.2.4(@types/node@25.9.0)(jiti@2.7.0)(yaml@2.9.0)
       vitest-github-actions-reporter:
-        specifier: ^0.11.1
+        specifier: 'catalog:'
         version: 0.11.1(vitest@3.2.4(@types/node@25.9.0)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/@newmo/eslint-plugin-graphql-fake:
     dependencies:
       '@graphql-eslint/eslint-plugin':
-        specifier: ^4.4.0
+        specifier: 'catalog:'
         version: 4.4.0(@types/node@24.0.3)(eslint@9.29.0(jiti@2.7.0))(graphql@16.11.0)(typescript@5.8.3)
     devDependencies:
       '@tsconfig/node22':
@@ -170,7 +194,7 @@ importers:
         specifier: 'catalog:'
         version: 2.0.5
       '@types/eslint':
-        specifier: ^9.6.1
+        specifier: 'catalog:'
         version: 9.6.1
       '@types/node':
         specifier: 'catalog:'
@@ -188,7 +212,7 @@ importers:
         specifier: 'catalog:'
         version: 3.2.4(@types/node@24.0.3)(jiti@2.7.0)(yaml@2.9.0)
       vitest-github-actions-reporter:
-        specifier: ^0.11.1
+        specifier: 'catalog:'
         version: 0.11.1(vitest@3.2.4(@types/node@24.0.3)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/@newmo/graphql-codegen-fake-server-client:
@@ -207,7 +231,7 @@ importers:
         specifier: 'catalog:'
         version: 6.0.1(graphql@16.11.0)
       '@graphql-typed-document-node/core':
-        specifier: ^3.2.0
+        specifier: 'catalog:'
         version: 3.2.0(graphql@16.11.0)
       '@tsconfig/node22':
         specifier: 'catalog:'
@@ -216,7 +240,7 @@ importers:
         specifier: 'catalog:'
         version: 2.0.5
       '@types/eslint':
-        specifier: ^9.6.1
+        specifier: 'catalog:'
         version: 9.6.1
       '@types/node':
         specifier: 'catalog:'
@@ -247,7 +271,7 @@ importers:
         specifier: 'catalog:'
         version: 2.0.5
       '@types/eslint':
-        specifier: ^9.6.1
+        specifier: 'catalog:'
         version: 9.6.1
       '@types/node':
         specifier: 'catalog:'
@@ -262,7 +286,7 @@ importers:
         specifier: 'catalog:'
         version: 3.2.4(@types/node@24.0.3)(jiti@2.7.0)(yaml@2.9.0)
       vitest-github-actions-reporter:
-        specifier: ^0.11.1
+        specifier: 'catalog:'
         version: 0.11.1(vitest@3.2.4(@types/node@24.0.3)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/@newmo/graphql-fake-server:
@@ -292,7 +316,7 @@ importers:
         specifier: 'catalog:'
         version: 5.1.0
       graphql-depth-limit:
-        specifier: ^1.1.0
+        specifier: 'catalog:'
         version: 1.1.0(graphql@16.11.0)
       hono:
         specifier: 'catalog:'
@@ -305,10 +329,10 @@ importers:
         specifier: 'catalog:'
         version: 2.0.5
       '@types/cors':
-        specifier: ^2.8.19
+        specifier: 'catalog:'
         version: 2.8.19
       '@types/eslint':
-        specifier: ^9.6.1
+        specifier: 'catalog:'
         version: 9.6.1
       '@types/express':
         specifier: 'catalog:'
@@ -323,13 +347,13 @@ importers:
         specifier: 'catalog:'
         version: 5.8.3
       undici:
-        specifier: ^8.3.0
+        specifier: 'catalog:'
         version: 8.3.0
       vitest:
         specifier: 'catalog:'
         version: 3.2.4(@types/node@24.0.3)(jiti@2.7.0)(yaml@2.9.0)
       vitest-github-actions-reporter:
-        specifier: ^0.11.1
+        specifier: 'catalog:'
         version: 0.11.1(vitest@3.2.4(@types/node@24.0.3)(jiti@2.7.0)(yaml@2.9.0))
 
 packages:
@@ -6107,11 +6131,11 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.0.3
+      '@types/node': 25.9.0
 
   '@types/cors@2.8.19':
     dependencies:
-      '@types/node': 24.0.3
+      '@types/node': 25.9.0
 
   '@types/deep-eql@4.0.2': {}
 
@@ -6185,16 +6209,16 @@ snapshots:
   '@types/send@0.17.6':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 24.0.3
+      '@types/node': 25.9.0
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 24.0.3
+      '@types/node': 25.9.0
 
   '@types/serve-static@1.15.10':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.0.3
+      '@types/node': 25.9.0
       '@types/send': 0.17.6
 
   '@types/serve-static@2.2.0':

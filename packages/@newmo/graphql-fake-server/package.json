@@ -55,21 +55,21 @@
     "@newmo/graphql-fake-core": "workspace:*",
     "cors": "catalog:",
     "express": "catalog:",
-    "graphql-depth-limit": "^1.1.0",
+    "graphql-depth-limit": "catalog:",
     "hono": "catalog:"
   },
   "devDependencies": {
     "@tsconfig/node22": "catalog:",
     "@tsconfig/strictest": "catalog:",
-    "@types/cors": "^2.8.19",
-    "@types/eslint": "^9.6.1",
+    "@types/cors": "catalog:",
+    "@types/eslint": "catalog:",
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "graphql": "catalog:",
     "typescript": "catalog:",
-    "undici": "^8.3.0",
+    "undici": "catalog:",
     "vitest": "catalog:",
-    "vitest-github-actions-reporter": "^0.11.1"
+    "vitest-github-actions-reporter": "catalog:"
   },
   "peerDependencies": {
     "graphql": "^16.8.1"
