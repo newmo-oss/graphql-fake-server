@@ -28,6 +28,7 @@ ${indent(config.body)}
  */
 export function generateRegisterQuery(params: {
     name: string;
+    operationName: string;
     variablesType: string;
     responseType: string;
     endpoint: string;
@@ -47,7 +48,7 @@ const response = await requestQueue.add(() => fetchWithRetry(
         },
         body: JSON.stringify({
             type: "operation",
-            operationName: "${params.name}",
+            operationName: "${params.operationName}",
             data: queryResponse,
             requestCondition: requestCondition
         }),
@@ -68,6 +69,7 @@ return result as ${params.responseType};`,
  */
 export function generateRegisterQueryError(params: {
     name: string;
+    operationName: string;
     responseType: string;
     endpoint: string;
 }): string {
@@ -85,7 +87,7 @@ export function generateRegisterQueryError(params: {
         },
         body: JSON.stringify({
             type: "network-error",
-            operationName: "${params.name}",
+            operationName: "${params.operationName}",
             responseStatusCode,
             errors
         }),
@@ -106,6 +108,7 @@ return result as ${params.responseType};`,
  */
 export function generateRegisterMutation(params: {
     name: string;
+    operationName: string;
     variablesType: string;
     responseType: string;
     endpoint: string;
@@ -125,7 +128,7 @@ const response = await requestQueue.add(() => fetchWithRetry(
         },
         body: JSON.stringify({
             type: "operation",
-            operationName: "${params.name}",
+            operationName: "${params.operationName}",
             data: mutationResponse,
             requestCondition: requestCondition
         }),
@@ -146,6 +149,7 @@ return result as ${params.responseType};`,
  */
 export function generateRegisterMutationError(params: {
     name: string;
+    operationName: string;
     responseType: string;
     endpoint: string;
 }): string {
@@ -163,7 +167,7 @@ export function generateRegisterMutationError(params: {
         },
         body: JSON.stringify({
             type: "network-error",
-            operationName: "${params.name}",
+            operationName: "${params.operationName}",
             responseStatusCode,
             errors
         }),
@@ -184,6 +188,7 @@ return result as ${params.responseType};`,
  */
 export function generateCalledQuery(params: {
     name: string;
+    operationName: string;
     variablesType: string;
     endpoint: string;
 }): string {
@@ -218,7 +223,7 @@ export function generateCalledQuery(params: {
             'sequence-id': sequenceId
         },
         body: JSON.stringify({
-            operationName: "${params.name}"
+            operationName: "${params.operationName}"
         }),
     }
 ));
@@ -256,6 +261,7 @@ return result as {
  */
 export function generateCalledMutation(params: {
     name: string;
+    operationName: string;
     variablesType: string;
     endpoint: string;
 }): string {
@@ -290,7 +296,7 @@ export function generateCalledMutation(params: {
             'sequence-id': sequenceId
         },
         body: JSON.stringify({
-            operationName: "${params.name}"
+            operationName: "${params.operationName}"
         }),
     }
 ));

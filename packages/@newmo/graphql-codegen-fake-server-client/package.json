@@ -33,7 +33,7 @@
     "prepare": "npm run build",
     "build": "tsc",
     "lint": "tsc --noEmit",
-    "test": "npm run build && npm run codegen && npm run typecheck",
+    "test": "npm run build && npm run codegen && npm run typecheck && vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "codegen": "graphql-codegen --config graphql-codegen.ts",
     "updateSnapshot": "pnpm run codegen"
@@ -51,7 +51,9 @@
     "@types/eslint": "catalog:",
     "@types/node": "catalog:",
     "graphql": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vitest-github-actions-reporter": "catalog:"
   },
   "peerDependencies": {
     "graphql": "^16.8.1"
