@@ -3,40 +3,110 @@ packages:
   - 'e2e/*'
 minimumReleaseAge: 1440
 catalog:
+  # @pkg-group: apollo
+  # @pkg-automerge
   '@apollo/client': 4.0.3
+  # @pkg-group: apollo
+  # @pkg-automerge
   '@apollo/server': 4.12.2
+  # @pkg-group: server
+  # @pkg-automerge
   '@as-integrations/express5': 1.1.0
+  # @pkg-group: biome
+  # @pkg-automerge
   '@biomejs/biome': 2.2.2
+  # @pkg-group: graphql-codegen
+  # @pkg-automerge
   '@graphql-codegen/cli': 7.0.0
+  # @pkg-group: graphql-codegen
+  # @pkg-automerge
   '@graphql-codegen/plugin-helpers': 7.0.1
+  # @pkg-group: graphql-codegen
+  # @pkg-automerge
   '@graphql-codegen/typescript': 6.0.1
+  # @pkg-group: graphql-codegen
+  # @pkg-automerge
   '@graphql-codegen/visitor-plugin-common': 7.0.2
+  # @pkg-group: eslint
+  # @pkg-automerge
   '@graphql-eslint/eslint-plugin': 4.4.0
+  # @pkg-group: graphql-tools
+  # @pkg-automerge
   '@graphql-tools/mock': 9.0.23
+  # @pkg-group: graphql-tools
+  # @pkg-automerge
   '@graphql-tools/schema': 10.0.23
+  # @pkg-group: graphql
+  # @pkg-automerge
   '@graphql-typed-document-node/core': 3.2.0
+  # @pkg-group: server
+  # @pkg-automerge
   '@hono/node-server': 1.14.4
+  # @pkg-group: lerna-lite
+  # @pkg-automerge
   '@lerna-lite/cli': 4.10.4
+  # @pkg-group: lerna-lite
+  # @pkg-automerge
   '@lerna-lite/publish': 4.10.4
+  # @pkg-group: lerna-lite
+  # @pkg-automerge
   '@lerna-lite/version': 4.10.4
+  # @pkg-group: typescript
+  # @pkg-automerge
   '@tsconfig/node22': 22.0.5
+  # @pkg-group: typescript
+  # @pkg-automerge
   '@tsconfig/strictest': 2.0.5
+  # @pkg-group: server
+  # @pkg-automerge
   '@types/cors': 2.8.19
+  # @pkg-group: eslint
+  # @pkg-automerge
   '@types/eslint': 9.6.1
+  # @pkg-group: server
+  # @pkg-automerge
   '@types/express': 5.0.3
+  # @pkg-group: typescript
+  # @pkg-automerge
   '@types/node': 24.0.3
+  # @pkg-group: server
+  # @pkg-automerge
   cors: 2.8.5
+  # @pkg-group: eslint
+  # @pkg-automerge
   eslint: 9.29.0
+  # @pkg-group: server
+  # @pkg-automerge
   express: 5.1.0
+  # @pkg-group: graphql
+  # @pkg-automerge
   graphql: 16.11.0
+  # @pkg-group: graphql
+  # @pkg-automerge
   graphql-depth-limit: 1.1.0
+  # @pkg-group: graphql
+  # @pkg-automerge
   graphql-request: 7.2.0
+  # @pkg-group: server
+  # @pkg-automerge
   hono: 4.8.0
+  # @pkg-group: dev
+  # @pkg-automerge
   lint-staged: 16.1.2
+  # @pkg-group: dev
+  # @pkg-automerge
   rxjs: 7.8.2
+  # @pkg-group: typescript
+  # @pkg-automerge
   typescript: 5.8.3
+  # @pkg-group: server
+  # @pkg-automerge
   undici: 8.3.0
+  # @pkg-group: test
+  # @pkg-automerge
   vitest: 3.2.4
+  # @pkg-group: test
+  # @pkg-automerge
   vitest-github-actions-reporter: 0.11.1
 allowBuilds:
   '@apollo/protobufjs': false
