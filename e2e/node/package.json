@@ -27,6 +27,7 @@
     "graphql": "catalog:",
     "graphql-request": "catalog:",
     "rxjs": "^7.8.1",
+    "typescript": "catalog:",
     "vitest": "catalog:",
     "vitest-github-actions-reporter": "^0.11.1"
   }
