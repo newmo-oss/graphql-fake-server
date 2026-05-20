@@ -988,6 +988,68 @@ describe("graphql-fake-server", () => {
               }
             `);
         });
+        it("should return correct Content-Length for multi-byte response body", async () => {
+            const schema = `
+            type Dog {
+                id: ID! @exampleID(value: "dog-id")
+                name: String! @exampleString(value: "ハナコ")
+            }
+            type Query {
+                dog: Dog!
+            }
+        `;
+            const ports = getPorts();
+            const server = await startTestFakeServer({ schemaString: schema, ports });
+            const { urls } = await server.start();
+            const sequenceId = crypto.randomUUID();
+            const fakeData = {
+                dog: {
+                    id: "dog-1",
+                    name: "日本語の名前🐶",
+                },
+            };
+            await fetch(`${urls.fakeServer}/fake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    type: "operation",
+                    operationName: "GetDog",
+                    data: fakeData,
+                }),
+            });
+            const response = await fetch(`${urls.fakeServer}/graphql`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sequence-id": sequenceId,
+                },
+                body: JSON.stringify({
+                    operationName: "GetDog",
+                    query: `
+                    query GetDog {
+                        dog {
+                            id
+                            name
+                        }
+                    }
+                `,
+                }),
+            });
+            const bodyBuffer = await response.arrayBuffer();
+            const expectedBody = JSON.stringify({ data: fakeData });
+            const expectedByteLength = Buffer.byteLength(expectedBody, "utf-8");
+            // Content-Length must be the byte length, not the character length,
+            // otherwise multi-byte responses get truncated by HTTP clients.
+            const contentLength = response.headers.get("content-length");
+            assert.strictEqual(contentLength, String(expectedByteLength));
+            assert.strictEqual(bodyBuffer.byteLength, expectedByteLength);
+            const parsed = JSON.parse(new TextDecoder().decode(bodyBuffer));
+            expect(parsed).toEqual({ data: fakeData });
+            await server.stop();
+        });
     });
     describe("/fake/called", () => {
         it("should return called operations for query", async () => {
