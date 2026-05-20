@@ -80,8 +80,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Dry-Run renovate
+        # `pnpm dlx` は engines.pnpm/engines.node を strict にチェックするため、
+        # renovate (engines.pnpm: ^10, engines.node: ^24.11) を pnpm 11 + Node 22 上で起動できない
+        # npx は engine 不一致を warning に留めるので、ここでは npx 経由で実行する
         run: |
-          pnpm dlx "renovate@${RENOVATE_VERSION}" --platform=local 2>&1 | tee /tmp/renovate-log.ndjson
+          npx --yes --package "renovate@${RENOVATE_VERSION}" -- renovate --platform=local 2>&1 | tee /tmp/renovate-log.ndjson
         env:
           GITHUB_COM_TOKEN: ${{ github.token }}
           RENOVATE_CONFIG_FILE: "renovate.json5"
