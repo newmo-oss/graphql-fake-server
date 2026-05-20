@@ -1199,7 +1199,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 },
                 body: JSON.stringify({
                     type: "operation",
-                    operationName: "CreateFooUrl",
+                    operationName: "CreateFooURL",
                     data: mutationResponse,
                     requestCondition: requestCondition
                 }),
@@ -1224,7 +1224,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                 },
                 body: JSON.stringify({
                     type: "network-error",
-                    operationName: "CreateFooUrl",
+                    operationName: "CreateFooURL",
                     responseStatusCode,
                     errors
                 }),
@@ -1266,7 +1266,7 @@ export function createFakeClient(options: CreateFakeClientOptions) {
                     'sequence-id': sequenceId
                 },
                 body: JSON.stringify({
-                    operationName: "CreateFooUrl"
+                    operationName: "CreateFooURL"
                 }),
             }
         ));
