@@ -46,18 +46,11 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
+  "packageManager": "pnpm@11.1.3+sha512.c85357fe17ca12dd23dd7071822666dfd7e3cb76fe214e3370b5ea2fb34f2a231185509b63e717f3cd0acb38dd3f8d82bcd5e8172400ae678b70ea4fbed0896d",
   "lint-staged": {
     "*.{js,jsx,ts,tsx,css}": "biome check --no-errors-on-unmatched --files-ignore-unknown=true"
   },
   "workspaces": [
     "packages/*"
-  ],
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@apollo/protobufjs",
-      "esbuild",
-      "msw"
-    ]
-  }
+  ]
 }
