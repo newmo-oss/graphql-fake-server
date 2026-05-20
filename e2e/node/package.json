@@ -27,6 +27,7 @@
     "graphql": "catalog:",
     "graphql-request": "catalog:",
     "rxjs": "catalog:",
+    "typescript": "catalog:",
     "vitest": "catalog:",
     "vitest-github-actions-reporter": "catalog:"
   }

@@ -1,6 +1,7 @@
 packages:
   - 'packages/@newmo/*'
   - 'e2e/*'
+minimumReleaseAge: 1440
 catalog:
   '@apollo/client': 4.0.3
   '@apollo/server': 4.12.2
@@ -37,3 +38,7 @@ catalog:
   undici: 8.3.0
   vitest: 3.2.4
   vitest-github-actions-reporter: 0.11.1
+allowBuilds:
+  '@apollo/protobufjs': false
+  esbuild: false
+  msw: false
