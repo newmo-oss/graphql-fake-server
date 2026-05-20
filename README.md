@@ -454,24 +454,37 @@ export const fakeClient = createFakeClient({
 // src/components/ApolloWrapper.tsx
 "use client";
 
-import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from "@apollo/client";
+import { ApolloClient, ApolloLink, ApolloProvider, HttpLink, InMemoryCache } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import { useMemo } from "react";
+
+// Resolve the sequence-id with this precedence:
+//   1. ?sequence-id=<id> on the current URL (used by Playwright tests)
+//   2. the `sequenceId` prop (used by page.fake.tsx)
+const createSequenceIdLink = (propSequenceId?: string) =>
+  setContext((_, prev) => {
+    const fromUrl = new URL(location.href).searchParams.get("sequence-id");
+    const sequenceId = fromUrl ?? propSequenceId;
+    return sequenceId
+      ? { headers: { ...prev.headers, "sequence-id": sequenceId } }
+      : prev;
+  });
 
 export function ApolloWrapper({
   sequenceId,
   children,
 }: {
-  sequenceId: string;
+  sequenceId?: string;
   children: React.ReactNode;
 }) {
   const client = useMemo(
     () =>
       new ApolloClient({
         cache: new InMemoryCache(),
-        link: new HttpLink({
-          uri: process.env.NEXT_PUBLIC_GRAPHQL_FAKE_API_ENDPOINT,
-          headers: { "sequence-id": sequenceId },
-        }),
+        link: ApolloLink.from([
+          createSequenceIdLink(sequenceId),
+          new HttpLink({ uri: process.env.NEXT_PUBLIC_GRAPHQL_FAKE_API_ENDPOINT }),
+        ]),
       }),
     [sequenceId],
   );
@@ -503,6 +516,47 @@ export default async function FakePage() {
 ```
 
 A `sequence-id` is minted on every render so concurrent visits to fake pages do not collide. To enforce that every `page.tsx` / `layout.tsx` has a `*.fake.tsx` counterpart, add a small structural test (e.g. a vitest spec that walks `src/app/`).
+
+### Playwright integration tests
+
+Playwright can drive the same setup without injecting anything into the app: the test mints a `sequenceId`, registers fakes against it, then navigates to a URL with `?sequence-id=<id>`. The `ApolloWrapper` above picks the id up from the URL and forwards it on every GraphQL request — no fixture wiring inside the page.
+
+```ts
+// e2e/books.spec.ts
+import { test, expect } from "@playwright/test";
+import { createFakeClient } from "../generated/fake-client";
+
+const fakeClient = createFakeClient({
+  fakeServerEndpoint: "http://127.0.0.1:4000/fake",
+});
+
+// Fixture: one fresh sequenceId per test, isolating fakes from each other.
+const fakeTest = test.extend<{ sequenceId: string }>({
+  // eslint-disable-next-line no-empty-pattern
+  sequenceId: async ({}, use) => {
+    await use(crypto.randomUUID());
+  },
+});
+
+fakeTest("renders registered books", async ({ page, sequenceId }) => {
+  await fakeClient.registerGetBooksQueryResponse(sequenceId, {
+    __typename: "Query",
+    books: [
+      { __typename: "Book", id: "book-1", title: "The Great Gatsby" },
+    ],
+  });
+
+  await page.goto(`/books?sequence-id=${sequenceId}`);
+
+  await expect(page.getByText("The Great Gatsby")).toBeVisible();
+
+  // Optional: assert the variables the app actually sent.
+  const called = await fakeClient.calledGetBooksQuery(sequenceId);
+  expect(called.data).toHaveLength(1);
+});
+```
+
+The two requirements are: (1) the URL carries `?sequence-id=<id>`, (2) the GraphQL client reads it and propagates it as the `sequence-id` header. With those in place the same `fakeClient` API used in unit-style code works as a Playwright fixture.
 
 ## ESLint Plugin
 
