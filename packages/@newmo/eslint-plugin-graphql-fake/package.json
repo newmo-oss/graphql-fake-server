@@ -35,10 +35,8 @@
   ],
   "scripts": {
     "prepare": "npm run build",
-    "build": "run-s -c build:*",
-    "build:esm": "tsc -p tsconfig.build.json",
-    "lint": "run-s -c lint:*",
-    "lint:tsc": "tsc",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "tsc",
     "test": "vitest run",
     "updateSnapshot": "vitest run -u"
   },
@@ -52,7 +50,6 @@
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "graphql": "catalog:",
-    "npm-run-all2": "^8.0.4",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "vitest-github-actions-reporter": "^0.11.1"
