@@ -228,6 +228,30 @@ type Query {
                 `[Error: Query.objs: @exampleArrayString directive cannot be used on "Obj" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
             );
         });
+        it("throws when @exampleArrayString targets a list of interface type", () => {
+            const schema = buildSchema(`
+interface Node { id: ID! }
+type Query {
+  nodes: [Node!]! @exampleArrayString(values: ["A"])
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.nodes: @exampleArrayString directive cannot be used on "Node" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("throws when @exampleArrayString targets a list of union type", () => {
+            const schema = buildSchema(`
+type A { a: String! }
+type B { b: String! }
+union AB = A | B
+type Query {
+  abs: [AB!]! @exampleArrayString(values: ["A"])
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.abs: @exampleArrayString directive cannot be used on "AB" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
         it("still allows @exampleString on an enum type field", () => {
             const schema = buildSchema(`
 enum Status {
@@ -241,6 +265,21 @@ type Query {
             const queryType = getTypeInfos(fakeConfig(), schema).find((t) => t.rawName === "Query");
             expect(queryType).toMatchObject({
                 fields: [{ name: "status", example: { value: "INACTIVE" } }],
+            });
+        });
+        it("still allows @exampleArrayString on a list of enum type", () => {
+            const schema = buildSchema(`
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+type Query {
+  statuses: [Status!]! @exampleArrayString(values: ["INACTIVE", "ACTIVE"])
+}
+`);
+            const queryType = getTypeInfos(fakeConfig(), schema).find((t) => t.rawName === "Query");
+            expect(queryType).toMatchObject({
+                fields: [{ name: "statuses", example: { value: ["INACTIVE", "ACTIVE"] } }],
             });
         });
     });
