@@ -29,6 +29,15 @@ const createIDFactory = () => {
     };
 };
 
+// Unwrap NonNull and List wrappers to get the underlying named type name.
+// [Obj!]! -> "Obj", Obj! -> "Obj", Obj -> "Obj"
+const getNamedTypeName = (node: TypeNode): string => {
+    if (node.kind === Kind.NON_NULL_TYPE || node.kind === Kind.LIST_TYPE) {
+        return getNamedTypeName(node.type);
+    }
+    return node.name.value;
+};
+
 const parseTypeNodeStructure = (node: TypeNode): string => {
     if (node.kind === Kind.NON_NULL_TYPE) {
         return parseTypeNodeStructure(node.type);
@@ -379,6 +388,15 @@ function parseFieldOrInputValueDefinition({
             `@${exampleDirective.name.value} directive must have arguments. @${exampleDirective.name.value}(value: ...)`,
         );
     }
+    // @example* directives can only target scalar or enum leaf types.
+    // Applying them to object/interface/union fields is invalid and would
+    // otherwise pass build-time validation only to fail at runtime.
+    const namedTypeName = getNamedTypeName(node.type);
+    if (context.compositeTypeNames.has(namedTypeName)) {
+        throw new Error(
+            `${convertedTypeName}.${fieldName}: @${exampleDirective.name.value} directive cannot be used on "${namedTypeName}" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.`,
+        );
+    }
     // [String!]! -> true
     // [String!] -> true
     // String -> false
@@ -596,6 +614,9 @@ type CustomScalarMap = Map<string, ScalarTypeInfo>;
 type ScannerContext = {
     enumMap: EnumRawNameMap;
     customScalarMap: CustomScalarMap;
+    // raw names of object, interface, and union types.
+    // Used to reject @example* directives on composite-typed fields.
+    compositeTypeNames: Set<string>;
 };
 const createObjectTypeInfo = ({
     config,
@@ -785,6 +806,29 @@ const createCustomScalarTypeInfo = ({
     );
 };
 
+const createCompositeTypeNameSet = (schema: GraphQLSchema): Set<string> => {
+    return new Set(
+        Object.values(schema.getTypeMap())
+            .map((type) => type.astNode)
+            .filter(
+                (
+                    node,
+                ): node is
+                    | ObjectTypeDefinitionNode
+                    | InterfaceTypeDefinitionNode
+                    | UnionTypeDefinitionNode => {
+                    if (!node) return false;
+                    return (
+                        node.kind === Kind.OBJECT_TYPE_DEFINITION ||
+                        node.kind === Kind.INTERFACE_TYPE_DEFINITION ||
+                        node.kind === Kind.UNION_TYPE_DEFINITION
+                    );
+                },
+            )
+            .map((node) => node.name.value),
+    );
+};
+
 export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] {
     const enumTypeInfo = createEnumTypeInfo({ config: config, schema: schema });
     const enumMap = new Map(enumTypeInfo.map((info) => [info.rawName, info]));
@@ -793,6 +837,7 @@ export function getTypeInfos(config: Config, schema: GraphQLSchema): TypeInfo[] 
     const context: ScannerContext = {
         enumMap: enumMap,
         customScalarMap: customScalarMap,
+        compositeTypeNames: createCompositeTypeNameSet(schema),
     };
     return [
         ...enumTypeInfo,

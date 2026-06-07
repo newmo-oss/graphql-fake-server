@@ -175,6 +175,114 @@ type RequiredDocument {
           ]
         `);
     });
+    // https://github.com/newmo-oss/graphql-fake-server/issues/38
+    describe("@example* directive on composite-typed field throws at build time", () => {
+        it("throws when @exampleString targets an object type field", () => {
+            const schema = buildSchema(`
+type Obj {
+  A: String!
+  B: String!
+}
+type Query {
+  obj: Obj! @exampleString(value: "A")
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.obj: @exampleString directive cannot be used on "Obj" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("throws when @exampleString targets an interface type field", () => {
+            const schema = buildSchema(`
+interface Node {
+  id: ID!
+}
+type Query {
+  node: Node! @exampleString(value: "A")
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.node: @exampleString directive cannot be used on "Node" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("throws when @exampleString targets a union type field", () => {
+            const schema = buildSchema(`
+type A { a: String! }
+type B { b: String! }
+union AB = A | B
+type Query {
+  ab: AB! @exampleString(value: "A")
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.ab: @exampleString directive cannot be used on "AB" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("throws when @exampleArrayString targets a list of object type", () => {
+            const schema = buildSchema(`
+type Obj { a: String! }
+type Query {
+  objs: [Obj!]! @exampleArrayString(values: ["A"])
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.objs: @exampleArrayString directive cannot be used on "Obj" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("throws when @exampleArrayString targets a list of interface type", () => {
+            const schema = buildSchema(`
+interface Node { id: ID! }
+type Query {
+  nodes: [Node!]! @exampleArrayString(values: ["A"])
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.nodes: @exampleArrayString directive cannot be used on "Node" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("throws when @exampleArrayString targets a list of union type", () => {
+            const schema = buildSchema(`
+type A { a: String! }
+type B { b: String! }
+union AB = A | B
+type Query {
+  abs: [AB!]! @exampleArrayString(values: ["A"])
+}
+`);
+            expect(() => getTypeInfos(fakeConfig(), schema)).toThrowErrorMatchingInlineSnapshot(
+                `[Error: Query.abs: @exampleArrayString directive cannot be used on "AB" type. @example* directives can only be applied to scalar or enum fields, not object, interface, or union types.]`,
+            );
+        });
+        it("still allows @exampleString on an enum type field", () => {
+            const schema = buildSchema(`
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+type Query {
+  status: Status! @exampleString(value: "INACTIVE")
+}
+`);
+            const queryType = getTypeInfos(fakeConfig(), schema).find((t) => t.rawName === "Query");
+            expect(queryType).toMatchObject({
+                fields: [{ name: "status", example: { value: "INACTIVE" } }],
+            });
+        });
+        it("still allows @exampleArrayString on a list of enum type", () => {
+            const schema = buildSchema(`
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+type Query {
+  statuses: [Status!]! @exampleArrayString(values: ["INACTIVE", "ACTIVE"])
+}
+`);
+            const queryType = getTypeInfos(fakeConfig(), schema).find((t) => t.rawName === "Query");
+            expect(queryType).toMatchObject({
+                fields: [{ name: "statuses", example: { value: ["INACTIVE", "ACTIVE"] } }],
+            });
+        });
+    });
     it("includes description comment", () => {
         const schema = buildSchema(`
       "The book"
