@@ -676,6 +676,15 @@ input CreateDocumentInput {
 4. Push to the branch: `git push origin my-new-feature`.
 5. Open a pull request.
 
+## Release
+
+Releases are published through GitHub Actions. Only maintainers can trigger a release.
+
+1. Open the [Create Release PR workflow](https://github.com/newmo-oss/graphql-fake-server/actions/workflows/create-release-pr.yml) and click "Run workflow" (`workflow_dispatch`), choosing the version bump (`patch` / `minor` / `major`). The workflow bumps the version and opens a release pull request labeled `Type: Release`.
+2. Review the release pull request and merge it.
+3. Merging triggers the [Release workflow](https://github.com/newmo-oss/graphql-fake-server/actions/workflows/release.yml). Its `release` job uses the `npm` environment, which is protected by Environments protection rules, so a repository owner must approve the deployment in the Actions tab before it proceeds.
+4. After approval, the workflow publishes the package to npm, creates a GitHub Release, and the [Docker image workflow](https://github.com/newmo-oss/graphql-fake-server/actions/workflows/publish-docker-to-ghr.yaml) runs on the published release to build and push the Docker image to GitHub Container Registry.
+
 ## License
 
 MIT
