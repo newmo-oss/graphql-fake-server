@@ -16,10 +16,8 @@
   "main": "./dist/graphql-codegen-fake-server-client.js",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/graphql-codegen-fake-server-client.d.ts",
-        "default": "./dist/graphql-codegen-fake-server-client.js"
-      }
+      "types": "./dist/graphql-codegen-fake-server-client.d.ts",
+      "default": "./dist/graphql-codegen-fake-server-client.js"
     }
   },
   "files": [
