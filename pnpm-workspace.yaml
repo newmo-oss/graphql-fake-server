@@ -17,7 +17,7 @@ catalog:
   '@biomejs/biome': 2.4.15
   # @pkg-group: graphql-codegen
   # @pkg-automerge
-  '@graphql-codegen/cli': 7.0.0
+  '@graphql-codegen/cli': 7.4.2
   # @pkg-group: graphql-codegen
   # @pkg-automerge
   '@graphql-codegen/plugin-helpers': 7.0.1
